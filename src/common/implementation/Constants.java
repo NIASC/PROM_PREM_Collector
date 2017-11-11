@@ -42,8 +42,7 @@ public abstract class Constants {
 	
 	public static final String filePath = "common/implementation/settings.ini";
 	
-	static
-	{
+	static {
 		URL url = null;
 		try
 		{
