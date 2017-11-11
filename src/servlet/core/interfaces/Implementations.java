@@ -21,6 +21,7 @@
 package servlet.core.interfaces;
 
 import servlet.implementation.MySQL_Database;
+import servlet.implementation.SHA_Encryption;
 
 /**
  * This class acts as an interface between the implementation of the
@@ -43,6 +44,19 @@ public abstract class Implementations
 	public static Database Database()
 	{
 		return MySQL_Database.getDatabase();
+	}
+	
+	/**
+	 * Constructor for the implementation of {@code Encryption}.
+	 * 
+	 * @return A new instance of the current implementation of
+	 * 		{@code Encryption}.
+	 * 
+	 * @see Encryption
+	 */
+	public static Encryption Encryption()
+	{
+		return new SHA_Encryption();
 	}
 	
 	/* Protected */

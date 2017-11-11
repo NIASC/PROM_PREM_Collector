@@ -32,9 +32,9 @@ import java.util.TreeMap;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
 
-import applet.core.containers.User;
 import common.implementation.Constants;
 import servlet.core.ServletConst;
+import servlet.core._User;
 
 /**
  * This class is an example of an implementation of
@@ -158,7 +158,7 @@ public class ServletCommunication
 	 * @return If the user was found the instance of the user is
 	 * 		returned else {@code null}.
 	 */
-	public User getUser(String username)
+	public _User getUser(String username)
 	{
 		JSONObject ret = new JSONObject();
 		Map<String, String> rmap = (Map<String, String>) ret;
@@ -168,17 +168,19 @@ public class ServletCommunication
 		JSONObject ans = sendMessage(ret);
 		JSONObject user = getJSONObject((String) ans.get("user"));
 		Map<String, String> umap = (Map<String, String>) user;
-		User usr = null;
+		
+		_User usr = null;
 		try {
-			usr = new User(Integer.parseInt(umap.get("clinic_id")),
-					umap.get("name"),
-					umap.get("password"),
-					umap.get("email"),
-					umap.get("salt"),
-					Integer.parseInt(umap.get("update_password")) != 0);
+			usr = new _User();
+			usr.clinic_id = Integer.parseInt(umap.get("clinic_id"));
+			usr.name = umap.get("name");
+			usr.password = umap.get("password");
+			usr.email = umap.get("email");
+			usr.salt = umap.get("salt");
+			usr.update_password = Integer.parseInt(umap.get("update_password")) > 0;
+		} catch (NullPointerException | NumberFormatException _e) {
+			
 		}
-		catch (NullPointerException _e) {}
-		catch (NumberFormatException _e) {}
 		return usr;
 	}
 	

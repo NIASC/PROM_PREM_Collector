@@ -23,8 +23,8 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.regex.Pattern;
 
-import applet.core.interfaces.Encryption;
-import applet.core.interfaces.Implementations;
+import servlet.core.interfaces.Encryption;
+import servlet.core.interfaces.Implementations;
 
 import java.util.Scanner;
 
