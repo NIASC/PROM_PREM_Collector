@@ -20,6 +20,8 @@
  */
 package servlet.implementation.exceptions;
 
+import java.sql.SQLException;
+
 /**
  * This class is an exception that should be thrown if an attempt to
  * read from the database fails.

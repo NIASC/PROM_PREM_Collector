@@ -21,7 +21,9 @@
 package servlet.core;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import common.implementation.Constants;
 
@@ -82,7 +84,7 @@ public class UserManager
 			return Constants.SERVER_FULL_STR;
 		if (users.contains(username))
 			return Constants.ALREADY_ONLINE_STR;
-		users.add(username);
+		_addUser(username);
 		return Constants.SUCCESS_STR;
 	}
 	
@@ -99,15 +101,32 @@ public class UserManager
 		if (username == null || username.isEmpty()
 				|| !users.contains(username))
 			return false;
-		users.remove(username);
+		_delUser(username);
 		return true;
+	}
+	
+	void terminate()
+	{
+		running = false;
+		if (monitor.isAlive()) {
+			try {
+				monitor.join(0);
+			} catch (InterruptedException e) {
+				
+			}
+		}
+		
+		_kickAllUsers();
 	}
 	
 	/* Private */
 	
 	private static UserManager manager;
-	private static final int MAX_USERS = 2;
+	private static final int MAX_USERS = 10;
 	private List<String> users;
+	private volatile Map<String, _User> _users;
+	private volatile boolean running;
+	private Thread monitor;
 
 	/**
 	 * Singleton class
@@ -115,5 +134,64 @@ public class UserManager
 	private UserManager()
 	{
 		users = new ArrayList<String>();
+		_users = new HashMap<String, _User>();
+		
+		running = true;
+		monitor = new Thread(new activityMonitor());
+		monitor.start();
+	}
+	
+	private void _addUser(String username) {
+		users.add(username);
+		_users.put(username, new _User(username));
+	}
+	
+	private void _delUser(String username) {
+		users.remove(username);
+		_users.remove(username);
+	}
+	
+	private void _kickUser(_User inactive) {
+		_delUser(inactive.name);
+	}
+	
+	private void _kickAllUsers()
+	{
+		for (_User user : _users.values()) {
+			_kickUser(user);
+		}
+	}
+	
+	private class _User
+	{
+		String name;
+		int loginTimer;
+		
+		_User(String name)
+		{
+			this.name = name;
+			loginTimer = 0;
+		}
+	}
+	
+	private class activityMonitor implements Runnable
+	{
+		final int inactiveTimer = 360; // cycles
+		final long cycleTime = 10000; // ms
+		@Override
+		public void run() {
+			while (running) {
+				for (_User user : _users.values()) {
+					if (user.loginTimer++ > inactiveTimer) {
+						_kickUser(user);
+					}
+				}
+				try {
+					Thread.sleep(cycleTime);
+				} catch (InterruptedException e) {
+					
+				}
+			}
+		}
 	}
 }

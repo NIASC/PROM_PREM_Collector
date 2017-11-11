@@ -20,7 +20,16 @@
  */
 package servlet.core.interfaces;
 
+import java.util.Date;
+import java.util.List;
+import java.util.Map;
+
 import org.json.simple.JSONObject;
+
+import servlet.core._Message;
+import servlet.core._Question;
+import servlet.core._User;
+import servlet.implementation.exceptions.DBWriteException;
 
 
 /**
@@ -44,7 +53,8 @@ public interface Database
 	 * @return A JSONObject with information about if the user
 	 * 		was added.
 	 */
-	public String addUser(JSONObject obj);
+	void addUser(int clinicID, String name, String password,
+			String email, String salt) throws DBWriteException;
 	
 	/**
 	 * Adds questionnaire answers contained in {@code obj} to the
@@ -56,7 +66,9 @@ public interface Database
 	 * @return A JSONObject with information about if the answers
 	 * 		were added.
 	 */
-	public String addQuestionnaireAnswers(JSONObject obj);
+	boolean addQuestionnaireAnswers(int clinic_id,
+			String identifier, List<String> question_ids,
+			List<String> question_answers);
 	
 	/**
 	 * Adds a clinic contained in {@code obj} to the database.
@@ -66,7 +78,9 @@ public interface Database
 	 * @return A JSONObject with information about if the clinic
 	 * 		was added.
 	 */
-	public String addClinic(JSONObject obj);
+	boolean addClinic(String name);
+	
+	boolean addPatient(int clinic_id, String identifier);
 	
 	/**
 	 * Retrieves the clinics from the database.
@@ -75,7 +89,7 @@ public interface Database
 	 * 
 	 * @return A JSONObject that contains the clinics.
 	 */
-	public String getClinics(JSONObject obj);
+	Map<Integer, String> getClinics();
 	
 	/**
 	 * Retrieves the user from the database.
@@ -85,7 +99,7 @@ public interface Database
 	 * 
 	 * @return A JSONObject that contains the user.
 	 */
-	public String getUser(JSONObject obj);
+	_User _getUser(String username);
 	
 	/**
 	 * Updates the password for the user contained in {@code obj}.
@@ -95,7 +109,8 @@ public interface Database
 	 * 
 	 * @return A JSONObject that contains the user with the new password.
 	 */
-	public String setPassword(JSONObject obj);
+	boolean setPassword(String newPass, String newSalt,
+			String name);
 	
 	/**
 	 * Retrieves the error messages from the database.
@@ -104,7 +119,7 @@ public interface Database
 	 * 
 	 * @return A JSONObject that contains the error messages.
 	 */
-	public String getErrorMessages(JSONObject obj);
+	Map<String, _Message> getErrorMessages();
 	
 	/**
 	 * Retrieves the information messages from the database.
@@ -113,7 +128,7 @@ public interface Database
 	 * 
 	 * @return A JSONObject that contains the information messages.
 	 */
-	public String getInfoMessages(JSONObject obj);
+	Map<String, _Message> getInfoMessages();
 	
 	/**
 	 * Retrieves the questionnaire questions from the database.
@@ -122,7 +137,7 @@ public interface Database
 	 * 
 	 * @return A JSONObject that contains the questionnaire questions.
 	 */
-	public String loadQuestions(JSONObject obj);
+	Map<Integer, _Question> loadQuestions();
 	
 	/**
 	 * Retrieves the dates that questionnaire answers were added to the
@@ -132,7 +147,7 @@ public interface Database
 	 * 
 	 * @return A JSONObject that contains the dates.
 	 */
-	public String loadQResultDates(JSONObject obj);
+	List<String> loadQResultDates(int clinic_id);
 	
 	/**
 	 * Retrieves the questionnaire results from the database.
@@ -143,7 +158,9 @@ public interface Database
 	 * 
 	 * @return A JSONObject that contains the questionnaire results.
 	 */
-	public String loadQResults(JSONObject obj);
+	List<Map<String, String>> loadQResults(
+			List<String> qlist, int clinic_id,
+			Date begin, Date end);
 	
 	/**
 	 * Sends a registration request to an administrator.
@@ -153,7 +170,8 @@ public interface Database
 	 * 
 	 * @return A JSONObject that contains the status of the request.
 	 */
-	public String requestRegistration(JSONObject obj);
+	boolean requestRegistration(
+			String name, String email, String clinic);
 
 	/**
 	 * Sends a registration responds that contains the login details
@@ -164,27 +182,8 @@ public interface Database
 	 * 
 	 * @return A JSONObject that contains the status of the request.
 	 */
-	public String respondRegistration(JSONObject obj);
-	
-	/**
-	 * Requests to log in.
-	 * 
-	 * @param obj The JSONObject that contains the request, including the
-	 * 		username.
-	 * 
-	 * @return A JSONObject that contains the status of the request.
-	 */
-	public String requestLogin				(JSONObject obj);
-	
-	/**
-	 * Requests to log out.
-	 * 
-	 * @param obj The JSONObject that contains the request, including the
-	 * 		username.
-	 * 
-	 * @return A JSONObject that contains the status of the request.
-	 */
-	public String requestLogout				(JSONObject obj);
+	public boolean respondRegistration(
+			String username, String email, String password);
 
 	@FunctionalInterface
 	public interface DatabaseFunction

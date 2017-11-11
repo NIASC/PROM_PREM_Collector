@@ -20,6 +20,7 @@
  */
 package servlet.implementation.exceptions;
 
+import java.sql.SQLException;
 import java.util.Calendar;
 
 /**

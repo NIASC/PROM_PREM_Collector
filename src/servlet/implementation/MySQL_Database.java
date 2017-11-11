@@ -28,11 +28,11 @@ import java.sql.Statement;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
-import java.util.Iterator;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Properties;
-import java.util.Map.Entry;
+import java.util.TreeMap;
 
 import javax.mail.Message;
 import javax.mail.MessagingException;
@@ -45,19 +45,16 @@ import javax.naming.InitialContext;
 import javax.naming.NamingException;
 import javax.sql.DataSource;
 
-import org.json.simple.JSONArray;
-import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
-import org.json.simple.parser.ParseException;
 
 import servlet.core.PPCLogger;
-import servlet.core.ServletConst;
-import servlet.core.UserManager;
+import servlet.core._Message;
+import servlet.core._Question;
+import servlet.core._User;
 import servlet.core.interfaces.Database;
 import servlet.implementation.exceptions.DBReadException;
 import servlet.implementation.exceptions.DBWriteException;
 import common.Utilities;
-import common.implementation.Constants;
 
 /**
  * This class is an example of an implementation of
@@ -69,7 +66,6 @@ import common.implementation.Constants;
  * @author Marcus Malmquist
  *
  */
-@SuppressWarnings("unchecked")
 public class MySQL_Database implements Database
 {
 	/* Public */
@@ -92,464 +88,249 @@ public class MySQL_Database implements Database
 	{
 		throw new CloneNotSupportedException();
 	}
-
+	
 	@Override
-	public String addUser(JSONObject obj)
+	public void addUser(int clinicID, String name, String password,
+			String email, String salt) throws DBWriteException
 	{
-		Map<String, String> omap = (Map<String, String>) obj;
-		
-		JSONObject ret = new JSONObject();
-		Map<String, String> rmap = (Map<String, String>) ret;
-		rmap.put("command", ServletConst.CMD_ADD_USER);
-		
 		SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd");
 		String qInsert = String.format(
 				"INSERT INTO `users` (`clinic_id`, `name`, `password`, `email`, `registered`, `salt`, `update_password`) VALUES ('%d', '%s', '%s', '%s', '%s', '%s', '%d')",
-				Integer.parseInt(omap.get("clinic_id")),
-				omap.get("name"), omap.get("password"), omap.get("email"),
-				sdf.format(new Date()), omap.get("salt"), 1);
-		try {
-			queryUpdate(qInsert);
-			rmap.put(Constants.INSERT_RESULT, Constants.INSERT_SUCCESS);
-		}
-		catch (DBWriteException dbw) {
-			rmap.put(Constants.INSERT_RESULT, Constants.INSERT_FAIL);
-			logger.log("Database write error", dbw);
-		}
-		return ret.toString();
+				clinicID, name, password, email,
+				sdf.format(new Date()), salt, 1);
+		queryUpdate(qInsert);
 	}
 
 	@Override
-	public String addQuestionnaireAnswers(JSONObject obj)
+	public boolean addQuestionnaireAnswers(int clinic_id,
+			String identifier, List<String> question_ids,
+			List<String> question_answers)
 	{
-		Map<String, String> omap = (Map<String, String>) obj;
-		
-		JSONObject ret = new JSONObject();
-		Map<String, String> rmap = (Map<String, String>) ret;
-		rmap.put("command", Constants.CMD_ADD_QANS);
-		
-		int clinic_id = Integer.parseInt(omap.get("clinic_id"));
-		String identifier = omap.get("identifier");
-		String patientInsert = String.format(
-				"INSERT INTO `patients` (`clinic_id`, `identifier`, `id`) VALUES ('%d', '%s', NULL)",
-				clinic_id, identifier);
-		
-		Map<String, String> m = (Map<String, String>) getJSONObject(omap.get("questions"));
-		List<String> question_ids = new ArrayList<String>();
-		List<String> question_answers = new ArrayList<String>();
-		for (Entry<String, String> e : m.entrySet())
-		{
-			question_ids.add((String) e.getKey());
-			question_answers.add((String) e.getValue());
-		}
 
 		String resultInsert = String.format("INSERT INTO `questionnaire_answers` (`clinic_id`, `patient_identifier`, `date`, %s) VALUES ('%d', '%s', '%s', %s)",
 				String.join(", ", question_ids), clinic_id, identifier,
 				(new SimpleDateFormat("yyyy-MM-dd")).format(new Date()),
 				String.join(", ", question_answers));
 		try {
-			if (!patientInDatabase(identifier))
-				queryUpdate(patientInsert);
 			queryUpdate(resultInsert);
-			rmap.put(Constants.INSERT_RESULT, Constants.INSERT_SUCCESS);
+			return true;
+		} catch (DBWriteException dbw) {
+			logger.log(DBWRITEERROR_STR, dbw);
 		}
-		catch (DBReadException dbr)
-		{
-			rmap.put(Constants.INSERT_RESULT, Constants.INSERT_FAIL);
-			logger.log("Database read error", dbr);
-		}
-		catch (SQLException se)
-		{
-			rmap.put(Constants.INSERT_RESULT, Constants.INSERT_FAIL);
-			logger.log("Error opening connection to database "
-					+ "or while parsing SQL ResultSet", se);
-		}
-		catch (DBWriteException dbw) {
-			rmap.put(Constants.INSERT_RESULT, Constants.INSERT_FAIL);
-			logger.log("Database write error", dbw);
-		}
-		return ret.toString();
+		return false;
 	}
 
 	@Override
-	public String addClinic(JSONObject obj)
+	public boolean addClinic(String name)
 	{
-		Map<String, String> omap = (Map<String, String>) obj;
-		
-		JSONObject ret = new JSONObject();
-		Map<String, String> rmap = (Map<String, String>) ret;
-		rmap.put("command", ServletConst.CMD_ADD_CLINIC);
-		
 		String qInsert = String.format(
 				"INSERT INTO `clinics` (`id`, `name`) VALUES (NULL, '%s')",
-				omap.get("name"));
-		try
-		{
+				name);
+		try {
 			queryUpdate(qInsert);
-			rmap.put(Constants.INSERT_RESULT, Constants.INSERT_SUCCESS);
+			return true;
+		} catch (DBWriteException dbw) {
+			logger.log(DBWRITEERROR_STR, dbw);
 		}
-		catch (DBWriteException dbw)
-		{
-			rmap.put(Constants.INSERT_RESULT, Constants.INSERT_FAIL);
-			logger.log("Database write error", dbw);
+		return false;
+	}
+
+	@Override
+	public boolean addPatient(int clinic_id, String identifier) {
+		String patientInsert = String.format(
+				"INSERT INTO `patients` (`clinic_id`, `identifier`, `id`) VALUES ('%d', '%s', NULL)",
+				clinic_id, identifier);
+		try {
+			if (!patientInDatabase(identifier))
+				queryUpdate(patientInsert);
+			return true;
+		} catch (DBReadException dbr) {
+			logger.log(DBREADERROR_STR, dbr);
+		} catch (SQLException se) {
+			logger.log(SQLERROR_STR, se);
+		} catch (DBWriteException dbw) {
+			logger.log(DBWRITEERROR_STR, dbw);
 		}
-		return ret.toString();
+		return false;
 	}
 	
 	@Override
-	public String getClinics(JSONObject obj)
+	public Map<Integer, String> getClinics()
 	{
-		JSONObject ret = new JSONObject();
-		Map<String, String> rmap = (Map<String, String>) ret;
-		rmap.put("command", Constants.CMD_GET_CLINICS);
-		
-		try (Connection conn = dataSource.getConnection())
-		{
+		try (Connection conn = dataSource.getConnection()) {
 			Statement s = conn.createStatement();
 			ResultSet rs = query(s, "SELECT `id`, `name` FROM `clinics`");
 			
-			JSONObject clinics = new JSONObject();
-			Map<String, String> cmap = (Map<String, String>) clinics;
-			while (rs.next())
-				cmap.put(Integer.toString(rs.getInt("id")),
-						rs.getString("name"));
-			rmap.put("clinics", clinics.toString());
+			Map<Integer, String> cmap = new TreeMap<Integer, String>();
+			while (rs.next()) {
+				cmap.put(rs.getInt("id"), rs.getString("name"));
+			}
+			return cmap;
+		} catch (DBReadException dbr) {
+			logger.log(DBREADERROR_STR, dbr);
+		} catch (SQLException e) {
+			logger.log(SQLERROR_STR, e);
 		}
-		catch (DBReadException dbr)
-		{
-			rmap.put("clinics", new JSONObject().toString());
-			logger.log("Database read error", dbr);
-		}
-		catch (SQLException e)
-		{
-			rmap.put("clinics", new JSONObject().toString());
-			logger.log("Error opening connection to database "
-					+ "or while parsing SQL ResultSet", e);
-		}
-		return ret.toString();
+		return null;
 	}
 
 	@Override
-	public String getUser(JSONObject obj)
+	public _User _getUser(String username)
 	{
-		Map<String, String> omap = (Map<String, String>) obj;
-		
-		JSONObject ret = new JSONObject();
-		Map<String, String> rmap = (Map<String, String>) ret;
-		rmap.put("command", Constants.CMD_GET_USER);
-		
-		try (Connection conn = dataSource.getConnection())
-		{
+		try (Connection conn = dataSource.getConnection()) {
 			Statement s = conn.createStatement();
 			ResultSet rs = query(s, "SELECT `clinic_id`, `name`, `password`, `email`, `salt`, `update_password` FROM `users`");
-
-			String username = omap.get("name");
-			JSONObject user = new JSONObject();
-			Map<String, String> umap = (Map<String, String>) user;
-			while (rs.next())
-			{
-				if (rs.getString("name").equals(username))
-				{
-					umap.put("clinic_id", Integer.toString(rs.getInt("clinic_id")));
-					umap.put("name", rs.getString("name"));
-					umap.put("password", rs.getString("password"));
-					umap.put("email", rs.getString("email"));
-					umap.put("salt", rs.getString("salt"));
-					umap.put("update_password", Integer.toString(rs.getInt("update_password")));
+			
+			_User _user = null;
+			while (rs.next()) {
+				if (rs.getString("name").equals(username)) {
+					_user = new _User();
+					_user.clinic_id = rs.getInt("clinic_id");
+					_user.name = rs.getString("name");
+					_user.password = rs.getString("password");
+					_user.email = rs.getString("email");
+					_user.salt = rs.getString("salt");
+					_user.update_password = rs.getInt("update_password") > 0;
 					break;
 				}
 			}
-			rmap.put("user", user.toString());
+			return _user;
+		} catch (DBReadException dbr) {
+			logger.log(DBREADERROR_STR, dbr);
+		} catch (SQLException se) {
+			logger.log(SQLERROR_STR, se);
 		}
-		catch (DBReadException dbr)
-		{
-			rmap.put("user", (new JSONObject()).toString());
-			logger.log("Database read error", dbr);
-		}
-		catch (SQLException se)
-		{
-			rmap.put("user", (new JSONObject()).toString());
-			logger.log("Error opening connection to database "
-					+ "or while parsing SQL ResultSet", se);
-		}
-		return ret.toString();
+		return null;
 	}
 
 	@Override
-	public String setPassword(JSONObject obj)
+	public boolean setPassword(String newPass, String newSalt,
+			String name)
 	{
-		Map<String, String> omap = (Map<String, String>) obj;
-
-		JSONObject err = new JSONObject();
-		Map<String, String> emap = (Map<String, String>) err;
-		emap.put("command", Constants.CMD_GET_ERR_MSG);
-
-		Map<String, String> userobj;
-		try
-		{
-			userobj = getUser(omap.get("name"));
-		} catch (Exception e)
-		{
-			throw new NullPointerException("Can only update password for existing users");
-		}
-		
-		Map<String, String> user = (Map<String, String>) getJSONObject(userobj.get("user"));
-		
-		String oldPass = omap.get("old_password");
-		String newPass = omap.get("new_password");
-		String newSalt = omap.get("new_salt");
-
-		if (!user.get("password").equals(oldPass))
-		{
-			emap.put("user", (new JSONObject()).toString());
-			return err.toString();
-		}
-		
 		String qInsert = String.format(
 				"UPDATE `users` SET `password`='%s',`salt`='%s',`update_password`=%d WHERE `users`.`name` = '%s'",
-				newPass, newSalt, 0, user.get("name"));
-		try
-		{
+				newPass, newSalt, 0, name);
+		try {
 			queryUpdate(qInsert);
+			return true;
+		} catch (DBWriteException dbw) {
+			logger.log(DBWRITEERROR_STR, dbw);
 		}
-		catch (DBWriteException dbw)
-		{
-			logger.log("Database write error", dbw);
-			emap.put("user", (new JSONObject()).toString());
-			return err.toString();
-		}
-
-		JSONObject ret = new JSONObject();
-		Map<String, String> rmap = (Map<String, String>) ret;
-		rmap.put("command", "get_user");
-		rmap.put("name", omap.get("name"));
-		return getUser(ret);
+		return false;
 	}
 
 	@Override
-	public String getErrorMessages(JSONObject obj)
+	public Map<String, _Message> getErrorMessages()
 	{
-		JSONObject ret = new JSONObject();
-		Map<String, String> rmap = (Map<String, String>) ret;
-		rmap.put("command", Constants.CMD_GET_ERR_MSG);
-		
-		getMessages("error_messages", rmap);
-		return ret.toString();
+		return getMessages("error_messages");
 	}
 
 	@Override
-	public String getInfoMessages(JSONObject obj)
+	public Map<String, _Message> getInfoMessages()
 	{
-		JSONObject ret = new JSONObject();
-		Map<String, String> rmap = (Map<String, String>) ret;
-		rmap.put("command", Constants.CMD_GET_INFO_MSG);
-		
-		getMessages("info_messages", rmap);
-		return ret.toString();
+		return getMessages("info_messages");
 	}
 	
 	@Override
-	public String loadQuestions(JSONObject obj)
+	public Map<Integer, _Question> loadQuestions()
 	{
-		JSONObject ret = new JSONObject();
-		Map<String, String> rmap = (Map<String, String>) ret;
-		rmap.put("command", Constants.CMD_LOAD_Q);
-		
-		try (Connection conn = dataSource.getConnection())
-		{
-			Statement s = conn.createStatement();
-			ResultSet rs = query(s, "SELECT * FROM `questionnaire`");
+		try (Connection conn = dataSource.getConnection()) {
+			ResultSet rs = query(conn.createStatement(),
+					"SELECT * FROM `questionnaire`");
 			
-			JSONObject questions = new JSONObject();
-			Map<String, String> qmap = (Map<String, String>) questions;
-			while (rs.next())
-			{
-				JSONObject question = new JSONObject();
-				Map<String, String> questionmap = (Map<String, String>) question;
-				for (int i = 0; ; ++i)
-				{
-					try
-					{
-						String tbl_name = String.format("option%d", i);
-						String entry = rs.getString(tbl_name);
+			Map<Integer, _Question> qmap = new HashMap<Integer, _Question>();
+			while (rs.next()) {
+				_Question _question = new _Question();
+				for (int i = 0; ; ++i) {
+					try {
+						String entry = rs.getString(String.format("option%d", i));
 						if (entry == null || (entry = entry.trim()).isEmpty())
 							break;
-						questionmap.put(tbl_name, entry);
-					}
-					catch (SQLException e)
-					{ /* no more options */
+						_question.options.add(entry);
+					} catch (SQLException e) {
+						/* no more options */
 						break;
 					}
 				}
-				String id = Integer.toString(rs.getInt("id"));
-				questionmap.put("type", rs.getString("type"));
-				questionmap.put("id", id);
-				questionmap.put("question", rs.getString("question"));
-				questionmap.put("description", rs.getString("description"));
-				questionmap.put("optional", Integer.toString(rs.getInt("optional")));
-				questionmap.put("max_val", Integer.toString(rs.getInt("max_val")));
-				questionmap.put("min_val", Integer.toString(rs.getInt("min_val")));
+				int id = rs.getInt("id");
+				_question.type = rs.getString("type");
+				_question.id = id;
+				_question.question = rs.getString("question");
+				_question.description = rs.getString("description");
+				_question.optional = rs.getInt("optional") > 0;
+				_question.max_val = rs.getInt("max_val");
+				_question.min_val = rs.getInt("min_val");
 
-				qmap.put(id, question.toString());
+				qmap.put(id, _question);
 			}
-			rmap.put("questions", questions.toString());
+			return qmap;
+		} catch (DBReadException dbr) {
+			logger.log(DBREADERROR_STR, dbr);
+		} catch (SQLException e) {
+			logger.log(SQLERROR_STR, e);
 		}
-		catch (DBReadException dbr)
-		{
-			rmap.put("questions", (new JSONObject()).toString());
-			logger.log("Database read error", dbr);
-		}
-		catch (SQLException e)
-		{
-			rmap.put("questions", (new JSONObject()).toString());
-			logger.log("Error opening connection to database "
-					+ "or while parsing SQL ResultSet", e);
-		}
-		return ret.toString();
+		return null;
 	}
 
 	@Override
-	public String loadQResultDates(JSONObject obj)
+	public List<String> loadQResultDates(int clinic_id)
 	{
-		Map<String, String> omap = (Map<String, String>) obj;
-		
-		JSONObject ret = new JSONObject();
-		Map<String, String> rmap = (Map<String, String>) ret;
-		rmap.put("command", Constants.CMD_LOAD_QR_DATE);
-
-		Map<String, String> userobj;
-		try
-		{
-			userobj = getUser(omap.get("name"));
-		} catch (Exception e)
-		{
-			rmap.put("dates", (new JSONArray()).toString());
-			logger.log("No user specified");
-			return ret.toString();
-		}
-		
-		Map<String, String> user = (Map<String, String>) getJSONObject(userobj.get("user"));
-
-		try (Connection conn = dataSource.getConnection())
-		{
+		try (Connection conn = dataSource.getConnection()) {
 			Statement s = conn.createStatement();
 			ResultSet rs = query(s, String.format(
 					"SELECT `date` FROM `questionnaire_answers` WHERE `clinic_id` = %d",
-					Integer.parseInt(user.get("clinic_id"))));
+					clinic_id));
 			
-			JSONArray dates = new JSONArray();
-			List<String> dlist = (List<String>) dates;
-			while (rs.next())
+			List<String> dlist = new ArrayList<String>();
+			while (rs.next()) {
 				dlist.add(rs.getString("date"));
-			rmap.put("dates", dates.toString());
+			}
+			return dlist;
+		} catch (DBReadException dbr) {
+			logger.log(DBREADERROR_STR, dbr);
+		} catch (SQLException e) {
+			logger.log(SQLERROR_STR, e);
 		}
-		catch (DBReadException dbr) {
-			rmap.put("dates", (new JSONArray()).toString());
-			logger.log("Database read error", dbr);
-		}
-		catch (SQLException e) {
-			rmap.put("dates", (new JSONArray()).toString());
-			logger.log("Error opening connection to database "
-					+ "or while parsing SQL ResultSet", e);
-		}
-		return ret.toString();
+		return null;
 	}
 	
 	@Override
-	public String loadQResults(JSONObject obj)
+	public List<Map<String, String>> loadQResults(
+			List<String> qlist, int clinic_id, Date begin, Date end)
 	{
-		Map<String, String> omap = (Map<String, String>) obj;
-		
-		JSONObject ret = new JSONObject();
-		Map<String, String> rmap = (Map<String, String>) ret;
-		rmap.put("command", Constants.CMD_LOAD_QR);
-
-		Map<String, String> userobj;
-		try
-		{
-			userobj = getUser(omap.get("name"));
-		} catch (Exception e)
-		{
-			rmap.put("dates", (new JSONObject()).toString());
-			logger.log("No user specified");
-			return ret.toString();
-		}
-		
-		Map<String, String> user = (Map<String, String>) getJSONObject(userobj.get("user"));
-		
-		try (Connection conn = dataSource.getConnection())
-		{
+		try (Connection conn = dataSource.getConnection()) {
 			Statement s = conn.createStatement();
-
-			JSONParser parser = new JSONParser();
-			JSONArray questions;
-			try{
-				questions = (JSONArray) parser.parse(omap.get("questions"));
-			} catch (ParseException pe)
-			{
-				rmap.put("results", (new JSONObject()).toString());
-				logger.log("Error parsing JSON object", pe);
-				return ret.toString();
-			} catch (NullPointerException e)
-			{
-				rmap.put("results", (new JSONObject()).toString());
-				logger.log("Missing 'questions' entry", e);
-				return ret.toString();
-			}
-			
-			List<String> qlist = (List<String>) questions;
 			
 			List<String> lstr = new ArrayList<String>();
-			for (Iterator<String> itr = qlist.iterator(); itr.hasNext();)
-				lstr.add("`" + itr.next() + "`");
+			for (String q : qlist)
+				lstr.add("`" + q + "`");
+			SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd");
 			
 			ResultSet rs = query(s, String.format(
 					"SELECT %s FROM `questionnaire_answers` WHERE `clinic_id` = %d AND `date` BETWEEN '%s' AND '%s'",
-					String.join(", ", lstr), Integer.parseInt(user.get("clinic_id")),
-					omap.get("begin"), omap.get("end")));
+					String.join(", ", lstr), clinic_id,
+					sdf.format(begin), sdf.format(end)));
 
-			JSONArray results = new JSONArray();
-			List<String> rlist = (List<String>) results;
-			while (rs.next())
-			{
-				JSONObject answers = new JSONObject();
-				Map<String, String> amap = (Map<String, String>) answers;
-				for (Iterator<String> itr = qlist.iterator(); itr.hasNext();)
-				{
-					String q = itr.next();
+			List<Map<String, String>> rlist = new ArrayList<Map<String, String>>();
+			while (rs.next()) {
+				Map<String, String> amap = new HashMap<String, String>();
+				for (String q : qlist)
 					amap.put(q, rs.getString(q));
-				}
-				rlist.add(answers.toString());
+				rlist.add(amap);
 			}
-			rmap.put("results", results.toString());
+			return rlist;
+		} catch (DBReadException dbr) {
+			logger.log(DBREADERROR_STR, dbr);
+		} catch (SQLException e) {
+			logger.log(SQLERROR_STR, e);
 		}
-		catch (DBReadException dbr)
-		{
-			rmap.put("results", (new JSONArray()).toString());
-			logger.log("Database read error", dbr);
-		}
-		catch (SQLException e)
-		{
-			rmap.put("results", (new JSONArray()).toString());
-			logger.log("Error opening connection to database "
-					+ "or while parsing SQL ResultSet", e);
-		}
-		return ret.toString();
+		return null;
 	}
 	
 	@Override
-	public String requestRegistration(JSONObject obj)
+	public boolean requestRegistration(
+			String name, String email, String clinic)
 	{
-		Map<String, String> omap = (Map<String, String>) obj;
-		
-		JSONObject ret = new JSONObject();
-		Map<String, String> rmap = (Map<String, String>) ret;
-		rmap.put("command", Constants.CMD_REQ_REGISTR);
-		
-		String name = omap.get("name");
-		String email = omap.get("email");
-		String clinic = omap.get("clinic");
-		
 		String emailSubject = "PROM_PREM: Registration request";
 		String emailDescription = "Registration reguest from";
 		String emailSignature = "This message was sent from the PROM/PREM Collector";
@@ -557,26 +338,13 @@ public class MySQL_Database implements Database
 				("%s:<br><br> %s: %s<br>%s: %s<br>%s: %s<br><br> %s"),
 				emailDescription, "Name", name, "E-mail",
 				email, "Clinic", clinic, emailSignature);
-		
-		if (send(config.adminEmail, emailSubject, emailBody, "text/html"))
-			rmap.put(Constants.INSERT_RESULT, Constants.INSERT_SUCCESS);
-		else
-			rmap.put(Constants.INSERT_RESULT, Constants.INSERT_FAIL);
-		return ret.toString();
+		return send(config.adminEmail, emailSubject, emailBody, "text/html");
 	}
 
-	public String respondRegistration(JSONObject obj)
+	@Override
+	public boolean respondRegistration(
+			String username, String email, String password)
 	{
-		Map<String, String> omap = (Map<String, String>) obj;
-		
-		JSONObject ret = new JSONObject();
-		Map<String, String> rmap = (Map<String, String>) ret;
-		rmap.put("command", ServletConst.CMD_RSP_REGISTR);
-		
-		String username = omap.get("username");
-		String email = omap.get("email");
-		String password = omap.get("password");
-		
 		String emailSubject = "PROM_PREM: Registration response";
 		String emailDescription = "You have been registered at the PROM/PREM Collector. "
 				+ "You will find your login details below. When you first log in you will"
@@ -586,68 +354,21 @@ public class MySQL_Database implements Database
 				("%s<br><br> %s: %s<br>%s: %s<br><br> %s"),
 				emailDescription, "Username", username,
 				"Password", password, emailSignature);
-		
-		if (send(email, emailSubject, emailBody, "text/html"))
-			rmap.put(Constants.INSERT_RESULT, Constants.INSERT_SUCCESS);
-		else
-			rmap.put(Constants.INSERT_RESULT, Constants.INSERT_FAIL);
-		return ret.toString();
-	}
-	
-	@Override
-	public String requestLogin(JSONObject obj)
-	{
-		Map<String, String> omap = (Map<String, String>) obj;
-		
-		JSONObject ret = new JSONObject();
-		Map<String, String> rmap = (Map<String, String>) ret;
-		rmap.put("command", Constants.CMD_REQ_LOGIN);
-
-		Map<String, String> userobj;
-		try
-		{
-			userobj = getUser(omap.get("name"));
-		} catch (Exception e)
-		{
-			rmap.put(Constants.LOGIN_REPONSE, Constants.INVALID_DETAILS_STR);
-			return ret.toString();
-		}
-		
-		Map<String, String> user = (Map<String, String>) getJSONObject(userobj.get("user"));
-
-		if (!user.get("password").equals(omap.get("password")))
-		{
-			rmap.put(Constants.LOGIN_REPONSE, Constants.INVALID_DETAILS_STR);
-			return ret.toString();
-		}
-		
-		UserManager um = UserManager.getUserManager();
-		rmap.put(Constants.LOGIN_REPONSE, um.addUser(user.get("name")));
-		return ret.toString();
-	}
-
-	@Override
-	public String requestLogout(JSONObject obj)
-	{
-		Map<String, String> omap = (Map<String, String>) obj;
-		
-		JSONObject ret = new JSONObject();
-		Map<String, String> rmap = (Map<String, String>) ret;
-		rmap.put("command", Constants.CMD_REQ_LOGOUT);
-
-		UserManager um = UserManager.getUserManager();
-		String response = um.delUser(omap.get("name")) ? Constants.SUCCESS_STR : Constants.ERROR_STR;
-		rmap.put(Constants.LOGOUT_REPONSE, response);
-		return ret.toString();
+		return send(email, emailSubject, emailBody, "text/html");
 	}
 	
 	/* Protected */
 	
+	/* Package */
+	
 	/* Private */
 
+	private static final String SQLERROR_STR;
+	private static final String DBREADERROR_STR;
+	private static final String DBWRITEERROR_STR;
 	private static MySQL_Database database;
 	private static JSONParser parser;
-	private static PPCLogger logger = PPCLogger.getLogger();
+	private static PPCLogger logger;
 	
 	/**
 	 * Handles connection with the database.
@@ -662,7 +383,12 @@ public class MySQL_Database implements Database
 	
 	static
 	{
+		logger = PPCLogger.getLogger();
 		parser = new JSONParser();
+		SQLERROR_STR = "Error opening connection to database "
+				+ "or while parsing SQL ResultSet";
+		DBREADERROR_STR = "Database read error";
+		DBWRITEERROR_STR = "Database write error";
 	}
 	
 	/**
@@ -671,20 +397,15 @@ public class MySQL_Database implements Database
 	 */
 	private MySQL_Database()
 	{
-		try
-		{
+		try {
 			config = new EmailConfig();
 			Context initContext = new InitialContext();
 			Context envContext = (Context) initContext.lookup("java:comp/env");
 			dataSource = (DataSource) envContext.lookup("jdbc/prom_prem_db");
-		}
-		catch (NamingException e)
-		{
+		} catch (NamingException e) {
 			logger.log("FATAL: Could not load database configuration", e);
 			System.exit(1);
-		}
-		catch (IOException e)
-		{
+		} catch (IOException e) {
 			logger.log("FATAL: Could not load email configuration", e);
 			System.exit(1);
 		}
@@ -712,25 +433,6 @@ public class MySQL_Database implements Database
 	}
 	
 	/**
-	 * Quick method for calling {@code getUser(JSONObject)} using only the
-	 * username as an argument.
-	 * 
-	 * @param username The username of the user to look for.
-	 * 
-	 * @return A map containing the information about the user.
-	 * 
-	 * @throws Exception If a parse error occurs.
-	 */
-	private Map<String, String> getUser(String username) throws Exception
-	{
-		JSONObject getuser = new JSONObject();
-		getuser.put("command", "get_user");
-		getuser.put("name", username);
-		JSONObject json = (JSONObject) parser.parse(getUser(getuser));
-		return (Map<String, String>) json;
-	}
-	
-	/**
 	 * Query the database to update an entry i.e. modify an existing
 	 * database entry.
 	 * 
@@ -743,12 +445,9 @@ public class MySQL_Database implements Database
 	 */
 	private void queryUpdate(String message) throws DBWriteException
 	{
-		try (Connection c = dataSource.getConnection())
-		{
+		try (Connection c = dataSource.getConnection()) {
 			c.createStatement().executeUpdate(message);
-		}
-		catch (SQLException se)
-		{
+		} catch (SQLException se) {
 			throw new DBWriteException(String.format(
 					"Database could not process request: '%s'. Check your arguments.",
 					message));
@@ -773,12 +472,9 @@ public class MySQL_Database implements Database
 	 */
 	private ResultSet query(Statement s, String message) throws DBReadException
 	{
-		try
-		{
+		try {
 			return s.executeQuery(message);
-		}
-		catch (SQLException se)
-		{
+		} catch (SQLException se) {
 			throw new DBReadException(String.format(
 					"Database could not process request: '%s'. Check your arguments.",
 					message));
@@ -796,88 +492,29 @@ public class MySQL_Database implements Database
 	 * 
 	 * @return true if the messages were put in the map.
 	 */
-	private boolean getMessages(String tableName, Map<String, String> retobj)
+	private Map<String, _Message> getMessages(String tableName)
 	{
-		boolean ret = false;
-		try (Connection conn = dataSource.getConnection())
-		{
-			Statement s = conn.createStatement();
-			ResultSet rs = query(s, String.format(
+		try (Connection conn = dataSource.getConnection()) {
+			ResultSet rs = query(conn.createStatement(), String.format(
 					"SELECT `code`, `name`, `locale`, `message` FROM `%s`",
 					tableName));
 			
-			JSONObject messages = new JSONObject();
-			Map<String, String> mmap = (Map<String, String>) messages;
-			while (rs.next())
-			{
-				JSONObject msg = new JSONObject();
-				Map<String, String> msgmap = (Map<String, String>) msg;
-				msgmap.put(rs.getString("locale"), rs.getString("message"));
-
-				JSONObject message = new JSONObject();
-				Map<String, String> messagemap = (Map<String, String>) message;
-				String name = rs.getString("name");
-				messagemap.put("name", name);
-				messagemap.put("code", rs.getString("code"));
-				messagemap.put("message", msg.toString());
-
-				mmap.put(name, message.toString());
+			Map<String, _Message> _retobj = new HashMap<String, _Message>();
+			while (rs.next()) {
+				_Message _msg = new _Message();
+				_msg.name = rs.getString("name");
+				_msg.code = rs.getString("code");
+				_msg.addMessage(rs.getString("locale"), rs.getString("message"));
+				
+				_retobj.put(_msg.name, _msg);
 			}
-			retobj.put("messages", messages.toString());
-			ret = true;
+			return _retobj;
+		} catch (DBReadException dbr) {
+			logger.log(DBREADERROR_STR, dbr);
+		} catch (SQLException e) {
+			logger.log(SQLERROR_STR, e);
 		}
-		catch (DBReadException dbr) {
-			retobj.put("messages", (new JSONObject()).toString());
-			logger.log("Database read error", dbr);
-		}
-		catch (SQLException e) {
-			retobj.put("messages", (new JSONObject()).toString());
-			logger.log("Error opening connection to database "
-					+ "or while parsing SQL ResultSet", e);
-		}
-		return ret;
-	}
-	
-	/**
-	 * Attempts to parse {@code str} into a {@code JSONObject}.
-	 * 
-	 * @param str The string to be converted into a {@code JSONObject}.
-	 * 
-	 * @return The {@code JSONObject} representation of {@code str}, or
-	 * 		{@code null} if {@code str} does not represent a
-	 * 		{@code JSONObject}.
-	 */
-	private JSONObject getJSONObject(String str)
-	{
-		try
-		{
-			return (JSONObject) parser.parse(str);
-		}
-		catch (ParseException pe)
-		{
-			throw new NullPointerException("JSON parse error");
-		}
-	}
-	
-	/**
-	 * Attempts to parse {@code str} into a {@code JSONArray}.
-	 * 
-	 * @param str The string to be converted into a {@code JSONArray}.
-	 * 
-	 * @return The {@code JSONArray} representation of {@code str}, or
-	 * 		{@code null} if {@code str} does not represent a
-	 *  	{@code JSONArray}.
-	 */
-	private JSONArray getJSONArray(String str)
-	{
-		try
-		{
-			return (JSONArray) parser.parse(str);
-		}
-		catch (ParseException pe)
-		{
-			throw new NullPointerException("JSON parse error");
-		}
+		return null;
 	}
 	
 	/**
@@ -896,8 +533,7 @@ public class MySQL_Database implements Database
 		Session getMailSession = Session.getDefaultInstance(
 				config.mailConfig, null);
 		MimeMessage generateMailMessage = new MimeMessage(getMailSession);
-		try
-		{
+		try {
 			/* create email */
 			generateMailMessage.addRecipient(Message.RecipientType.TO,
 					new InternetAddress(recipient));
@@ -910,8 +546,7 @@ public class MySQL_Database implements Database
 			transport.sendMessage(generateMailMessage,
 					generateMailMessage.getAllRecipients());
 			transport.close();
-		} catch (MessagingException me)
-		{
+		} catch (MessagingException me) {
 			logger.log("Could not send email", me);
 			return false;
 		}

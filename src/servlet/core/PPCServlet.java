@@ -29,8 +29,6 @@ import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
-import servlet.implementation.JSONRead;
-
 /**
  * This class is the PROM/PREM Collector servlet. It serves the applet with
  * information from the database and keeps track of which users that are
@@ -78,7 +76,7 @@ public class PPCServlet extends HttpServlet
 				sb.append(str);
 			}
 			
-			out.print(JSONRead.handleRequest(sb.toString()));
+			out.print(PPC.handleRequest(sb.toString()));
 			out.flush();
 			out.close();
 		} catch (Exception e) {
