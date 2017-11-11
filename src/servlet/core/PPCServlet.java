@@ -39,8 +39,6 @@ import javax.servlet.http.HttpServletResponse;
  */
 public class PPCServlet extends HttpServlet
 {
-	private static final long serialVersionUID = -2340346250534805168L;
-	private String message;
 	
 	@Override
 	public void init() throws ServletException
@@ -59,6 +57,11 @@ public class PPCServlet extends HttpServlet
 		// Actual logic goes here.
 		PrintWriter out = response.getWriter();
 		out.println("<h1>" + message + "</h1>");
+	}
+
+	@Override
+	public void destroy() {
+		// do nothing.
 	}
 
 	@Override
@@ -85,10 +88,7 @@ public class PPCServlet extends HttpServlet
 		}
 	}
 
-	@Override
-	public void destroy() {
-		// do nothing.
-	}
-	
+	private static final long serialVersionUID = -2340346250534805168L;
 	private static PPCLogger logger = PPCLogger.getLogger();
+	private String message;
 }

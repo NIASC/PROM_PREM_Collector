@@ -137,8 +137,10 @@ public class UserManager
 		_users = new HashMap<String, _User>();
 		
 		running = true;
+		/*
 		monitor = new Thread(new activityMonitor());
 		monitor.start();
+		*/
 	}
 	
 	private void _addUser(String username) {
