@@ -20,30 +20,20 @@
  */
 package servlet.implementation;
 
-import java.io.IOException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Properties;
 import java.util.Map.Entry;
-
-import javax.mail.Message;
-import javax.mail.MessagingException;
-import javax.mail.Session;
-import javax.mail.Transport;
-import javax.mail.internet.InternetAddress;
-import javax.mail.internet.MimeMessage;
 
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
-import org.json.simple.parser.ParseException;
 
-import common.Utilities;
 import common.implementation.Constants;
+import servlet.core.MailMan;
 import servlet.core.PPCLogger;
 import servlet.core.ServletConst;
 import servlet.core.UserManager;
@@ -52,7 +42,6 @@ import servlet.core._Question;
 import servlet.core._User;
 import servlet.core.interfaces.Database;
 import servlet.core.interfaces.Encryption;
-import servlet.core.interfaces.Implementations;
 
 /**
  * This class handles redirecting a request from the applet to the
@@ -85,13 +74,6 @@ public class PPC
 	
 	PPC()
 	{
-		try {
-			config = new EmailConfig();
-		} catch (IOException e) {
-			logger.log("FATAL: Could not load email configuration", e);
-			System.exit(1);
-		}
-		
 		dbm = new HashMap<String, NetworkFunction>();
 		db = MySQL_Database.getDatabase();
 		um = UserManager.getUserManager();
@@ -121,12 +103,6 @@ public class PPC
 	
 	private static PPCLogger logger;
 	private static JSONParser parser;
-
-	/**
-	 * Configuration data for sending an email from the servlet's email
-	 * to the admin's email.
-	 */
-	private EmailConfig config;
 	private Map<String, NetworkFunction> dbm;
 	private Database db;
 	private UserManager um;
@@ -409,19 +385,7 @@ public class PPC
 		JSONMapData out = new JSONMapData(null);
 		out.jmap.put("command", Constants.CMD_REQ_REGISTR);
 		
-		String name = in.jmap.get("name");
-		String email = in.jmap.get("email");
-		String clinic = in.jmap.get("clinic");
-		
-		String emailSubject = "PROM/PREM: Registration request";
-		String emailDescription = "Registration reguest from";
-		String emailSignature = "This message was sent from the PROM/PREM Collector";
-		String emailBody = String.format(
-				("%s:<br><br> %s: %s<br>%s: %s<br>%s: %s<br><br> %s"),
-				emailDescription, "Name", name, "E-mail",
-				email, "Clinic", clinic, emailSignature);
-		
-		if (send(config.adminEmail, emailSubject, emailBody, "text/html"))
+		if (MailMan.sendRegReq(in.jmap.get("name"), in.jmap.get("email"), in.jmap.get("clinic")))
 			out.jmap.put(Constants.INSERT_RESULT, Constants.INSERT_SUCCESS);
 		else
 			out.jmap.put(Constants.INSERT_RESULT, Constants.INSERT_FAIL);
@@ -443,21 +407,7 @@ public class PPC
 		JSONMapData out = new JSONMapData(null);
 		out.jmap.put("command", ServletConst.CMD_RSP_REGISTR);
 		
-		String username = in.jmap.get("username");
-		String email = in.jmap.get("email");
-		String password = in.jmap.get("password");
-		
-		String emailSubject = "PROM/PREM: Registration response";
-		String emailDescription = "You have been registered at the PROM/PREM Collector. "
-				+ "You will find your login details below. When you first log in you will"
-				+ "be asked to update your password.";
-		String emailSignature = "This message was sent from the PROM/PREM Collector";
-		String emailBody = String.format(
-				("%s<br><br> %s: %s<br>%s: %s<br><br> %s"),
-				emailDescription, "Username", username,
-				"Password", password, emailSignature);
-		
-		if (send(email, emailSubject, emailBody, "text/html"))
+		if (MailMan.sendRegResp(in.jmap.get("username"), in.jmap.get("password"), in.jmap.get("email")))
 			out.jmap.put(Constants.INSERT_RESULT, Constants.INSERT_SUCCESS);
 		else
 			out.jmap.put(Constants.INSERT_RESULT, Constants.INSERT_FAIL);
@@ -538,44 +488,6 @@ public class PPC
 		}
 		return out.jobj;
 	}
-
-	/**
-	 * Sends an email from the servlet's email account.
-	 * 
-	 * @param recipient The email address of to send the email to.
-	 * @param emailSubject The subject of the email.
-	 * @param emailBody The body/contents of the email.
-	 * @param bodyFormat The format of the body. This could for
-	 * 		example be 'text', 'html', 'text/html' etc.
-	 */
-	private boolean send(String recipient, String emailSubject,
-			String emailBody, String bodyFormat)
-	{
-		/* generate session and message instances */
-		Session getMailSession = Session.getDefaultInstance(
-				config.mailConfig, null);
-		MimeMessage generateMailMessage = new MimeMessage(getMailSession);
-		try
-		{
-			/* create email */
-			generateMailMessage.addRecipient(Message.RecipientType.TO,
-					new InternetAddress(recipient));
-			generateMailMessage.setSubject(emailSubject);
-			generateMailMessage.setContent(emailBody, bodyFormat);
-			
-			/* login to server email account and send email. */
-			Transport transport = getMailSession.getTransport();
-			transport.connect(config.serverEmail, config.serverPassword);
-			transport.sendMessage(generateMailMessage,
-					generateMailMessage.getAllRecipients());
-			transport.close();
-		} catch (MessagingException me)
-		{
-			logger.log("Could not send email", me);
-			return false;
-		}
-		return true;
-	}
 	
 	private class JSONMapData
 	{
@@ -600,78 +512,6 @@ public class PPC
 		{
 			this.jarr = jarr != null ? jarr : new JSONArray();
 			this.jlist = (List<String>) this.jarr;
-		}
-	}
-
-	/**
-	 * This class contains the configuration data for sending emails.
-	 * 
-	 * @author Marcus Malmquist
-	 *
-	 */
-	private final class EmailConfig
-	{
-		static final String CONFIG_FILE =
-				"servlet/implementation/email_settings.txt";
-		static final String ACCOUNT_FILE =
-				"servlet/implementation/email_accounts.ini";
-		Properties mailConfig;
-		
-		// server mailing account
-		String serverEmail, serverPassword, adminEmail;
-		
-		EmailConfig() throws IOException
-		{
-			mailConfig = new Properties();
-			refreshConfig();
-		}
-		
-		/**
-		 * reloads the javax.mail config properties as well as
-		 * the email account config.
-		 */
-		synchronized void refreshConfig() throws IOException
-		{
-			loadConfig(CONFIG_FILE);
-			loadEmailAccounts(ACCOUNT_FILE);
-		}
-		
-		/**
-		 * Loads the javax.mail config properties contained in the
-		 * supplied config file.
-		 * 
-		 * @param filePath The file while the javax.mail config
-		 * 		properties are located.
-		 * 
-		 * @return True if the file was loaded. False if an error
-		 * 		occurred.
-		 */
-		synchronized void loadConfig(String filePath) throws IOException
-		{
-			if (!mailConfig.isEmpty())
-				mailConfig.clear();
-			mailConfig.load(Utilities.getResourceStream(getClass(), filePath));
-		}
-		
-		/**
-		 * Loads the registration program's email account information
-		 * as well as the email address of the administrator who will
-		 * receive registration requests.
-		 * 
-		 * @param filePath The file that contains the email account
-		 * 		information.
-		 * 
-		 * @return True if the file was loaded. False if an error
-		 * 		occurred.
-		 */
-		synchronized void loadEmailAccounts(String filePath) throws IOException
-		{
-			Properties props = new Properties();
-			props.load(Utilities.getResourceStream(getClass(), filePath));
-			adminEmail = props.getProperty("admin_email");
-			serverEmail = props.getProperty("server_email");
-			serverPassword = props.getProperty("server_password");
-			props.clear();
 		}
 	}
 

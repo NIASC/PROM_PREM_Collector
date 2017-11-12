@@ -46,7 +46,6 @@ import servlet.core._User;
  * @author Marcus Malmquist
  *
  */
-@SuppressWarnings("unchecked")
 public class ServletCommunication
 {
 	/* Public */
