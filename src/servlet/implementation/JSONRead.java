@@ -124,27 +124,24 @@ public class JSONRead
 	
 	private static String getUser(JSONObject obj)
 	{
-		Map<String, String> omap = (Map<String, String>) obj;
-		
-		JSONObject ret = new JSONObject();
-		Map<String, String> rmap = (Map<String, String>) ret;
-		rmap.put("command", Constants.CMD_GET_USER);
+		JSONMapData in = new JSONMapData(obj);
+		JSONMapData out = new JSONMapData(null);
+		out.jmap.put("command", Constants.CMD_GET_USER);
 
-		_User _user = db._getUser(omap.get("name"));
-		JSONObject user = new JSONObject();
-		Map<String, String> umap = (Map<String, String>) user;
+		_User _user = db._getUser(in.jmap.get("name"));
+		JSONMapData user = new JSONMapData(null);
 		if (_user != null) {
-			umap.put("clinic_id", Integer.toString(_user.clinic_id));
-			umap.put("name", _user.name);
-			umap.put("password", _user.password);
-			umap.put("email", _user.email);
-			umap.put("salt", _user.salt);
-			umap.put("update_password", _user.update_password ? "1" : "0");
-			rmap.put("user", user.toString());
+			user.jmap.put("clinic_id", Integer.toString(_user.clinic_id));
+			user.jmap.put("name", _user.name);
+			user.jmap.put("password", _user.password);
+			user.jmap.put("email", _user.email);
+			user.jmap.put("salt", _user.salt);
+			user.jmap.put("update_password", _user.update_password ? "1" : "0");
+			out.jmap.put("user", user.jobj.toString());
 		} else {
-			rmap.put("user", (new JSONObject()).toString());
+			out.jmap.put("user", (new JSONObject()).toString());
 		}
-		return ret.toString();
+		return out.jobj.toString();
 	}
 
 	/**
@@ -157,21 +154,19 @@ public class JSONRead
 	 */
 	private static String requestLogin(JSONObject obj)
 	{
-		Map<String, String> omap = (Map<String, String>) obj;
-		
-		JSONObject ret = new JSONObject();
-		Map<String, String> rmap = (Map<String, String>) ret;
-		rmap.put("command", Constants.CMD_REQ_LOGIN);
+		JSONMapData in = new JSONMapData(obj);
+		JSONMapData out = new JSONMapData(null);
+		out.jmap.put("command", Constants.CMD_REQ_LOGIN);
 
-		_User _user = db._getUser(omap.get("name"));
-		if (!_user.password.equals(omap.get("password"))) {
-			rmap.put(Constants.LOGIN_REPONSE, Constants.INVALID_DETAILS_STR);
-			return ret.toString();
+		_User _user = db._getUser(in.jmap.get("name"));
+		if (!_user.password.equals(in.jmap.get("password"))) {
+			out.jmap.put(Constants.LOGIN_REPONSE, Constants.INVALID_DETAILS_STR);
+			return out.jobj.toString();
 		}
 		
 		UserManager um = UserManager.getUserManager();
-		rmap.put(Constants.LOGIN_REPONSE, um.addUser(_user.name));
-		return ret.toString();
+		out.jmap.put(Constants.LOGIN_REPONSE, um.addUser(_user.name));
+		return out.jobj.toString();
 	}
 
 	/**
@@ -184,17 +179,28 @@ public class JSONRead
 	 */
 	private static String requestLogout(JSONObject obj)
 	{
-		Map<String, String> omap = (Map<String, String>) obj;
-		
-		JSONObject ret = new JSONObject();
-		Map<String, String> rmap = (Map<String, String>) ret;
-		rmap.put("command", Constants.CMD_REQ_LOGOUT);
+		JSONMapData in = new JSONMapData(obj);
+		JSONMapData out = new JSONMapData(null);
+		out.jmap.put("command", Constants.CMD_REQ_LOGOUT);
 
 		UserManager um = UserManager.getUserManager();
-		String response = um.delUser(omap.get("name")) ? Constants.SUCCESS_STR : Constants.ERROR_STR;
-		rmap.put(Constants.LOGOUT_REPONSE, response);
-		return ret.toString();
+		String response = um.delUser(in.jmap.get("name")) ? Constants.SUCCESS_STR : Constants.ERROR_STR;
+		out.jmap.put(Constants.LOGOUT_REPONSE, response);
+		return out.jobj.toString();
 	}
 	
 	// --------------------------------
+	
+	private static class JSONMapData
+	{
+		JSONObject jobj;
+		Map<String, String> jmap;
+		
+		@SuppressWarnings("unchecked")
+		JSONMapData(JSONObject jobj)
+		{
+			this.jobj = jobj != null ? jobj : new JSONObject();
+			this.jmap = (Map<String, String>) this.jobj;
+		}
+	}
 }
