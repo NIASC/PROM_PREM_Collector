@@ -115,55 +115,23 @@ public class MySQL_Database implements Database
 	}
 
 	@Override
-	public String addQuestionnaireAnswers(JSONObject obj)
+	public boolean addQuestionnaireAnswers(
+			int clinic_id, String identifier,
+			List<String> question_ids,
+			List<String> question_answers)
 	{
-		Map<String, String> omap = (Map<String, String>) obj;
-		
-		JSONObject ret = new JSONObject();
-		Map<String, String> rmap = (Map<String, String>) ret;
-		rmap.put("command", Constants.CMD_ADD_QANS);
-		
-		int clinic_id = Integer.parseInt(omap.get("clinic_id"));
-		String identifier = omap.get("identifier");
-		String patientInsert = String.format(
-				"INSERT INTO `patients` (`clinic_id`, `identifier`, `id`) VALUES ('%d', '%s', NULL)",
-				clinic_id, identifier);
-		
-		Map<String, String> m = (Map<String, String>) getJSONObject(omap.get("questions"));
-		List<String> question_ids = new ArrayList<String>();
-		List<String> question_answers = new ArrayList<String>();
-		for (Entry<String, String> e : m.entrySet())
-		{
-			question_ids.add((String) e.getKey());
-			question_answers.add((String) e.getValue());
-		}
-
 		String resultInsert = String.format("INSERT INTO `questionnaire_answers` (`clinic_id`, `patient_identifier`, `date`, %s) VALUES ('%d', '%s', '%s', %s)",
 				String.join(", ", question_ids), clinic_id, identifier,
 				(new SimpleDateFormat("yyyy-MM-dd")).format(new Date()),
 				String.join(", ", question_answers));
 		try {
-			if (!patientInDatabase(identifier))
-				queryUpdate(patientInsert);
 			queryUpdate(resultInsert);
-			rmap.put(Constants.INSERT_RESULT, Constants.INSERT_SUCCESS);
-		}
-		catch (DBReadException dbr)
-		{
-			rmap.put(Constants.INSERT_RESULT, Constants.INSERT_FAIL);
-			logger.log("Database read error", dbr);
-		}
-		catch (SQLException se)
-		{
-			rmap.put(Constants.INSERT_RESULT, Constants.INSERT_FAIL);
-			logger.log("Error opening connection to database "
-					+ "or while parsing SQL ResultSet", se);
+			return true;
 		}
 		catch (DBWriteException dbw) {
-			rmap.put(Constants.INSERT_RESULT, Constants.INSERT_FAIL);
 			logger.log("Database write error", dbw);
+			return false;
 		}
-		return ret.toString();
 	}
 
 	@Override
@@ -583,6 +551,27 @@ public class MySQL_Database implements Database
 	static
 	{
 		parser = new JSONParser();
+	}
+	
+	@Override
+	public boolean addPatient(int clinic_id, String identifier)
+	{
+		String patientInsert = String.format(
+				"INSERT INTO `patients` (`clinic_id`, `identifier`, `id`) VALUES ('%d', '%s', NULL)",
+				clinic_id, identifier);
+		try {
+			if (!patientInDatabase(identifier))
+				queryUpdate(patientInsert);
+			return true;
+		} catch (DBReadException dbr) {
+			logger.log("Database read error", dbr);
+		} catch (SQLException se) {
+			logger.log("Error opening connection to database "
+					+ "or while parsing SQL ResultSet", se);
+		} catch (DBWriteException dbw) {
+			logger.log("Database write error", dbw);
+		}
+		return false;
 	}
 	
 	/**

@@ -25,8 +25,10 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 
@@ -65,7 +67,7 @@ public class JSONRead
 
 		Database db = Implementations.Database();
 		dbm.put(ServletConst.CMD_ADD_USER, JSONRead::addUser);
-		dbm.put(Constants.CMD_ADD_QANS, db::addQuestionnaireAnswers);
+		dbm.put(Constants.CMD_ADD_QANS, JSONRead::addQuestionnaireAnswers);
 		dbm.put(ServletConst.CMD_ADD_CLINIC, db::addClinic);
 		dbm.put(Constants.CMD_GET_CLINICS, JSONRead::getClinics);
 		dbm.put(Constants.CMD_GET_USER, JSONRead::getUser);
@@ -137,6 +139,32 @@ public class JSONRead
 				in.jmap.get("name"), in.jmap.get("password"),
 				in.jmap.get("email"), in.jmap.get("salt"));
 		if (success) {
+			out.jmap.put(Constants.INSERT_RESULT, Constants.INSERT_SUCCESS);
+		} else {
+			out.jmap.put(Constants.INSERT_RESULT, Constants.INSERT_FAIL);
+		}
+		return out.jobj.toString();
+	}
+	
+	private static String addQuestionnaireAnswers(JSONObject obj)
+	{
+		JSONMapData in = new JSONMapData(obj);
+		JSONMapData out = new JSONMapData(null);
+		out.jmap.put("command", Constants.CMD_ADD_QANS);
+		
+		int clinic_id = Integer.parseInt(in.jmap.get("clinic_id"));
+		String identifier = in.jmap.get("identifier");
+
+		JSONMapData m = new JSONMapData(getJSONObject(in.jmap.get("questions")));
+		List<String> question_ids = new ArrayList<String>();
+		List<String> question_answers = new ArrayList<String>();
+		for (Entry<String, String> e : m.jmap.entrySet()) {
+			question_ids.add(e.getKey());
+			question_answers.add(e.getValue());
+		}
+		
+		if (db.addPatient(clinic_id, identifier)
+				&& db.addQuestionnaireAnswers(clinic_id, identifier, question_ids, question_answers)) {
 			out.jmap.put(Constants.INSERT_RESULT, Constants.INSERT_SUCCESS);
 		} else {
 			out.jmap.put(Constants.INSERT_RESULT, Constants.INSERT_FAIL);
@@ -225,6 +253,15 @@ public class JSONRead
 	}
 	
 	// --------------------------------
+
+	private static JSONObject getJSONObject(String str)
+	{
+		try {
+			return (JSONObject) parser.parse(str);
+		} catch (ParseException pe) {
+			throw new NullPointerException("JSON parse error");
+		}
+	}
 	
 	private static class JSONMapData
 	{

@@ -20,6 +20,7 @@
  */
 package servlet.core.interfaces;
 
+import java.util.List;
 import java.util.Map;
 
 import org.json.simple.JSONObject;
@@ -51,6 +52,8 @@ public interface Database
 	public boolean addUser(int clinic_id, String name,
 			String password, String email, String salt);
 	
+	boolean addPatient(int clinic_id, String identifier);
+	
 	/**
 	 * Adds questionnaire answers contained in {@code obj} to the
 	 * database.
@@ -61,7 +64,10 @@ public interface Database
 	 * @return A JSONObject with information about if the answers
 	 * 		were added.
 	 */
-	public String addQuestionnaireAnswers(JSONObject obj);
+	public boolean addQuestionnaireAnswers(
+			int clinic_id, String identifier,
+			List<String> question_ids,
+			List<String> question_answers);
 	
 	/**
 	 * Adds a clinic contained in {@code obj} to the database.
