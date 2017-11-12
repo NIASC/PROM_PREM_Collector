@@ -50,7 +50,7 @@ public class PPCServlet extends HttpServlet
 
 	@Override
 	public void destroy() {
-		
+		ppc.terminate();
 	}
 
 	@Override

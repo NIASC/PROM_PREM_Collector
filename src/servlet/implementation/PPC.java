@@ -93,6 +93,7 @@ public class PPC
 		
 		dbm = new HashMap<String, NetworkFunction>();
 		db = MySQL_Database.getDatabase();
+		um = UserManager.getUserManager();
 
 		dbm.put(ServletConst.CMD_ADD_USER, this::addUser);
 		dbm.put(Constants.CMD_ADD_QANS, this::addQuestionnaireAnswers);
@@ -111,6 +112,11 @@ public class PPC
 		dbm.put(Constants.CMD_REQ_LOGOUT, this::requestLogout);
 	}
 	
+	void terminate()
+	{
+		um.terminate();
+	}
+	
 	private static PPCLogger logger;
 	private static JSONParser parser;
 
@@ -121,6 +127,7 @@ public class PPC
 	private EmailConfig config;
 	private Map<String, NetworkFunction> dbm;
 	private Database db;
+	private UserManager um;
 	
 	static {
 		logger = PPCLogger.getLogger();
@@ -474,7 +481,6 @@ public class PPC
 			return out.jobj.toString();
 		}
 		
-		UserManager um = UserManager.getUserManager();
 		out.jmap.put(Constants.LOGIN_REPONSE, um.addUser(_user.name));
 		return out.jobj.toString();
 	}
@@ -493,7 +499,6 @@ public class PPC
 		JSONMapData out = new JSONMapData(null);
 		out.jmap.put("command", Constants.CMD_REQ_LOGOUT);
 
-		UserManager um = UserManager.getUserManager();
 		String response = um.delUser(in.jmap.get("name")) ? Constants.SUCCESS_STR : Constants.ERROR_STR;
 		out.jmap.put(Constants.LOGOUT_REPONSE, response);
 		return out.jobj.toString();
