@@ -32,6 +32,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 
+import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
 import org.json.simple.parser.ParseException;
@@ -41,6 +42,7 @@ import servlet.core.PPCLogger;
 import servlet.core.ServletConst;
 import servlet.core.UserManager;
 import servlet.core._Message;
+import servlet.core._Question;
 import servlet.core._User;
 import servlet.core.interfaces.Database;
 import servlet.core.interfaces.Implementations;
@@ -75,8 +77,8 @@ public class JSONRead
 		dbm.put(Constants.CMD_SET_PASSWORD, JSONRead::setPassword);
 		dbm.put(Constants.CMD_GET_ERR_MSG, JSONRead::getErrorMessages);
 		dbm.put(Constants.CMD_GET_INFO_MSG, JSONRead::getInfoMessages);
-		dbm.put(Constants.CMD_LOAD_Q, db::loadQuestions);
-		dbm.put(Constants.CMD_LOAD_QR_DATE, db::loadQResultDates);
+		dbm.put(Constants.CMD_LOAD_Q, JSONRead::loadQuestions);
+		dbm.put(Constants.CMD_LOAD_QR_DATE, JSONRead::loadQResultDates);
 		dbm.put(Constants.CMD_LOAD_QR, db::loadQResults);
 		dbm.put(Constants.CMD_REQ_REGISTR, db::requestRegistration);
 		dbm.put(ServletConst.CMD_RSP_REGISTR, db::respondRegistration);
@@ -254,6 +256,50 @@ public class JSONRead
 		out.jmap.put("messages", _getMessages(db.getInfoMessages()).toString());
 		return out.jobj.toString();
 	}
+	
+	private static String loadQuestions(JSONObject obj)
+	{
+		JSONMapData out = new JSONMapData(null);
+		out.jmap.put("command", Constants.CMD_LOAD_Q);
+		
+		Map<Integer, _Question> questions = db.loadQuestions();
+		JSONMapData _questions = new JSONMapData(null);
+		for (Entry<Integer, _Question> _e : questions.entrySet()) {
+			_Question _q = _e.getValue();
+			JSONMapData _question = new JSONMapData(null);
+			int i = 0;
+			for (String str : _q.options)
+				_question.jmap.put(String.format("option%d", i++), str);
+			_question.jmap.put("type", _q.type);
+			_question.jmap.put("id", Integer.toString(_q.id));
+			_question.jmap.put("question", _q.question);
+			_question.jmap.put("description", _q.description);
+			_question.jmap.put("optional", _q.optional ? "1" : "0");
+			_question.jmap.put("max_val", Integer.toString(_q.max_val));
+			_question.jmap.put("min_val", Integer.toString(_q.min_val));
+			
+			_questions.jmap.put(Integer.toString(_e.getKey()),
+					_question.jobj.toString());
+		}
+		out.jmap.put("questions", _questions.jobj.toString());
+		return out.jobj.toString();
+	}
+	
+	private static String loadQResultDates(JSONObject obj)
+	{
+		JSONMapData in = new JSONMapData(obj);
+		JSONMapData out = new JSONMapData(null);
+		out.jmap.put("command", Constants.CMD_LOAD_QR_DATE);
+
+		_User user = db._getUser(in.jmap.get("name"));
+		List<String> dlist = db.loadQResultDates(user.clinic_id);
+
+		JSONArrData dates = new JSONArrData(null);
+		for (String str : dlist)
+			dates.jlist.add(str);
+		out.jmap.put("dates", dates.jarr.toString());
+		return out.jobj.toString();
+	}
 
 	/**
 	 * Requests to log in.
@@ -353,6 +399,19 @@ public class JSONRead
 		{
 			this.jobj = jobj != null ? jobj : new JSONObject();
 			this.jmap = (Map<String, String>) this.jobj;
+		}
+	}
+	
+	private static class JSONArrData
+	{
+		JSONArray jarr;
+		List<String> jlist;
+		
+		@SuppressWarnings("unchecked")
+		JSONArrData(JSONArray jarr)
+		{
+			this.jarr = jarr != null ? jarr : new JSONArray();
+			this.jlist = (List<String>) this.jarr;
 		}
 	}
 }

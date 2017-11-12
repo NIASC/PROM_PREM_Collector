@@ -56,6 +56,7 @@ import servlet.core.PPCLogger;
 import servlet.core.ServletConst;
 import servlet.core.UserManager;
 import servlet.core._Message;
+import servlet.core._Question;
 import servlet.core._User;
 import servlet.core.interfaces.Database;
 import servlet.implementation.exceptions.DBReadException;
@@ -255,110 +256,64 @@ public class MySQL_Database implements Database
 	}
 	
 	@Override
-	public String loadQuestions(JSONObject obj)
+	public Map<Integer, _Question> loadQuestions()
 	{
-		JSONObject ret = new JSONObject();
-		Map<String, String> rmap = (Map<String, String>) ret;
-		rmap.put("command", Constants.CMD_LOAD_Q);
-		
-		try (Connection conn = dataSource.getConnection())
-		{
-			Statement s = conn.createStatement();
-			ResultSet rs = query(s, "SELECT * FROM `questionnaire`");
+		Map<Integer, _Question> _questions = new HashMap<Integer, _Question>();
+		try (Connection conn = dataSource.getConnection()) {
+			ResultSet rs = query(conn.createStatement(),
+					"SELECT * FROM `questionnaire`");
 			
-			JSONObject questions = new JSONObject();
-			Map<String, String> qmap = (Map<String, String>) questions;
-			while (rs.next())
-			{
-				JSONObject question = new JSONObject();
-				Map<String, String> questionmap = (Map<String, String>) question;
-				for (int i = 0; ; ++i)
-				{
-					try
-					{
-						String tbl_name = String.format("option%d", i);
-						String entry = rs.getString(tbl_name);
+			while (rs.next()) {
+				_Question _question = new _Question();
+				for (int i = 0; ; ++i) {
+					try {
+						String entry = rs.getString(String.format("option%d", i));
 						if (entry == null || (entry = entry.trim()).isEmpty())
 							break;
-						questionmap.put(tbl_name, entry);
-					}
-					catch (SQLException e)
-					{ /* no more options */
+						_question.options.add(i, entry);
+					} catch (SQLException e) {
+						/* no more options */
 						break;
 					}
 				}
-				String id = Integer.toString(rs.getInt("id"));
-				questionmap.put("type", rs.getString("type"));
-				questionmap.put("id", id);
-				questionmap.put("question", rs.getString("question"));
-				questionmap.put("description", rs.getString("description"));
-				questionmap.put("optional", Integer.toString(rs.getInt("optional")));
-				questionmap.put("max_val", Integer.toString(rs.getInt("max_val")));
-				questionmap.put("min_val", Integer.toString(rs.getInt("min_val")));
+				int id = rs.getInt("id");
+				_question.type = rs.getString("type");
+				_question.id = id;
+				_question.question = rs.getString("question");
+				_question.description = rs.getString("description");
+				_question.optional = rs.getInt("optional") > 0;
+				_question.max_val = rs.getInt("max_val");
+				_question.min_val = rs.getInt("min_val");
 
-				qmap.put(id, question.toString());
+				_questions.put(id, _question);
 			}
-			rmap.put("questions", questions.toString());
-		}
-		catch (DBReadException dbr)
-		{
-			rmap.put("questions", (new JSONObject()).toString());
+		} catch (DBReadException dbr) {
 			logger.log("Database read error", dbr);
-		}
-		catch (SQLException e)
-		{
-			rmap.put("questions", (new JSONObject()).toString());
+		} catch (SQLException e) {
 			logger.log("Error opening connection to database "
 					+ "or while parsing SQL ResultSet", e);
 		}
-		return ret.toString();
+		return _questions;
 	}
 
 	@Override
-	public String loadQResultDates(JSONObject obj)
+	public List<String> loadQResultDates(int clinic_id)
 	{
-		Map<String, String> omap = (Map<String, String>) obj;
-		
-		JSONObject ret = new JSONObject();
-		Map<String, String> rmap = (Map<String, String>) ret;
-		rmap.put("command", Constants.CMD_LOAD_QR_DATE);
-
-		Map<String, String> userobj;
-		try
-		{
-			userobj = getUser(omap.get("name"));
-		} catch (Exception e)
-		{
-			rmap.put("dates", (new JSONArray()).toString());
-			logger.log("No user specified");
-			return ret.toString();
-		}
-		
-		Map<String, String> user = (Map<String, String>) getJSONObject(userobj.get("user"));
-
-		try (Connection conn = dataSource.getConnection())
-		{
-			Statement s = conn.createStatement();
-			ResultSet rs = query(s, String.format(
+		List<String> dlist = new ArrayList<String>();
+		try (Connection conn = dataSource.getConnection()) {
+			ResultSet rs = query(conn.createStatement(), String.format(
 					"SELECT `date` FROM `questionnaire_answers` WHERE `clinic_id` = %d",
-					Integer.parseInt(user.get("clinic_id"))));
+					clinic_id));
 			
-			JSONArray dates = new JSONArray();
-			List<String> dlist = (List<String>) dates;
 			while (rs.next())
 				dlist.add(rs.getString("date"));
-			rmap.put("dates", dates.toString());
-		}
-		catch (DBReadException dbr) {
-			rmap.put("dates", (new JSONArray()).toString());
+		} catch (DBReadException dbr) {
 			logger.log("Database read error", dbr);
-		}
-		catch (SQLException e) {
-			rmap.put("dates", (new JSONArray()).toString());
+		} catch (SQLException e) {
 			logger.log("Error opening connection to database "
 					+ "or while parsing SQL ResultSet", e);
 		}
-		return ret.toString();
+		return dlist;
 	}
 	
 	@Override

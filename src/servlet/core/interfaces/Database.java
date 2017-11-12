@@ -26,6 +26,7 @@ import java.util.Map;
 import org.json.simple.JSONObject;
 
 import servlet.core._Message;
+import servlet.core._Question;
 import servlet.core._User;
 
 
@@ -135,7 +136,7 @@ public interface Database
 	 * 
 	 * @return A JSONObject that contains the questionnaire questions.
 	 */
-	public String loadQuestions(JSONObject obj);
+	public Map<Integer, _Question> loadQuestions();
 	
 	/**
 	 * Retrieves the dates that questionnaire answers were added to the
@@ -145,7 +146,7 @@ public interface Database
 	 * 
 	 * @return A JSONObject that contains the dates.
 	 */
-	public String loadQResultDates(JSONObject obj);
+	public List<String> loadQResultDates(int clinic_id);
 	
 	/**
 	 * Retrieves the questionnaire results from the database.
