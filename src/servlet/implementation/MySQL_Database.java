@@ -113,6 +113,27 @@ public class MySQL_Database implements Database
 			return false;
 		}
 	}
+	
+	@Override
+	public boolean addPatient(int clinic_id, String identifier)
+	{
+		String patientInsert = String.format(
+				"INSERT INTO `patients` (`clinic_id`, `identifier`, `id`) VALUES ('%d', '%s', NULL)",
+				clinic_id, identifier);
+		try {
+			if (!patientInDatabase(identifier))
+				queryUpdate(patientInsert);
+			return true;
+		} catch (DBReadException dbr) {
+			logger.log("Database read error", dbr);
+		} catch (SQLException se) {
+			logger.log("Error opening connection to database "
+					+ "or while parsing SQL ResultSet", se);
+		} catch (DBWriteException dbw) {
+			logger.log("Database write error", dbw);
+		}
+		return false;
+	}
 
 	@Override
 	public boolean addQuestionnaireAnswers(
@@ -135,28 +156,18 @@ public class MySQL_Database implements Database
 	}
 
 	@Override
-	public String addClinic(JSONObject obj)
+	public boolean addClinic(String name)
 	{
-		Map<String, String> omap = (Map<String, String>) obj;
-		
-		JSONObject ret = new JSONObject();
-		Map<String, String> rmap = (Map<String, String>) ret;
-		rmap.put("command", ServletConst.CMD_ADD_CLINIC);
-		
 		String qInsert = String.format(
 				"INSERT INTO `clinics` (`id`, `name`) VALUES (NULL, '%s')",
-				omap.get("name"));
-		try
-		{
+				name);
+		try {
 			queryUpdate(qInsert);
-			rmap.put(Constants.INSERT_RESULT, Constants.INSERT_SUCCESS);
-		}
-		catch (DBWriteException dbw)
-		{
-			rmap.put(Constants.INSERT_RESULT, Constants.INSERT_FAIL);
+			return true;
+		} catch (DBWriteException dbw) {
 			logger.log("Database write error", dbw);
+			return false;
 		}
-		return ret.toString();
 	}
 	
 	@Override
@@ -551,27 +562,6 @@ public class MySQL_Database implements Database
 	static
 	{
 		parser = new JSONParser();
-	}
-	
-	@Override
-	public boolean addPatient(int clinic_id, String identifier)
-	{
-		String patientInsert = String.format(
-				"INSERT INTO `patients` (`clinic_id`, `identifier`, `id`) VALUES ('%d', '%s', NULL)",
-				clinic_id, identifier);
-		try {
-			if (!patientInDatabase(identifier))
-				queryUpdate(patientInsert);
-			return true;
-		} catch (DBReadException dbr) {
-			logger.log("Database read error", dbr);
-		} catch (SQLException se) {
-			logger.log("Error opening connection to database "
-					+ "or while parsing SQL ResultSet", se);
-		} catch (DBWriteException dbw) {
-			logger.log("Database write error", dbw);
-		}
-		return false;
 	}
 	
 	/**

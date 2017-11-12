@@ -77,7 +77,7 @@ public interface Database
 	 * @return A JSONObject with information about if the clinic
 	 * 		was added.
 	 */
-	public String addClinic(JSONObject obj);
+	public boolean addClinic(String name);
 	
 	/**
 	 * Retrieves the clinics from the database.

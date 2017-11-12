@@ -68,7 +68,7 @@ public class JSONRead
 		Database db = Implementations.Database();
 		dbm.put(ServletConst.CMD_ADD_USER, JSONRead::addUser);
 		dbm.put(Constants.CMD_ADD_QANS, JSONRead::addQuestionnaireAnswers);
-		dbm.put(ServletConst.CMD_ADD_CLINIC, db::addClinic);
+		dbm.put(ServletConst.CMD_ADD_CLINIC, JSONRead::addClinic);
 		dbm.put(Constants.CMD_GET_CLINICS, JSONRead::getClinics);
 		dbm.put(Constants.CMD_GET_USER, JSONRead::getUser);
 		dbm.put(Constants.CMD_SET_PASSWORD, db::setPassword);
@@ -165,6 +165,20 @@ public class JSONRead
 		
 		if (db.addPatient(clinic_id, identifier)
 				&& db.addQuestionnaireAnswers(clinic_id, identifier, question_ids, question_answers)) {
+			out.jmap.put(Constants.INSERT_RESULT, Constants.INSERT_SUCCESS);
+		} else {
+			out.jmap.put(Constants.INSERT_RESULT, Constants.INSERT_FAIL);
+		}
+		return out.jobj.toString();
+	}
+	
+	private static String addClinic(JSONObject obj)
+	{
+		JSONMapData in = new JSONMapData(obj);
+		JSONMapData out = new JSONMapData(null);
+		out.jmap.put("command", ServletConst.CMD_ADD_CLINIC);
+		
+		if (db.addClinic(in.jmap.get("name"))) {
 			out.jmap.put(Constants.INSERT_RESULT, Constants.INSERT_SUCCESS);
 		} else {
 			out.jmap.put(Constants.INSERT_RESULT, Constants.INSERT_FAIL);
