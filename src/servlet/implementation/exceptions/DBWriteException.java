@@ -20,15 +20,11 @@
  */
 package servlet.implementation.exceptions;
 
-import java.util.Calendar;
-
 /**
  * This class is an exception that should be thrown if an attempt to
  * write to the database fails.
  * 
  * @author Marcus Malmquist
- *
- * @see Calendar
  */
 public class DBWriteException extends RuntimeException {
 

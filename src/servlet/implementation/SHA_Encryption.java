@@ -18,14 +18,14 @@
  * along with PROM_PREM_Collector.  If not, see
  * <http://www.gnu.org/licenses/>.
  */
-package applet.implementation;
+package servlet.implementation;
 
 import java.math.BigInteger;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.security.SecureRandom;
 
-import applet.core.interfaces.Encryption;
+import servlet.core.interfaces.Encryption;
 
 /**
  * This class is an example of an implementation of

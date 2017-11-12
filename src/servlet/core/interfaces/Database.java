@@ -24,8 +24,6 @@ import java.util.Date;
 import java.util.List;
 import java.util.Map;
 
-import org.json.simple.JSONObject;
-
 import servlet.core._Message;
 import servlet.core._Question;
 import servlet.core._User;
@@ -160,22 +158,6 @@ public interface Database
 	 */
 	public List<Map<String, String>> loadQResults(
 			int clinic_id, List<String> qlist, Date begin, Date end);
-
-	@FunctionalInterface
-	public interface DatabaseFunction
-	{
-		/**
-		 * A method that processes the request contained in {@code obj}
-		 * and returns the answer as a string.
-		 * 
-		 * @param obj The JSONObject that contains the request along with
-		 * 		required data to process the request.
-		 * 
-		 * @return The String representation of the JSONObject that
-		 * 		contains the answer.
-		 */
-		public String dbfunc(JSONObject obj);
-	}
 	
 	/* Protected */
 	

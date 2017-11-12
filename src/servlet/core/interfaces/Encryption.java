@@ -1,4 +1,4 @@
-/** Registration.java
+/** Encryption.java
  * 
  * Copyright 2017 Marcus Malmquist
  * 
@@ -18,34 +18,49 @@
  * along with PROM_PREM_Collector.  If not, see
  * <http://www.gnu.org/licenses/>.
  */
-package applet.core.interfaces;
+package servlet.core.interfaces;
 
 /**
  * This interface contains the methods required by the core part of
  * this program to function. The purpose of this interface is to give
- * the freedom of choosing your own registration process and what
- * it should contain. Since the {@code Database} implementation can
- * also be chosen freely you are not limited to a pre-defined user
- * structure defined by the {@code Database}.
+ * the freedom of choosing your own method of encryption (if any!).
  * 
  * @author Marcus Malmquist
- * 
- * @see Database
  *
  */
-public interface Registration
+public interface Encryption
 {
 	/* Public */
 	
 	/**
-	 * Presets a registration form to the user. The form should
-	 * contain necessary information to be able to register the user.
+	 * Creates a hashed version of the input string.
 	 * 
-	 * Necessary information should at least include the clinic and
-	 * an email (since these are requires to initialize an instance of
-	 * a user).
+	 * @param s The string to be hashed
+	 * @param salt The salt to be used for hashing
+	 * 
+	 * @return The hashed version of the string
 	 */
-	public void registrationProcess();
+	public String hashString(String s, String salt);
+	
+	/**
+	 * Generates a new salt to be used for hashing.
+	 * 
+	 * @return A new salt
+	 */
+	public String getNewSalt();
+	
+	/**
+	 * Generates a hashed version of {@code message} using
+	 * {@code prepend} and {@code append} as salt.
+	 * 
+	 * @param prepend the salt to prepend.
+	 * @param message The message to hash.
+	 * @param append The salt to append.
+	 * 
+	 * @return The hashed version of {@code message}.
+	 */
+	public String encryptMessage(
+			String prepend, String message, String append);
 	
 	/* Protected */
 	

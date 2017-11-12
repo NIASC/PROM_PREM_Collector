@@ -52,7 +52,6 @@ import servlet.core._Question;
 import servlet.core._User;
 import servlet.core.interfaces.Database;
 import servlet.core.interfaces.Implementations;
-import servlet.core.interfaces.Database.DatabaseFunction;
 
 /**
  * This class handles redirecting a request from the applet to the
@@ -65,7 +64,7 @@ public class JSONRead
 {
 	private static PPCLogger logger = PPCLogger.getLogger();
 	private static JSONParser parser;
-	private static Map<String, DatabaseFunction> dbm;
+	private static Map<String, NetworkFunction> dbm;
 	private static Database db;
 
 	/**
@@ -84,7 +83,7 @@ public class JSONRead
 		}
 		
 		parser = new JSONParser();
-		dbm = new HashMap<String, DatabaseFunction>();
+		dbm = new HashMap<String, NetworkFunction>();
 		db = Implementations.Database();
 
 		dbm.put(ServletConst.CMD_ADD_USER, JSONRead::addUser);
@@ -119,7 +118,7 @@ public class JSONRead
 		{
 			JSONObject obj = (JSONObject) parser.parse(message);
 			HashMap<String, String> omap = (HashMap<String, String>) obj;
-			return getDBMethod(omap.get("command")).dbfunc(obj);
+			return getDBMethod(omap.get("command")).netfunc(obj);
 		}
 		catch (ParseException pe) {
 			logger.log("Unknown JSON format", pe);
@@ -143,7 +142,7 @@ public class JSONRead
 	 * @throws NullPointerException If no method exists that can handle
 	 * 		the request.
 	 */
-	private static DatabaseFunction getDBMethod(String command)
+	private static NetworkFunction getDBMethod(String command)
 	{
 		return dbm.get(command);
 	}
@@ -659,5 +658,21 @@ public class JSONRead
 			serverPassword = props.getProperty("server_password");
 			props.clear();
 		}
+	}
+
+	@FunctionalInterface
+	private interface NetworkFunction
+	{
+		/**
+		 * A method that processes the request contained in {@code obj}
+		 * and returns the answer as a string.
+		 * 
+		 * @param obj The JSONObject that contains the request along with
+		 * 		required data to process the request.
+		 * 
+		 * @return The String representation of the JSONObject that
+		 * 		contains the answer.
+		 */
+		public String netfunc(JSONObject obj);
 	}
 }
