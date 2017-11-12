@@ -18,7 +18,7 @@
  * along with PROM_PREM_Collector.  If not, see
  * <http://www.gnu.org/licenses/>.
  */
-package servlet.core;
+package servlet.implementation;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -29,7 +29,7 @@ import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
-import servlet.implementation.JSONRead;
+import servlet.core.PPCLogger;
 
 /**
  * This class is the PROM/PREM Collector servlet. It serves the applet with
@@ -41,44 +41,43 @@ import servlet.implementation.JSONRead;
  */
 public class PPCServlet extends HttpServlet
 {
-	private static final long serialVersionUID = -2340346250534805168L;
-	private String message;
-	
 	@Override
 	public void init() throws ServletException
 	{
-		// Do required initialization
 		message = "PROM/PREM Collector";
+		ppc = new PPC();
 	}
 
 	@Override
-	public void doGet(HttpServletRequest request, HttpServletResponse response)
-			throws ServletException, IOException
+	public void destroy() {
+		
+	}
+
+	@Override
+	public void doGet(HttpServletRequest request,
+			HttpServletResponse response)
+					throws ServletException, IOException
 	{
-		// Set response content type
 		response.setContentType("text/html");
-
-		// Actual logic goes here.
-		PrintWriter out = response.getWriter();
-		out.println("<h1>" + message + "</h1>");
+		response.getWriter().printf("<h1>%s</h1>", message);
 	}
 
 	@Override
-	protected void doPost(HttpServletRequest request, HttpServletResponse response)
-			throws ServletException, IOException
+	protected void doPost(HttpServletRequest request,
+			HttpServletResponse response)
+					throws ServletException, IOException
 	{
 		response.setCharacterEncoding("UTF-8");
 		request.setCharacterEncoding("UTF-8");
 		PrintWriter out = response.getWriter();
-		try{
+		try {
 			StringBuilder sb = new StringBuilder();
 			BufferedReader br = request.getReader();
 			String str = null;
-			while ((str = br.readLine()) != null) {
+			while ((str = br.readLine()) != null)
 				sb.append(str);
-			}
 			
-			out.print(JSONRead.handleRequest(sb.toString()));
+			out.print(ppc.handleRequest(sb.toString()));
 			out.flush();
 			out.close();
 		} catch (Exception e) {
@@ -87,10 +86,8 @@ public class PPCServlet extends HttpServlet
 		}
 	}
 
-	@Override
-	public void destroy() {
-		// do nothing.
-	}
-	
-	private static PPCLogger logger = PPCLogger.getLogger();
+	private static final long serialVersionUID = -2340346250534805168L;
+	private PPCLogger logger = PPCLogger.getLogger();
+	private String message;
+	private PPC ppc;
 }

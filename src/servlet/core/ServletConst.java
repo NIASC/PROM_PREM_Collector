@@ -46,8 +46,7 @@ public abstract class ServletConst
 		URL url = null;
 		String logdir = null;
 		Integer logsize = null, logcount = null;
-		try
-		{
+		try {
 			Properties props = new Properties();
 			props.load(Utilities.getResourceStream(ServletConst.class, filePath));
 			logdir = props.getProperty("logdir");
@@ -57,9 +56,7 @@ public abstract class ServletConst
 			logcount = Integer.parseInt(props.getProperty("logcount"));
 			url = new URL(props.getProperty("localurl"));
 			props.clear();
-		}
-		catch (IOException | IllegalArgumentException _e)
-		{
+		} catch (IOException | IllegalArgumentException _e) {
 			System.out.printf("FATAL: Could not load servlet settings file!");
 			_e.printStackTrace(System.out);
 			System.exit(1);
