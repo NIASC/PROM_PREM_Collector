@@ -68,6 +68,7 @@ public abstract class Constants {
 	
 	public static final String LOGIN_REPONSE = "login_response";
 	public static final String LOGOUT_REPONSE = "logout_response";
+	public static final String LOGIN_UID = "login_uid";
 	public static final String ERROR_STR = Integer.toString(ERROR);
 	public static final String SUCCESS_STR = Integer.toString(SUCCESS);
 	public static final String SERVER_FULL_STR = Integer.toString(SERVER_FULL);

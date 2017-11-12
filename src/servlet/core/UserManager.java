@@ -24,6 +24,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 
 import common.implementation.Constants;
 
@@ -76,16 +77,16 @@ public class UserManager
 	 * 		<code>Constants.SUCCESS_STR</code>
 	 * 			If the user was successfully added.
 	 */
-	public synchronized String addUser(String username)
+	public synchronized int addUser(String username, long uid)
 	{
 		if (username == null || username.isEmpty())
-			return Constants.ERROR_STR;
+			return Constants.ERROR;
 		if (users.size() >= MAX_USERS)
-			return Constants.SERVER_FULL_STR;
+			return Constants.SERVER_FULL;
 		if (users.contains(username))
-			return Constants.ALREADY_ONLINE_STR;
-		_addUser(username);
-		return Constants.SUCCESS_STR;
+			return Constants.ALREADY_ONLINE;
+		_addUser(username, uid);
+		return Constants.SUCCESS;
 	}
 	
 	/**
@@ -103,6 +104,13 @@ public class UserManager
 			return false;
 		_delUser(username);
 		return true;
+	}
+	
+	public String nameForUID(long uid) {
+		for (_User user : _users.values())
+			if (user.uid == uid)
+				return user.name;
+		return null;
 	}
 	
 	public void terminate()
@@ -140,9 +148,9 @@ public class UserManager
 		monitor.start();
 	}
 	
-	private void _addUser(String username) {
+	private void _addUser(String username, long uid) {
 		users.add(username);
-		_users.put(username, new _User(username));
+		_users.put(username, new _User(username, uid));
 	}
 	
 	private void _delUser(String username) {
@@ -165,11 +173,13 @@ public class UserManager
 	{
 		String name;
 		int loginTimer;
+		long uid;
 		
-		_User(String name)
+		_User(String name, long uid)
 		{
 			this.name = name;
 			loginTimer = 0;
+			this.uid = uid;
 		}
 	}
 	

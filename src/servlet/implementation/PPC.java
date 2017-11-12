@@ -51,6 +51,7 @@ import servlet.core._Message;
 import servlet.core._Question;
 import servlet.core._User;
 import servlet.core.interfaces.Database;
+import servlet.core.interfaces.Encryption;
 import servlet.core.interfaces.Implementations;
 
 /**
@@ -94,6 +95,7 @@ public class PPC
 		dbm = new HashMap<String, NetworkFunction>();
 		db = MySQL_Database.getDatabase();
 		um = UserManager.getUserManager();
+		crypto = new SHA_Encryption();
 
 		dbm.put(ServletConst.CMD_ADD_USER, this::addUser);
 		dbm.put(Constants.CMD_ADD_QANS, this::addQuestionnaireAnswers);
@@ -128,6 +130,7 @@ public class PPC
 	private Map<String, NetworkFunction> dbm;
 	private Database db;
 	private UserManager um;
+	private Encryption crypto;
 	
 	static {
 		logger = PPCLogger.getLogger();
@@ -480,8 +483,17 @@ public class PPC
 			out.jmap.put(Constants.LOGIN_REPONSE, Constants.INVALID_DETAILS_STR);
 			return out.jobj.toString();
 		}
+
+		String hash = crypto.encryptMessage(
+				Long.toHexString((new Date()).getTime()),
+				_user.name, crypto.getNewSalt());
+		long uid = Long.parseLong(hash.substring(0, 2*Long.BYTES-1), 2*Long.BYTES);
 		
-		out.jmap.put(Constants.LOGIN_REPONSE, um.addUser(_user.name));
+		int response = um.addUser(_user.name, uid);
+		out.jmap.put(Constants.LOGIN_REPONSE, Integer.toString(response));
+		if (response == Constants.SUCCESS) {
+			out.jmap.put(Constants.LOGIN_UID, Long.toString(uid));
+		}
 		return out.jobj.toString();
 	}
 
