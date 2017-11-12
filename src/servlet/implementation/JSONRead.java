@@ -24,6 +24,8 @@ import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
+import java.text.SimpleDateFormat;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -41,6 +43,7 @@ import servlet.core.interfaces.Database;
 import servlet.core.interfaces.Implementations;
 import servlet.core.interfaces.Database.DatabaseFunction;
 import servlet.implementation.exceptions.DBReadException;
+import servlet.implementation.exceptions.DBWriteException;
 
 /**
  * This class handles redirecting a request from the applet to the
@@ -61,7 +64,7 @@ public class JSONRead
 		db = Implementations.Database();
 
 		Database db = Implementations.Database();
-		dbm.put(ServletConst.CMD_ADD_USER, db::addUser);
+		dbm.put(ServletConst.CMD_ADD_USER, JSONRead::addUser);
 		dbm.put(Constants.CMD_ADD_QANS, db::addQuestionnaireAnswers);
 		dbm.put(ServletConst.CMD_ADD_CLINIC, db::addClinic);
 		dbm.put(Constants.CMD_GET_CLINICS, JSONRead::getClinics);
@@ -121,6 +124,24 @@ public class JSONRead
 	private static DatabaseFunction getDBMethod(String command)
 	{
 		return dbm.get(command);
+	}
+	
+	private static String addUser(JSONObject obj)
+	{
+		JSONMapData in = new JSONMapData(obj);
+		JSONMapData out = new JSONMapData(null);
+		out.jmap.put("command", ServletConst.CMD_ADD_USER);
+		
+		boolean success = db.addUser(
+				Integer.parseInt(in.jmap.get("clinic_id")),
+				in.jmap.get("name"), in.jmap.get("password"),
+				in.jmap.get("email"), in.jmap.get("salt"));
+		if (success) {
+			out.jmap.put(Constants.INSERT_RESULT, Constants.INSERT_SUCCESS);
+		} else {
+			out.jmap.put(Constants.INSERT_RESULT, Constants.INSERT_FAIL);
+		}
+		return out.jobj.toString();
 	}
 	
 	private static String getClinics(JSONObject obj)

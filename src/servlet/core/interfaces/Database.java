@@ -48,7 +48,8 @@ public interface Database
 	 * @return A JSONObject with information about if the user
 	 * 		was added.
 	 */
-	public String addUser(JSONObject obj);
+	public boolean addUser(int clinic_id, String name,
+			String password, String email, String salt);
 	
 	/**
 	 * Adds questionnaire answers contained in {@code obj} to the

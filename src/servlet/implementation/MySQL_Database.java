@@ -96,29 +96,22 @@ public class MySQL_Database implements Database
 	}
 
 	@Override
-	public String addUser(JSONObject obj)
+	public boolean addUser(int clinic_id, String name,
+			String password, String email, String salt)
 	{
-		Map<String, String> omap = (Map<String, String>) obj;
-		
-		JSONObject ret = new JSONObject();
-		Map<String, String> rmap = (Map<String, String>) ret;
-		rmap.put("command", ServletConst.CMD_ADD_USER);
-		
 		SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd");
 		String qInsert = String.format(
 				"INSERT INTO `users` (`clinic_id`, `name`, `password`, `email`, `registered`, `salt`, `update_password`) VALUES ('%d', '%s', '%s', '%s', '%s', '%s', '%d')",
-				Integer.parseInt(omap.get("clinic_id")),
-				omap.get("name"), omap.get("password"), omap.get("email"),
-				sdf.format(new Date()), omap.get("salt"), 1);
+				clinic_id, name, password, email,
+				sdf.format(new Date()), salt, 1);
 		try {
 			queryUpdate(qInsert);
-			rmap.put(Constants.INSERT_RESULT, Constants.INSERT_SUCCESS);
+			return true;
 		}
 		catch (DBWriteException dbw) {
-			rmap.put(Constants.INSERT_RESULT, Constants.INSERT_FAIL);
 			logger.log("Database write error", dbw);
+			return false;
 		}
-		return ret.toString();
 	}
 
 	@Override
