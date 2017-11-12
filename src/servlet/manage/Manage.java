@@ -61,22 +61,19 @@ public class Manage
 	public void runManager()
 	{
 		final int EXIT = 0, ADD_CLINIC = 1, ADD_USER = 2;
-		mgr: while (true)
-		{
+		mgr: while (true) {
 			System.out.printf("\n~~~~ PROM/PREM Manager ~~~~\n");
 			System.out.printf("\nWhat would you like to do?\n"
 					+ "%d: %s\n%d: %s\n%d: %s\n",
 					ADD_CLINIC, "Add Clinic",
 					ADD_USER, "Add user",
 					EXIT, "Exit");
-			if (!in.hasNextInt())
-			{
+			if (!in.hasNextInt()) {
 				in.next();
 				System.out.printf("Unknown option.\n\n");
 				continue;
 			}
-			switch (in.nextInt())
-			{
+			switch (in.nextInt()) {
 			case EXIT:
 				break mgr;
 			case ADD_CLINIC:
@@ -238,23 +235,21 @@ public class Manage
 		
 		System.out.printf("\nEnter new clinic:\n");
 		String clinic;
-		while ((clinic = in.nextLine().trim()).isEmpty());
-		if (Pattern.compile("[^\\p{Print}]").matcher(clinic).find())
-		{
+		while ((clinic = in.nextLine().trim()).isEmpty())
+			;
+		if (Pattern.compile("[^\\p{Print}]").matcher(clinic).find()) {
 			System.out.printf("Using non-ascii characters may cause trouble.\n\n");
 			return;
 		}
 		for (String s : clinics.values())
-			if (s.equals(clinic))
-			{
+			if (s.equals(clinic)) {
 				System.out.printf("That clinic already exist.\n\n");
 				return;
 			}
 		System.out.printf("\nAdd clinic '%s' to database?\n"
 				+ "%d: Yes\n%d: No\n", clinic, 1, 0);
 		if (in.hasNextInt())
-			if (in.nextInt() == 1)
-			{
+			if (in.nextInt() == 1) {
 				if (db.addClinic(clinic))
 					System.out.printf("Clinic added\n");
 				else
@@ -281,24 +276,21 @@ public class Manage
 		while ((surname = in.nextLine().trim()).isEmpty());
 		
 		String user = null;
-		for(int i = 0; i < 100; ++i)
-		{
+		for(int i = 0; i < 100; ++i) {
 			String generated = generateUsername(firstname, surname);
 			if (db.getUser(generated) != null)
 				continue;
 			user = generated;
 			break;
 		}
-		if (user == null)
-		{ /* could not automatically generat username */
+		if (user == null) {
+			/* could not automatically generat username */
 			System.out.printf("Could not generate a random username.\n");
-			while (user == null)
-			{
+			while (user == null) {
 				System.out.printf("\nEnter username:\n");
 				String suggested;
 				while ((suggested = in.next().trim()).isEmpty());
-				if (db.getUser(suggested) != null)
-				{
+				if (db.getUser(suggested) != null) {
 					System.out.printf("That username is not available.\n");
 					continue;
 				}
@@ -312,8 +304,7 @@ public class Manage
 
 		/* clinic */
 		Map<Integer, String> clinics = db.getClinics();
-		if (clinics.size() == 0)
-		{
+		if (clinics.size() == 0) {
 			System.out.printf("There are no clinics in the database.\n"
 					+ "Please add a clinic before you add a user.\n\n");
 			return;
@@ -322,14 +313,11 @@ public class Manage
 		for (Entry<Integer, String> e : clinics.entrySet())
 			System.out.printf("%d: %s\n", e.getKey(), e.getValue());
 		Integer clinic = null;
-		if (in.hasNextInt())
-		{
+		if (in.hasNextInt()) {
 			int c = in.nextInt();
 			if (clinics.containsKey(c))
 				clinic = c;
-		}
-		else
-		{
+		} else {
 			in.nextLine();
 			System.out.printf("No such clinic.\n\n");
 			return;
@@ -338,27 +326,24 @@ public class Manage
 		/* email */
 		System.out.printf("\nEnter Email:\n");
 		String email;
-		while ((email = in.next().trim()).isEmpty());
+		while ((email = in.next().trim()).isEmpty())
+			;
 		
 		/* verify */
 		System.out.printf("\nAn email with the following login details will be "
 				+ "sent to '%s'\n\tUsername: %s\n\tPassword: %s\n"
 				+ "%d: Yes\n%d: No\n", email, user, password, 1, 0);
-		if (in.hasNextInt())
-		{
-			if (in.nextInt() == 1)
-			{
+		if (in.hasNextInt()) {
+			if (in.nextInt() == 1) {
 				Encryption crypto = Implementations.Encryption();
 				String salt = crypto.getNewSalt();
 				if (db.addUser(user, crypto.hashString(password, salt),
-						salt, clinic, email))
-				{
+						salt, clinic, email)) {
 					if (db.respondRegistration(user, password, email))
 						System.out.printf("Email sent\n");
 					else
 						System.out.printf("Error. Consult the logs for info\n");
-				}
-				else
+				} else
 					System.out.printf("Error. Consult the logs for info\n");
 				return;
 			}

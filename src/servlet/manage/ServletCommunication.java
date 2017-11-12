@@ -86,19 +86,16 @@ public class ServletCommunication
 	public boolean addUser(String username, String password,
 			String salt, int clinic, String email)
 	{
-		JSONObject ret = new JSONObject();
-		Map<String, String> rmap = (Map<String, String>) ret;
-		rmap.put("command", ServletConst.CMD_ADD_USER);
-		rmap.put("clinic_id", Integer.toString(clinic));
-		rmap.put("name", username);
-		rmap.put("password", password);
-		rmap.put("email", email);
-		rmap.put("salt", salt);
-		
-		JSONObject ans = sendMessage(ret);
-		if (ans == null)
-			return false;
-		String insert = (String) ans.get(Constants.INSERT_RESULT);
+		JSONMapData out = new JSONMapData(null);
+		out.jmap.put("command", ServletConst.CMD_ADD_USER);
+		out.jmap.put("clinic_id", Integer.toString(clinic));
+		out.jmap.put("name", username);
+		out.jmap.put("password", password);
+		out.jmap.put("email", email);
+		out.jmap.put("salt", salt);
+
+		JSONMapData _ans = new JSONMapData(sendMessage(out.jobj));
+		String insert = _ans.jmap.get(Constants.INSERT_RESULT);
 		return (insert != null && insert.equals(Constants.INSERT_SUCCESS));
 	}
 
@@ -112,16 +109,12 @@ public class ServletCommunication
 	 */
 	public boolean addClinic(String clinicName)
 	{
-		JSONObject ret = new JSONObject();
-		Map<String, String> rmap = (Map<String, String>) ret;
-		rmap.put("command", ServletConst.CMD_ADD_CLINIC);
-		rmap.put("name", clinicName);
-		
-		JSONObject ans = sendMessage(ret);
-		if (ans == null)
-			return false;
-		Map<String, String> amap = (Map<String, String>) ans;
-		String insert = amap.get(Constants.INSERT_RESULT);
+		JSONMapData out = new JSONMapData(null);
+		out.jmap.put("command", ServletConst.CMD_ADD_CLINIC);
+		out.jmap.put("name", clinicName);
+
+		JSONMapData _ans = new JSONMapData(sendMessage(out.jobj));
+		String insert = _ans.jmap.get(Constants.INSERT_RESULT);
 		return (insert != null && insert.equals(Constants.INSERT_SUCCESS));
 	}
 	
@@ -133,20 +126,15 @@ public class ServletCommunication
 	 */
 	public Map<Integer, String> getClinics()
 	{
-		JSONObject ret = new JSONObject();
-		Map<String, String> rmap = (Map<String, String>) ret;
-		rmap.put("command", Constants.CMD_GET_CLINICS);
-		
-		JSONObject ans = sendMessage(ret);
-		JSONObject clinics = getJSONObject((String) ans.get("clinics"));
-		Map<String, String> cmap = (Map<String, String>) clinics;
+		JSONMapData out = new JSONMapData(null);
+		out.jmap.put("command", Constants.CMD_GET_CLINICS);
+
+		JSONMapData _ans = new JSONMapData(sendMessage(out.jobj));
+		JSONMapData _clinics = new JSONMapData(getJSONObject(_ans.jmap.get("clinics")));
 		
 		Map<Integer, String> clinic = new TreeMap<Integer, String>();
-		for (Entry<String, String> e : cmap.entrySet())
-		{
-			clinic.put(Integer.parseInt(e.getKey()),
-					e.getValue());
-		}
+		for (Entry<String, String> e : _clinics.jmap.entrySet())
+			clinic.put(Integer.parseInt(e.getKey()), e.getValue());
 		return clinic;
 	}
 	
@@ -160,27 +148,24 @@ public class ServletCommunication
 	 */
 	public _User getUser(String username)
 	{
-		JSONObject ret = new JSONObject();
-		Map<String, String> rmap = (Map<String, String>) ret;
-		rmap.put("command", Constants.CMD_GET_USER);
-		rmap.put("name", username);
+		JSONMapData out = new JSONMapData(null);
+		out.jmap.put("command", Constants.CMD_GET_USER);
+		out.jmap.put("name", username);
 
-		JSONObject ans = sendMessage(ret);
-		JSONObject user = getJSONObject((String) ans.get("user"));
-		Map<String, String> umap = (Map<String, String>) user;
-		_User _usr = null;
+		JSONMapData _ans = new JSONMapData(sendMessage(out.jobj));
+		JSONMapData _user = new JSONMapData(getJSONObject(_ans.jmap.get("user")));
 		try {
-			_usr = new _User();
-			_usr.clinic_id = Integer.parseInt(umap.get("clinic_id"));
-			_usr.name = umap.get("name");
-			_usr.password = umap.get("password");
-			_usr.email = umap.get("email");
-			_usr.salt = umap.get("salt");
-			_usr.update_password = Integer.parseInt(umap.get("update_password")) > 0;
+			_User _usr = new _User();
+			_usr.clinic_id = Integer.parseInt(_user.jmap.get("clinic_id"));
+			_usr.name = _user.jmap.get("name");
+			_usr.password = _user.jmap.get("password");
+			_usr.email = _user.jmap.get("email");
+			_usr.salt = _user.jmap.get("salt");
+			_usr.update_password = Integer.parseInt(_user.jmap.get("update_password")) > 0;
+			return _usr;
+		} catch (NullPointerException | NumberFormatException _e) {
+			return null;
 		}
-		catch (NullPointerException _e) {}
-		catch (NumberFormatException _e) {}
-		return _usr;
 	}
 	
 	/**
@@ -196,17 +181,14 @@ public class ServletCommunication
 	public boolean respondRegistration(
 			String username, String password, String email)
 	{
-		JSONObject ret = new JSONObject();
-		Map<String, String> rmap = (Map<String, String>) ret;
-		rmap.put("command", ServletConst.CMD_RSP_REGISTR);
-		rmap.put("username", username);
-		rmap.put("password", password);
-		rmap.put("email", email);
-		
-		JSONObject ans = sendMessage(ret);
-		if (ans == null)
-			return false;
-		String insert = (String) ans.get(Constants.INSERT_RESULT);
+		JSONMapData out = new JSONMapData(null);
+		out.jmap.put("command", ServletConst.CMD_RSP_REGISTR);
+		out.jmap.put("username", username);
+		out.jmap.put("password", password);
+		out.jmap.put("email", email);
+
+		JSONMapData _ans = new JSONMapData(sendMessage(out.jobj));
+		String insert = _ans.jmap.get(Constants.INSERT_RESULT);
 		return (insert != null && insert.equals(Constants.INSERT_SUCCESS));
 	}
 	
@@ -248,15 +230,9 @@ public class ServletCommunication
 			/* send message */
 			OutputStream os = connection.getOutputStream();
 			OutputStreamWriter osw = new OutputStreamWriter(os, "UTF-8");
-			// System.out.println(obj);
 			osw.write(obj.toString());
 			osw.flush();
 			osw.close();
-			if (connection.getResponseCode() == HttpURLConnection.HTTP_OK) {
-				// System.out.println("Ok response");
-			} else {
-				// System.out.println("Bad response");
-			}
 
 			/* receive message */
 			BufferedReader in = new BufferedReader(new InputStreamReader(
@@ -266,12 +242,11 @@ public class ServletCommunication
 			while ((inputLine = in.readLine()) != null)
 				sb.append(inputLine);
 			in.close();
-			// System.out.printf(">>%s<<\n", sb.toString());
 			return getJSONObject(sb.toString());
 		} catch (Exception ex) {
 			ex.printStackTrace();
+			return null;
 		}
-		return null;
 	}
 	
 	/**
@@ -285,11 +260,23 @@ public class ServletCommunication
 	 */
 	private JSONObject getJSONObject(String str)
 	{
-		try
-		{
+		try {
 			return (JSONObject) parser.parse(str);
+		} catch (Exception pe) {
+			return null;
 		}
-		catch (org.json.simple.parser.ParseException pe) { }
-		return null;
+	}
+	
+	private static class JSONMapData
+	{
+		JSONObject jobj;
+		Map<String, String> jmap;
+		
+		@SuppressWarnings("unchecked")
+		JSONMapData(JSONObject jobj)
+		{
+			this.jobj = jobj != null ? jobj : new JSONObject();
+			this.jmap = (Map<String, String>) this.jobj;
+		}
 	}
 }
