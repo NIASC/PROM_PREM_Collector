@@ -1,9 +1,0 @@
-# Configuration file for javax.mail
-# If a value for an item is not provided, then
-# system defaults will be used. These items can
-# also be set in code.
-mail.host=smtp.gmail.com
-mail.smtp.port=587
-mail.smtp.auth=true
-mail.smtp.starttls.enable=true
-mail.transport.protocol=smtp
