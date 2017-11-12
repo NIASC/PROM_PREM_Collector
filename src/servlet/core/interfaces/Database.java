@@ -160,27 +160,6 @@ public interface Database
 	 */
 	public List<Map<String, String>> loadQResults(
 			int clinic_id, List<String> qlist, Date begin, Date end);
-	
-	/**
-	 * Sends a registration request to an administrator.
-	 * 
-	 * @param obj The JSONObject that contains the request, including
-	 * 		the name, clinic and email.
-	 * 
-	 * @return A JSONObject that contains the status of the request.
-	 */
-	public String requestRegistration(JSONObject obj);
-
-	/**
-	 * Sends a registration responds that contains the login details
-	 * to the user that have been registered.
-	 * 
-	 * @param obj The JSONObject that contains the request, including
-	 * 		the usename and password.
-	 * 
-	 * @return A JSONObject that contains the status of the request.
-	 */
-	public String respondRegistration(JSONObject obj);
 
 	@FunctionalInterface
 	public interface DatabaseFunction

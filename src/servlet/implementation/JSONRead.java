@@ -20,24 +20,29 @@
  */
 package servlet.implementation;
 
-import java.sql.Connection;
-import java.sql.ResultSet;
-import java.sql.SQLException;
-import java.sql.Statement;
+import java.io.IOException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.Properties;
 import java.util.Map.Entry;
+
+import javax.mail.Message;
+import javax.mail.MessagingException;
+import javax.mail.Session;
+import javax.mail.Transport;
+import javax.mail.internet.InternetAddress;
+import javax.mail.internet.MimeMessage;
 
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
 import org.json.simple.parser.ParseException;
 
+import common.Utilities;
 import common.implementation.Constants;
 import servlet.core.PPCLogger;
 import servlet.core.ServletConst;
@@ -48,8 +53,6 @@ import servlet.core._User;
 import servlet.core.interfaces.Database;
 import servlet.core.interfaces.Implementations;
 import servlet.core.interfaces.Database.DatabaseFunction;
-import servlet.implementation.exceptions.DBReadException;
-import servlet.implementation.exceptions.DBWriteException;
 
 /**
  * This class handles redirecting a request from the applet to the
@@ -60,16 +63,30 @@ import servlet.implementation.exceptions.DBWriteException;
  */
 public class JSONRead
 {
+	private static PPCLogger logger = PPCLogger.getLogger();
 	private static JSONParser parser;
 	private static Map<String, DatabaseFunction> dbm;
 	private static Database db;
+
+	/**
+	 * Configuration data for sending an email from the servlet's email
+	 * to the admin's email.
+	 */
+	private static EmailConfig config;
 	
 	static {
+
+		try {
+			config = new EmailConfig();
+		} catch (IOException e) {
+			logger.log("FATAL: Could not load email configuration", e);
+			System.exit(1);
+		}
+		
 		parser = new JSONParser();
 		dbm = new HashMap<String, DatabaseFunction>();
 		db = Implementations.Database();
 
-		Database db = Implementations.Database();
 		dbm.put(ServletConst.CMD_ADD_USER, JSONRead::addUser);
 		dbm.put(Constants.CMD_ADD_QANS, JSONRead::addQuestionnaireAnswers);
 		dbm.put(ServletConst.CMD_ADD_CLINIC, JSONRead::addClinic);
@@ -81,8 +98,8 @@ public class JSONRead
 		dbm.put(Constants.CMD_LOAD_Q, JSONRead::loadQuestions);
 		dbm.put(Constants.CMD_LOAD_QR_DATE, JSONRead::loadQResultDates);
 		dbm.put(Constants.CMD_LOAD_QR, JSONRead::loadQResults);
-		dbm.put(Constants.CMD_REQ_REGISTR, db::requestRegistration);
-		dbm.put(ServletConst.CMD_RSP_REGISTR, db::respondRegistration);
+		dbm.put(Constants.CMD_REQ_REGISTR, JSONRead::requestRegistration);
+		dbm.put(ServletConst.CMD_RSP_REGISTR, JSONRead::respondRegistration);
 		dbm.put(Constants.CMD_REQ_LOGIN, JSONRead::requestLogin);
 		dbm.put(Constants.CMD_REQ_LOGOUT, JSONRead::requestLogout);
 	}
@@ -113,7 +130,6 @@ public class JSONRead
 		return null;
 	}
 	
-	private static PPCLogger logger = PPCLogger.getLogger();
 	
 	/**
 	 * Finds the Method Reference associated with the {@code command}
@@ -328,6 +344,75 @@ public class JSONRead
 	}
 
 	/**
+	 * Sends a registration request to an administrator.
+	 * 
+	 * @param obj The JSONObject that contains the request, including
+	 * 		the name, clinic and email.
+	 * 
+	 * @return A JSONObject that contains the status of the request.
+	 */
+	private static String requestRegistration(JSONObject obj)
+	{
+		JSONMapData in = new JSONMapData(obj);
+		JSONMapData out = new JSONMapData(null);
+		out.jmap.put("command", Constants.CMD_REQ_REGISTR);
+		
+		String name = in.jmap.get("name");
+		String email = in.jmap.get("email");
+		String clinic = in.jmap.get("clinic");
+		
+		String emailSubject = "PROM/PREM: Registration request";
+		String emailDescription = "Registration reguest from";
+		String emailSignature = "This message was sent from the PROM/PREM Collector";
+		String emailBody = String.format(
+				("%s:<br><br> %s: %s<br>%s: %s<br>%s: %s<br><br> %s"),
+				emailDescription, "Name", name, "E-mail",
+				email, "Clinic", clinic, emailSignature);
+		
+		if (send(config.adminEmail, emailSubject, emailBody, "text/html"))
+			out.jmap.put(Constants.INSERT_RESULT, Constants.INSERT_SUCCESS);
+		else
+			out.jmap.put(Constants.INSERT_RESULT, Constants.INSERT_FAIL);
+		return out.jobj.toString();
+	}
+
+	/**
+	 * Sends a registration responds that contains the login details
+	 * to the user that have been registered.
+	 * 
+	 * @param obj The JSONObject that contains the request, including
+	 * 		the usename and password.
+	 * 
+	 * @return A JSONObject that contains the status of the request.
+	 */
+	private static String respondRegistration(JSONObject obj)
+	{
+		JSONMapData in = new JSONMapData(obj);
+		JSONMapData out = new JSONMapData(null);
+		out.jmap.put("command", ServletConst.CMD_RSP_REGISTR);
+		
+		String username = in.jmap.get("username");
+		String email = in.jmap.get("email");
+		String password = in.jmap.get("password");
+		
+		String emailSubject = "PROM/PREM: Registration response";
+		String emailDescription = "You have been registered at the PROM/PREM Collector. "
+				+ "You will find your login details below. When you first log in you will"
+				+ "be asked to update your password.";
+		String emailSignature = "This message was sent from the PROM/PREM Collector";
+		String emailBody = String.format(
+				("%s<br><br> %s: %s<br>%s: %s<br><br> %s"),
+				emailDescription, "Username", username,
+				"Password", password, emailSignature);
+		
+		if (send(email, emailSubject, emailBody, "text/html"))
+			out.jmap.put(Constants.INSERT_RESULT, Constants.INSERT_SUCCESS);
+		else
+			out.jmap.put(Constants.INSERT_RESULT, Constants.INSERT_FAIL);
+		return out.jobj.toString();
+	}
+
+	/**
 	 * Requests to log in.
 	 * 
 	 * @param obj The JSONObject that contains the request, including the
@@ -374,6 +459,15 @@ public class JSONRead
 	
 	// --------------------------------
 
+	/**
+	 * Attempts to parse {@code str} into a {@code JSONObject}.
+	 * 
+	 * @param str The string to be converted into a {@code JSONObject}.
+	 * 
+	 * @return The {@code JSONObject} representation of {@code str}, or
+	 * 		{@code null} if {@code str} does not represent a
+	 * 		{@code JSONObject}.
+	 */
 	private static JSONObject getJSONObject(String str)
 	{
 		try {
@@ -383,6 +477,15 @@ public class JSONRead
 		}
 	}
 
+	/**
+	 * Attempts to parse {@code str} into a {@code JSONArray}.
+	 * 
+	 * @param str The string to be converted into a {@code JSONArray}.
+	 * 
+	 * @return The {@code JSONArray} representation of {@code str}, or
+	 * 		{@code null} if {@code str} does not represent a
+	 *  	{@code JSONArray}.
+	 */
 	private static JSONArray getJSONArray(String str)
 	{
 		try {
@@ -390,17 +493,6 @@ public class JSONRead
 		} catch (Exception e) {
 			return null;
 		}
-	}
-
-
-	private static Map<String, String> getUser(String username) throws Exception
-	{
-		JSONMapData getuser = new JSONMapData(null);
-		getuser.jmap.put("command", "get_user");
-		getuser.jmap.put("name", username);
-		
-		JSONMapData out = new JSONMapData((JSONObject) parser.parse(getUser(getuser.jobj)));
-		return out.jmap;
 	}
 	
 	private static JSONObject _getMessages(Map<String, _Message> _msg)
@@ -432,6 +524,44 @@ public class JSONRead
 			return new Date(0L);
 		}
 	}
+
+	/**
+	 * Sends an email from the servlet's email account.
+	 * 
+	 * @param recipient The email address of to send the email to.
+	 * @param emailSubject The subject of the email.
+	 * @param emailBody The body/contents of the email.
+	 * @param bodyFormat The format of the body. This could for
+	 * 		example be 'text', 'html', 'text/html' etc.
+	 */
+	private static boolean send(String recipient, String emailSubject,
+			String emailBody, String bodyFormat)
+	{
+		/* generate session and message instances */
+		Session getMailSession = Session.getDefaultInstance(
+				config.mailConfig, null);
+		MimeMessage generateMailMessage = new MimeMessage(getMailSession);
+		try
+		{
+			/* create email */
+			generateMailMessage.addRecipient(Message.RecipientType.TO,
+					new InternetAddress(recipient));
+			generateMailMessage.setSubject(emailSubject);
+			generateMailMessage.setContent(emailBody, bodyFormat);
+			
+			/* login to server email account and send email. */
+			Transport transport = getMailSession.getTransport();
+			transport.connect(config.serverEmail, config.serverPassword);
+			transport.sendMessage(generateMailMessage,
+					generateMailMessage.getAllRecipients());
+			transport.close();
+		} catch (MessagingException me)
+		{
+			logger.log("Could not send email", me);
+			return false;
+		}
+		return true;
+	}
 	
 	private static class JSONMapData
 	{
@@ -456,6 +586,78 @@ public class JSONRead
 		{
 			this.jarr = jarr != null ? jarr : new JSONArray();
 			this.jlist = (List<String>) this.jarr;
+		}
+	}
+
+	/**
+	 * This class contains the configuration data for sending emails.
+	 * 
+	 * @author Marcus Malmquist
+	 *
+	 */
+	private static final class EmailConfig
+	{
+		static final String CONFIG_FILE =
+				"servlet/implementation/email_settings.txt";
+		static final String ACCOUNT_FILE =
+				"servlet/implementation/email_accounts.ini";
+		Properties mailConfig;
+		
+		// server mailing account
+		String serverEmail, serverPassword, adminEmail;
+		
+		EmailConfig() throws IOException
+		{
+			mailConfig = new Properties();
+			refreshConfig();
+		}
+		
+		/**
+		 * reloads the javax.mail config properties as well as
+		 * the email account config.
+		 */
+		synchronized void refreshConfig() throws IOException
+		{
+			loadConfig(CONFIG_FILE);
+			loadEmailAccounts(ACCOUNT_FILE);
+		}
+		
+		/**
+		 * Loads the javax.mail config properties contained in the
+		 * supplied config file.
+		 * 
+		 * @param filePath The file while the javax.mail config
+		 * 		properties are located.
+		 * 
+		 * @return True if the file was loaded. False if an error
+		 * 		occurred.
+		 */
+		synchronized void loadConfig(String filePath) throws IOException
+		{
+			if (!mailConfig.isEmpty())
+				mailConfig.clear();
+			mailConfig.load(Utilities.getResourceStream(getClass(), filePath));
+		}
+		
+		/**
+		 * Loads the registration program's email account information
+		 * as well as the email address of the administrator who will
+		 * receive registration requests.
+		 * 
+		 * @param filePath The file that contains the email account
+		 * 		information.
+		 * 
+		 * @return True if the file was loaded. False if an error
+		 * 		occurred.
+		 */
+		synchronized void loadEmailAccounts(String filePath) throws IOException
+		{
+			Properties props = new Properties();
+			props.load(Utilities.getResourceStream(getClass(), filePath));
+			adminEmail = props.getProperty("admin_email");
+			serverEmail = props.getProperty("server_email");
+			serverPassword = props.getProperty("server_password");
+			props.clear();
 		}
 	}
 }

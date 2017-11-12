@@ -20,7 +20,6 @@
  */
 package servlet.implementation;
 
-import java.io.IOException;
 import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -29,40 +28,22 @@ import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
-import java.util.Properties;
 import java.util.TreeMap;
-import java.util.Map.Entry;
 
-import javax.mail.Message;
-import javax.mail.MessagingException;
-import javax.mail.Session;
-import javax.mail.Transport;
-import javax.mail.internet.InternetAddress;
-import javax.mail.internet.MimeMessage;
 import javax.naming.Context;
 import javax.naming.InitialContext;
 import javax.naming.NamingException;
 import javax.sql.DataSource;
 
-import org.json.simple.JSONArray;
-import org.json.simple.JSONObject;
-import org.json.simple.parser.JSONParser;
-import org.json.simple.parser.ParseException;
-
 import servlet.core.PPCLogger;
-import servlet.core.ServletConst;
-import servlet.core.UserManager;
 import servlet.core._Message;
 import servlet.core._Question;
 import servlet.core._User;
 import servlet.core.interfaces.Database;
 import servlet.implementation.exceptions.DBReadException;
 import servlet.implementation.exceptions.DBWriteException;
-import common.Utilities;
-import common.implementation.Constants;
 
 /**
  * This class is an example of an implementation of
@@ -74,7 +55,6 @@ import common.implementation.Constants;
  * @author Marcus Malmquist
  *
  */
-@SuppressWarnings("unchecked")
 public class MySQL_Database implements Database
 {
 	/* Public */
@@ -349,86 +329,17 @@ public class MySQL_Database implements Database
 		return _results;
 	}
 	
-	@Override
-	public String requestRegistration(JSONObject obj)
-	{
-		Map<String, String> omap = (Map<String, String>) obj;
-		
-		JSONObject ret = new JSONObject();
-		Map<String, String> rmap = (Map<String, String>) ret;
-		rmap.put("command", Constants.CMD_REQ_REGISTR);
-		
-		String name = omap.get("name");
-		String email = omap.get("email");
-		String clinic = omap.get("clinic");
-		
-		String emailSubject = "PROM_PREM: Registration request";
-		String emailDescription = "Registration reguest from";
-		String emailSignature = "This message was sent from the PROM/PREM Collector";
-		String emailBody = String.format(
-				("%s:<br><br> %s: %s<br>%s: %s<br>%s: %s<br><br> %s"),
-				emailDescription, "Name", name, "E-mail",
-				email, "Clinic", clinic, emailSignature);
-		
-		if (send(config.adminEmail, emailSubject, emailBody, "text/html"))
-			rmap.put(Constants.INSERT_RESULT, Constants.INSERT_SUCCESS);
-		else
-			rmap.put(Constants.INSERT_RESULT, Constants.INSERT_FAIL);
-		return ret.toString();
-	}
-
-	public String respondRegistration(JSONObject obj)
-	{
-		Map<String, String> omap = (Map<String, String>) obj;
-		
-		JSONObject ret = new JSONObject();
-		Map<String, String> rmap = (Map<String, String>) ret;
-		rmap.put("command", ServletConst.CMD_RSP_REGISTR);
-		
-		String username = omap.get("username");
-		String email = omap.get("email");
-		String password = omap.get("password");
-		
-		String emailSubject = "PROM_PREM: Registration response";
-		String emailDescription = "You have been registered at the PROM/PREM Collector. "
-				+ "You will find your login details below. When you first log in you will"
-				+ "be asked to update your password.";
-		String emailSignature = "This message was sent from the PROM/PREM Collector";
-		String emailBody = String.format(
-				("%s<br><br> %s: %s<br>%s: %s<br><br> %s"),
-				emailDescription, "Username", username,
-				"Password", password, emailSignature);
-		
-		if (send(email, emailSubject, emailBody, "text/html"))
-			rmap.put(Constants.INSERT_RESULT, Constants.INSERT_SUCCESS);
-		else
-			rmap.put(Constants.INSERT_RESULT, Constants.INSERT_FAIL);
-		return ret.toString();
-	}
-	
 	/* Protected */
 	
 	/* Private */
 
 	private static MySQL_Database database;
-	private static JSONParser parser;
 	private static PPCLogger logger = PPCLogger.getLogger();
 	
 	/**
 	 * Handles connection with the database.
 	 */
 	private DataSource dataSource;
-	
-	/**
-	 * Configuration data for sending an email from the servlet's email
-	 * to the admin's email.
-	 */
-	private EmailConfig config;
-	
-	static
-	{
-		parser = new JSONParser();
-	}
 	
 	/**
 	 * Initializes variables and loads the database configuration.
@@ -438,7 +349,6 @@ public class MySQL_Database implements Database
 	{
 		try
 		{
-			config = new EmailConfig();
 			Context initContext = new InitialContext();
 			Context envContext = (Context) initContext.lookup("java:comp/env");
 			dataSource = (DataSource) envContext.lookup("jdbc/prom_prem_db");
@@ -446,11 +356,6 @@ public class MySQL_Database implements Database
 		catch (NamingException e)
 		{
 			logger.log("FATAL: Could not load database configuration", e);
-			System.exit(1);
-		}
-		catch (IOException e)
-		{
-			logger.log("FATAL: Could not load email configuration", e);
 			System.exit(1);
 		}
 	}
@@ -474,37 +379,6 @@ public class MySQL_Database implements Database
 			if (rs.getString("identifier").equals(identifier))
 				return true;
 		return false;
-	}
-	
-	/**
-	 * Quick method for calling {@code getUser(JSONObject)} using only the
-	 * username as an argument.
-	 * 
-	 * @param username The username of the user to look for.
-	 * 
-	 * @return A map containing the information about the user.
-	 * 
-	 * @throws Exception If a parse error occurs.
-	 */
-	private Map<String, String> getUser(String username) throws Exception
-	{
-		_User _user = _getUser(username);
-
-		JSONObject ret = new JSONObject();
-		Map<String, String> rmap = (Map<String, String>) ret;
-		rmap.put("command", Constants.CMD_GET_USER);
-		
-		JSONObject user = new JSONObject();
-		Map<String, String> umap = (Map<String, String>) user;
-		umap.put("clinic_id", Integer.toString(_user.clinic_id));
-		umap.put("name", _user.name);
-		umap.put("password", _user.password);
-		umap.put("email", _user.email);
-		umap.put("salt", _user.salt);
-		umap.put("update_password", _user.update_password ? "1" : "0");
-		
-		rmap.put("user", user.toString());
-		return (Map<String, String>) ret;
 	}
 	
 	/**
@@ -600,157 +474,5 @@ public class MySQL_Database implements Database
 					+ "or while parsing SQL ResultSet", e);
 		}
 		return mmap;
-	}
-	
-	/**
-	 * Attempts to parse {@code str} into a {@code JSONObject}.
-	 * 
-	 * @param str The string to be converted into a {@code JSONObject}.
-	 * 
-	 * @return The {@code JSONObject} representation of {@code str}, or
-	 * 		{@code null} if {@code str} does not represent a
-	 * 		{@code JSONObject}.
-	 */
-	private JSONObject getJSONObject(String str)
-	{
-		try
-		{
-			return (JSONObject) parser.parse(str);
-		}
-		catch (ParseException pe)
-		{
-			throw new NullPointerException("JSON parse error");
-		}
-	}
-	
-	/**
-	 * Attempts to parse {@code str} into a {@code JSONArray}.
-	 * 
-	 * @param str The string to be converted into a {@code JSONArray}.
-	 * 
-	 * @return The {@code JSONArray} representation of {@code str}, or
-	 * 		{@code null} if {@code str} does not represent a
-	 *  	{@code JSONArray}.
-	 */
-	private JSONArray getJSONArray(String str)
-	{
-		try
-		{
-			return (JSONArray) parser.parse(str);
-		}
-		catch (ParseException pe)
-		{
-			throw new NullPointerException("JSON parse error");
-		}
-	}
-	
-	/**
-	 * Sends an email from the servlet's email account.
-	 * 
-	 * @param recipient The email address of to send the email to.
-	 * @param emailSubject The subject of the email.
-	 * @param emailBody The body/contents of the email.
-	 * @param bodyFormat The format of the body. This could for
-	 * 		example be 'text', 'html', 'text/html' etc.
-	 */
-	private boolean send(String recipient, String emailSubject,
-			String emailBody, String bodyFormat)
-	{
-		/* generate session and message instances */
-		Session getMailSession = Session.getDefaultInstance(
-				config.mailConfig, null);
-		MimeMessage generateMailMessage = new MimeMessage(getMailSession);
-		try
-		{
-			/* create email */
-			generateMailMessage.addRecipient(Message.RecipientType.TO,
-					new InternetAddress(recipient));
-			generateMailMessage.setSubject(emailSubject);
-			generateMailMessage.setContent(emailBody, bodyFormat);
-			
-			/* login to server email account and send email. */
-			Transport transport = getMailSession.getTransport();
-			transport.connect(config.serverEmail, config.serverPassword);
-			transport.sendMessage(generateMailMessage,
-					generateMailMessage.getAllRecipients());
-			transport.close();
-		} catch (MessagingException me)
-		{
-			logger.log("Could not send email", me);
-			return false;
-		}
-		return true;
-	}
-	
-	/**
-	 * This class contains the configuration data for sending emails.
-	 * 
-	 * @author Marcus Malmquist
-	 *
-	 */
-	private static final class EmailConfig
-	{
-		static final String CONFIG_FILE =
-				"servlet/implementation/email_settings.txt";
-		static final String ACCOUNT_FILE =
-				"servlet/implementation/email_accounts.ini";
-		Properties mailConfig;
-		
-		// server mailing account
-		String serverEmail, serverPassword, adminEmail;
-		
-		EmailConfig() throws IOException
-		{
-			mailConfig = new Properties();
-			refreshConfig();
-		}
-		
-		/**
-		 * reloads the javax.mail config properties as well as
-		 * the email account config.
-		 */
-		synchronized void refreshConfig() throws IOException
-		{
-			loadConfig(CONFIG_FILE);
-			loadEmailAccounts(ACCOUNT_FILE);
-		}
-		
-		/**
-		 * Loads the javax.mail config properties contained in the
-		 * supplied config file.
-		 * 
-		 * @param filePath The file while the javax.mail config
-		 * 		properties are located.
-		 * 
-		 * @return True if the file was loaded. False if an error
-		 * 		occurred.
-		 */
-		synchronized void loadConfig(String filePath) throws IOException
-		{
-			if (!mailConfig.isEmpty())
-				mailConfig.clear();
-			mailConfig.load(Utilities.getResourceStream(getClass(), filePath));
-		}
-		
-		/**
-		 * Loads the registration program's email account information
-		 * as well as the email address of the administrator who will
-		 * receive registration requests.
-		 * 
-		 * @param filePath The file that contains the email account
-		 * 		information.
-		 * 
-		 * @return True if the file was loaded. False if an error
-		 * 		occurred.
-		 */
-		synchronized void loadEmailAccounts(String filePath) throws IOException
-		{
-			Properties props = new Properties();
-			props.load(Utilities.getResourceStream(getClass(), filePath));
-			adminEmail = props.getProperty("admin_email");
-			serverEmail = props.getProperty("server_email");
-			serverPassword = props.getProperty("server_password");
-			props.clear();
-		}
 	}
 }
