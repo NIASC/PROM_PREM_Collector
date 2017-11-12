@@ -20,6 +20,8 @@
  */
 package servlet.core.interfaces;
 
+import java.util.Map;
+
 import org.json.simple.JSONObject;
 
 import servlet.core._User;
@@ -77,7 +79,7 @@ public interface Database
 	 * 
 	 * @return A JSONObject that contains the clinics.
 	 */
-	public String getClinics(JSONObject obj);
+	public Map<Integer, String> getClinics();
 	
 	/**
 	 * Retrieves the user from the database.

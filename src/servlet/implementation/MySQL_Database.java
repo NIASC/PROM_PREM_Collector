@@ -32,6 +32,7 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Properties;
+import java.util.TreeMap;
 import java.util.Map.Entry;
 
 import javax.mail.Message;
@@ -198,36 +199,21 @@ public class MySQL_Database implements Database
 	}
 	
 	@Override
-	public String getClinics(JSONObject obj)
+	public Map<Integer, String> getClinics()
 	{
-		JSONObject ret = new JSONObject();
-		Map<String, String> rmap = (Map<String, String>) ret;
-		rmap.put("command", Constants.CMD_GET_CLINICS);
-		
-		try (Connection conn = dataSource.getConnection())
-		{
-			Statement s = conn.createStatement();
-			ResultSet rs = query(s, "SELECT `id`, `name` FROM `clinics`");
-			
-			JSONObject clinics = new JSONObject();
-			Map<String, String> cmap = (Map<String, String>) clinics;
+		Map<Integer, String> cmap = new TreeMap<Integer, String>();
+		try (Connection conn = dataSource.getConnection()) {
+			ResultSet rs = query(conn.createStatement(),
+					"SELECT `id`, `name` FROM `clinics`");
 			while (rs.next())
-				cmap.put(Integer.toString(rs.getInt("id")),
-						rs.getString("name"));
-			rmap.put("clinics", clinics.toString());
-		}
-		catch (DBReadException dbr)
-		{
-			rmap.put("clinics", new JSONObject().toString());
+				cmap.put(rs.getInt("id"), rs.getString("name"));
+		} catch (DBReadException dbr) {
 			logger.log("Database read error", dbr);
-		}
-		catch (SQLException e)
-		{
-			rmap.put("clinics", new JSONObject().toString());
+		} catch (SQLException e) {
 			logger.log("Error opening connection to database "
 					+ "or while parsing SQL ResultSet", e);
 		}
-		return ret.toString();
+		return cmap;
 	}
 
 	@Override

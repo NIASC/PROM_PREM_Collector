@@ -26,6 +26,7 @@ import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Map.Entry;
 
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
@@ -63,7 +64,7 @@ public class JSONRead
 		dbm.put(ServletConst.CMD_ADD_USER, db::addUser);
 		dbm.put(Constants.CMD_ADD_QANS, db::addQuestionnaireAnswers);
 		dbm.put(ServletConst.CMD_ADD_CLINIC, db::addClinic);
-		dbm.put(Constants.CMD_GET_CLINICS, db::getClinics);
+		dbm.put(Constants.CMD_GET_CLINICS, JSONRead::getClinics);
 		dbm.put(Constants.CMD_GET_USER, JSONRead::getUser);
 		dbm.put(Constants.CMD_SET_PASSWORD, db::setPassword);
 		dbm.put(Constants.CMD_GET_ERR_MSG, db::getErrorMessages);
@@ -120,6 +121,19 @@ public class JSONRead
 	private static DatabaseFunction getDBMethod(String command)
 	{
 		return dbm.get(command);
+	}
+	
+	private static String getClinics(JSONObject obj)
+	{
+		JSONMapData out = new JSONMapData(null);
+		out.jmap.put("command", Constants.CMD_GET_CLINICS);
+			
+		Map<Integer, String> _clinics = db.getClinics();
+		JSONMapData clinics = new JSONMapData(null);
+		for (Entry<Integer, String> e : _clinics.entrySet())
+			clinics.jmap.put(Integer.toString(e.getKey()), e.getValue());
+		out.jmap.put("clinics", clinics.jobj.toString());
+		return out.jobj.toString();
 	}
 	
 	private static String getUser(JSONObject obj)
