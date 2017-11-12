@@ -25,6 +25,7 @@ import java.util.Map;
 
 import org.json.simple.JSONObject;
 
+import servlet.core._Message;
 import servlet.core._User;
 
 
@@ -116,7 +117,7 @@ public interface Database
 	 * 
 	 * @return A JSONObject that contains the error messages.
 	 */
-	public String getErrorMessages(JSONObject obj);
+	public Map<String, _Message> getErrorMessages();
 	
 	/**
 	 * Retrieves the information messages from the database.
@@ -125,7 +126,7 @@ public interface Database
 	 * 
 	 * @return A JSONObject that contains the information messages.
 	 */
-	public String getInfoMessages(JSONObject obj);
+	public Map<String, _Message> getInfoMessages();
 	
 	/**
 	 * Retrieves the questionnaire questions from the database.

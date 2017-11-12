@@ -40,6 +40,7 @@ import common.implementation.Constants;
 import servlet.core.PPCLogger;
 import servlet.core.ServletConst;
 import servlet.core.UserManager;
+import servlet.core._Message;
 import servlet.core._User;
 import servlet.core.interfaces.Database;
 import servlet.core.interfaces.Implementations;
@@ -72,8 +73,8 @@ public class JSONRead
 		dbm.put(Constants.CMD_GET_CLINICS, JSONRead::getClinics);
 		dbm.put(Constants.CMD_GET_USER, JSONRead::getUser);
 		dbm.put(Constants.CMD_SET_PASSWORD, JSONRead::setPassword);
-		dbm.put(Constants.CMD_GET_ERR_MSG, db::getErrorMessages);
-		dbm.put(Constants.CMD_GET_INFO_MSG, db::getInfoMessages);
+		dbm.put(Constants.CMD_GET_ERR_MSG, JSONRead::getErrorMessages);
+		dbm.put(Constants.CMD_GET_INFO_MSG, JSONRead::getInfoMessages);
 		dbm.put(Constants.CMD_LOAD_Q, db::loadQuestions);
 		dbm.put(Constants.CMD_LOAD_QR_DATE, db::loadQResultDates);
 		dbm.put(Constants.CMD_LOAD_QR, db::loadQResults);
@@ -237,6 +238,22 @@ public class JSONRead
 		out.jmap.put("name", name);
 		return getUser(out.jobj);
 	}
+	
+	private static String getErrorMessages(JSONObject obj)
+	{
+		JSONMapData out = new JSONMapData(null);
+		out.jmap.put("command", Constants.CMD_GET_ERR_MSG);
+		out.jmap.put("messages", _getMessages(db.getErrorMessages()).toString());
+		return out.jobj.toString();
+	}
+	
+	private static String getInfoMessages(JSONObject obj)
+	{
+		JSONMapData out = new JSONMapData(null);
+		out.jmap.put("command", Constants.CMD_GET_INFO_MSG);
+		out.jmap.put("messages", _getMessages(db.getInfoMessages()).toString());
+		return out.jobj.toString();
+	}
 
 	/**
 	 * Requests to log in.
@@ -303,6 +320,27 @@ public class JSONRead
 		
 		JSONMapData out = new JSONMapData((JSONObject) parser.parse(getUser(getuser.jobj)));
 		return out.jmap;
+	}
+	
+	private static JSONObject _getMessages(Map<String, _Message> _msg)
+	{
+		JSONMapData out = new JSONMapData(null);
+		for (Entry<String, _Message> e : _msg.entrySet()) {
+			_Message _message = e.getValue();
+			
+			JSONMapData msg = new JSONMapData(null);
+			for (Entry<String, String> _e : _message.msg.entrySet()) {
+				msg.jmap.put(_e.getKey(), _e.getValue());
+			}
+
+			JSONMapData message = new JSONMapData(null);
+			message.jmap.put("name", _message.name);
+			message.jmap.put("code", _message.code);
+			message.jmap.put("message", msg.jobj.toString());
+
+			out.jmap.put(e.getKey(), message.jobj.toString());
+		}
+		return out.jobj;
 	}
 	
 	private static class JSONMapData

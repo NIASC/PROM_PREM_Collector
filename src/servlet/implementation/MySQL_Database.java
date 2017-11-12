@@ -28,6 +28,7 @@ import java.sql.Statement;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
@@ -54,6 +55,7 @@ import org.json.simple.parser.ParseException;
 import servlet.core.PPCLogger;
 import servlet.core.ServletConst;
 import servlet.core.UserManager;
+import servlet.core._Message;
 import servlet.core._User;
 import servlet.core.interfaces.Database;
 import servlet.implementation.exceptions.DBReadException;
@@ -241,25 +243,15 @@ public class MySQL_Database implements Database
 	}
 
 	@Override
-	public String getErrorMessages(JSONObject obj)
+	public Map<String, _Message> getErrorMessages()
 	{
-		JSONObject ret = new JSONObject();
-		Map<String, String> rmap = (Map<String, String>) ret;
-		rmap.put("command", Constants.CMD_GET_ERR_MSG);
-		
-		getMessages("error_messages", rmap);
-		return ret.toString();
+		return getMessages("error_messages");
 	}
 
 	@Override
-	public String getInfoMessages(JSONObject obj)
+	public Map<String, _Message> getInfoMessages()
 	{
-		JSONObject ret = new JSONObject();
-		Map<String, String> rmap = (Map<String, String>) ret;
-		rmap.put("command", Constants.CMD_GET_INFO_MSG);
-		
-		getMessages("info_messages", rmap);
-		return ret.toString();
+		return getMessages("info_messages");
 	}
 	
 	@Override
@@ -675,46 +667,33 @@ public class MySQL_Database implements Database
 	 * 
 	 * @return true if the messages were put in the map.
 	 */
-	private boolean getMessages(String tableName, Map<String, String> retobj)
+	private Map<String, _Message> getMessages(String tableName)
 	{
-		boolean ret = false;
-		try (Connection conn = dataSource.getConnection())
-		{
-			Statement s = conn.createStatement();
-			ResultSet rs = query(s, String.format(
+		Map<String, _Message> mmap = new HashMap<String, _Message>();
+		try (Connection conn = dataSource.getConnection()) {
+			ResultSet rs = query(conn.createStatement(), String.format(
 					"SELECT `code`, `name`, `locale`, `message` FROM `%s`",
 					tableName));
 			
-			JSONObject messages = new JSONObject();
-			Map<String, String> mmap = (Map<String, String>) messages;
-			while (rs.next())
-			{
-				JSONObject msg = new JSONObject();
-				Map<String, String> msgmap = (Map<String, String>) msg;
-				msgmap.put(rs.getString("locale"), rs.getString("message"));
-
-				JSONObject message = new JSONObject();
-				Map<String, String> messagemap = (Map<String, String>) message;
+			while (rs.next()) {
+				_Message _msg = new _Message();
 				String name = rs.getString("name");
-				messagemap.put("name", name);
-				messagemap.put("code", rs.getString("code"));
-				messagemap.put("message", msg.toString());
+				_msg.name = name;
+				_msg.code = rs.getString("code");
+				_msg.addMessage(rs.getString("locale"),
+						rs.getString("message"));
 
-				mmap.put(name, message.toString());
+				mmap.put(name, _msg);
 			}
-			retobj.put("messages", messages.toString());
-			ret = true;
 		}
 		catch (DBReadException dbr) {
-			retobj.put("messages", (new JSONObject()).toString());
 			logger.log("Database read error", dbr);
 		}
 		catch (SQLException e) {
-			retobj.put("messages", (new JSONObject()).toString());
 			logger.log("Error opening connection to database "
 					+ "or while parsing SQL ResultSet", e);
 		}
-		return ret;
+		return mmap;
 	}
 	
 	/**
