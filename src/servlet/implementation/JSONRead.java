@@ -20,6 +20,10 @@
  */
 package servlet.implementation;
 
+import java.sql.Connection;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.sql.Statement;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -30,9 +34,11 @@ import org.json.simple.parser.ParseException;
 import common.implementation.Constants;
 import servlet.core.PPCLogger;
 import servlet.core.ServletConst;
+import servlet.core._User;
 import servlet.core.interfaces.Database;
 import servlet.core.interfaces.Implementations;
 import servlet.core.interfaces.Database.DatabaseFunction;
+import servlet.implementation.exceptions.DBReadException;
 
 /**
  * This class handles redirecting a request from the applet to the
@@ -45,17 +51,19 @@ public class JSONRead
 {
 	private static JSONParser parser;
 	private static Map<String, DatabaseFunction> dbm;
+	private static Database db;
 	
 	static {
 		parser = new JSONParser();
 		dbm = new HashMap<String, DatabaseFunction>();
+		db = Implementations.Database();
 
 		Database db = Implementations.Database();
 		dbm.put(ServletConst.CMD_ADD_USER, db::addUser);
 		dbm.put(Constants.CMD_ADD_QANS, db::addQuestionnaireAnswers);
 		dbm.put(ServletConst.CMD_ADD_CLINIC, db::addClinic);
 		dbm.put(Constants.CMD_GET_CLINICS, db::getClinics);
-		dbm.put(Constants.CMD_GET_USER, db::getUser);
+		dbm.put(Constants.CMD_GET_USER, JSONRead::getUser);
 		dbm.put(Constants.CMD_SET_PASSWORD, db::setPassword);
 		dbm.put(Constants.CMD_GET_ERR_MSG, db::getErrorMessages);
 		dbm.put(Constants.CMD_GET_INFO_MSG, db::getInfoMessages);
@@ -111,5 +119,30 @@ public class JSONRead
 	private static DatabaseFunction getDBMethod(String command)
 	{
 		return dbm.get(command);
+	}
+	
+	private static String getUser(JSONObject obj)
+	{
+		Map<String, String> omap = (Map<String, String>) obj;
+		
+		JSONObject ret = new JSONObject();
+		Map<String, String> rmap = (Map<String, String>) ret;
+		rmap.put("command", Constants.CMD_GET_USER);
+
+		_User _user = db._getUser(omap.get("name"));
+		JSONObject user = new JSONObject();
+		Map<String, String> umap = (Map<String, String>) user;
+		if (_user != null) {
+			umap.put("clinic_id", Integer.toString(_user.clinic_id));
+			umap.put("name", _user.name);
+			umap.put("password", _user.password);
+			umap.put("email", _user.email);
+			umap.put("salt", _user.salt);
+			umap.put("update_password", _user.update_password ? "1" : "0");
+			rmap.put("user", user.toString());
+		} else {
+			rmap.put("user", (new JSONObject()).toString());
+		}
+		return ret.toString();
 	}
 }

@@ -53,6 +53,7 @@ import org.json.simple.parser.ParseException;
 import servlet.core.PPCLogger;
 import servlet.core.ServletConst;
 import servlet.core.UserManager;
+import servlet.core._User;
 import servlet.core.interfaces.Database;
 import servlet.implementation.exceptions.DBReadException;
 import servlet.implementation.exceptions.DBWriteException;
@@ -230,49 +231,34 @@ public class MySQL_Database implements Database
 	}
 
 	@Override
-	public String getUser(JSONObject obj)
+	public _User _getUser(String username)
 	{
-		Map<String, String> omap = (Map<String, String>) obj;
-		
-		JSONObject ret = new JSONObject();
-		Map<String, String> rmap = (Map<String, String>) ret;
-		rmap.put("command", Constants.CMD_GET_USER);
-		
 		try (Connection conn = dataSource.getConnection())
 		{
 			Statement s = conn.createStatement();
 			ResultSet rs = query(s, "SELECT `clinic_id`, `name`, `password`, `email`, `salt`, `update_password` FROM `users`");
 
-			String username = omap.get("name");
-			JSONObject user = new JSONObject();
-			Map<String, String> umap = (Map<String, String>) user;
-			while (rs.next())
-			{
-				if (rs.getString("name").equals(username))
-				{
-					umap.put("clinic_id", Integer.toString(rs.getInt("clinic_id")));
-					umap.put("name", rs.getString("name"));
-					umap.put("password", rs.getString("password"));
-					umap.put("email", rs.getString("email"));
-					umap.put("salt", rs.getString("salt"));
-					umap.put("update_password", Integer.toString(rs.getInt("update_password")));
+			_User _user = null;
+			while (rs.next()) {
+				if (rs.getString("name").equals(username)) {
+					_user = new _User();
+					_user.clinic_id = rs.getInt("clinic_id");
+					_user.name = rs.getString("name");
+					_user.password = rs.getString("password");
+					_user.email = rs.getString("email");
+					_user.salt = rs.getString("salt");
+					_user.update_password = rs.getInt("update_password") > 0;
 					break;
 				}
 			}
-			rmap.put("user", user.toString());
-		}
-		catch (DBReadException dbr)
-		{
-			rmap.put("user", (new JSONObject()).toString());
+			return _user;
+		} catch (DBReadException dbr) {
 			logger.log("Database read error", dbr);
-		}
-		catch (SQLException se)
-		{
-			rmap.put("user", (new JSONObject()).toString());
+		} catch (SQLException se) {
 			logger.log("Error opening connection to database "
 					+ "or while parsing SQL ResultSet", se);
 		}
-		return ret.toString();
+		return null;
 	}
 
 	@Override
@@ -319,11 +305,13 @@ public class MySQL_Database implements Database
 			return err.toString();
 		}
 
-		JSONObject ret = new JSONObject();
-		Map<String, String> rmap = (Map<String, String>) ret;
-		rmap.put("command", "get_user");
-		rmap.put("name", omap.get("name"));
-		return getUser(ret);
+		JSONObject jobj = new JSONObject();
+		try {
+			jobj = (JSONObject) getUser(omap.get("name"));
+		} catch (Exception e) {
+			
+		}
+		return jobj.toString();
 	}
 
 	@Override
@@ -723,11 +711,23 @@ public class MySQL_Database implements Database
 	 */
 	private Map<String, String> getUser(String username) throws Exception
 	{
-		JSONObject getuser = new JSONObject();
-		getuser.put("command", "get_user");
-		getuser.put("name", username);
-		JSONObject json = (JSONObject) parser.parse(getUser(getuser));
-		return (Map<String, String>) json;
+		_User _user = _getUser(username);
+
+		JSONObject ret = new JSONObject();
+		Map<String, String> rmap = (Map<String, String>) ret;
+		rmap.put("command", Constants.CMD_GET_USER);
+		
+		JSONObject user = new JSONObject();
+		Map<String, String> umap = (Map<String, String>) user;
+		umap.put("clinic_id", Integer.toString(_user.clinic_id));
+		umap.put("name", _user.name);
+		umap.put("password", _user.password);
+		umap.put("email", _user.email);
+		umap.put("salt", _user.salt);
+		umap.put("update_password", _user.update_password ? "1" : "0");
+		
+		rmap.put("user", user.toString());
+		return (Map<String, String>) ret;
 	}
 	
 	/**

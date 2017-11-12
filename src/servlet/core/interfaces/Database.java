@@ -22,6 +22,8 @@ package servlet.core.interfaces;
 
 import org.json.simple.JSONObject;
 
+import servlet.core._User;
+
 
 /**
  * This interface contains the methods required by the core part of
@@ -85,7 +87,7 @@ public interface Database
 	 * 
 	 * @return A JSONObject that contains the user.
 	 */
-	public String getUser(JSONObject obj);
+	public _User _getUser(String username);
 	
 	/**
 	 * Updates the password for the user contained in {@code obj}.
