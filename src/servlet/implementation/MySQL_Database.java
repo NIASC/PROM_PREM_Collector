@@ -582,53 +582,6 @@ public class MySQL_Database implements Database
 		return ret.toString();
 	}
 	
-	@Override
-	public String requestLogin(JSONObject obj)
-	{
-		Map<String, String> omap = (Map<String, String>) obj;
-		
-		JSONObject ret = new JSONObject();
-		Map<String, String> rmap = (Map<String, String>) ret;
-		rmap.put("command", Constants.CMD_REQ_LOGIN);
-
-		Map<String, String> userobj;
-		try
-		{
-			userobj = getUser(omap.get("name"));
-		} catch (Exception e)
-		{
-			rmap.put(Constants.LOGIN_REPONSE, Constants.INVALID_DETAILS_STR);
-			return ret.toString();
-		}
-		
-		Map<String, String> user = (Map<String, String>) getJSONObject(userobj.get("user"));
-
-		if (!user.get("password").equals(omap.get("password")))
-		{
-			rmap.put(Constants.LOGIN_REPONSE, Constants.INVALID_DETAILS_STR);
-			return ret.toString();
-		}
-		
-		UserManager um = UserManager.getUserManager();
-		rmap.put(Constants.LOGIN_REPONSE, um.addUser(user.get("name")));
-		return ret.toString();
-	}
-
-	@Override
-	public String requestLogout(JSONObject obj)
-	{
-		Map<String, String> omap = (Map<String, String>) obj;
-		
-		JSONObject ret = new JSONObject();
-		Map<String, String> rmap = (Map<String, String>) ret;
-		rmap.put("command", Constants.CMD_REQ_LOGOUT);
-
-		UserManager um = UserManager.getUserManager();
-		String response = um.delUser(omap.get("name")) ? Constants.SUCCESS_STR : Constants.ERROR_STR;
-		rmap.put(Constants.LOGOUT_REPONSE, response);
-		return ret.toString();
-	}
-	
 	/* Protected */
 	
 	/* Private */

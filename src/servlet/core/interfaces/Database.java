@@ -167,26 +167,6 @@ public interface Database
 	 * @return A JSONObject that contains the status of the request.
 	 */
 	public String respondRegistration(JSONObject obj);
-	
-	/**
-	 * Requests to log in.
-	 * 
-	 * @param obj The JSONObject that contains the request, including the
-	 * 		username.
-	 * 
-	 * @return A JSONObject that contains the status of the request.
-	 */
-	public String requestLogin				(JSONObject obj);
-	
-	/**
-	 * Requests to log out.
-	 * 
-	 * @param obj The JSONObject that contains the request, including the
-	 * 		username.
-	 * 
-	 * @return A JSONObject that contains the status of the request.
-	 */
-	public String requestLogout				(JSONObject obj);
 
 	@FunctionalInterface
 	public interface DatabaseFunction

@@ -34,6 +34,7 @@ import org.json.simple.parser.ParseException;
 import common.implementation.Constants;
 import servlet.core.PPCLogger;
 import servlet.core.ServletConst;
+import servlet.core.UserManager;
 import servlet.core._User;
 import servlet.core.interfaces.Database;
 import servlet.core.interfaces.Implementations;
@@ -72,8 +73,8 @@ public class JSONRead
 		dbm.put(Constants.CMD_LOAD_QR, db::loadQResults);
 		dbm.put(Constants.CMD_REQ_REGISTR, db::requestRegistration);
 		dbm.put(ServletConst.CMD_RSP_REGISTR, db::respondRegistration);
-		dbm.put(Constants.CMD_REQ_LOGIN, db::requestLogin);
-		dbm.put(Constants.CMD_REQ_LOGOUT, db::requestLogout);
+		dbm.put(Constants.CMD_REQ_LOGIN, JSONRead::requestLogin);
+		dbm.put(Constants.CMD_REQ_LOGOUT, JSONRead::requestLogout);
 	}
 	
 	/**
@@ -145,4 +146,55 @@ public class JSONRead
 		}
 		return ret.toString();
 	}
+
+	/**
+	 * Requests to log in.
+	 * 
+	 * @param obj The JSONObject that contains the request, including the
+	 * 		username.
+	 * 
+	 * @return A JSONObject that contains the status of the request.
+	 */
+	private static String requestLogin(JSONObject obj)
+	{
+		Map<String, String> omap = (Map<String, String>) obj;
+		
+		JSONObject ret = new JSONObject();
+		Map<String, String> rmap = (Map<String, String>) ret;
+		rmap.put("command", Constants.CMD_REQ_LOGIN);
+
+		_User _user = db._getUser(omap.get("name"));
+		if (!_user.password.equals(omap.get("password"))) {
+			rmap.put(Constants.LOGIN_REPONSE, Constants.INVALID_DETAILS_STR);
+			return ret.toString();
+		}
+		
+		UserManager um = UserManager.getUserManager();
+		rmap.put(Constants.LOGIN_REPONSE, um.addUser(_user.name));
+		return ret.toString();
+	}
+
+	/**
+	 * Requests to log out.
+	 * 
+	 * @param obj The JSONObject that contains the request, including the
+	 * 		username.
+	 * 
+	 * @return A JSONObject that contains the status of the request.
+	 */
+	private static String requestLogout(JSONObject obj)
+	{
+		Map<String, String> omap = (Map<String, String>) obj;
+		
+		JSONObject ret = new JSONObject();
+		Map<String, String> rmap = (Map<String, String>) ret;
+		rmap.put("command", Constants.CMD_REQ_LOGOUT);
+
+		UserManager um = UserManager.getUserManager();
+		String response = um.delUser(omap.get("name")) ? Constants.SUCCESS_STR : Constants.ERROR_STR;
+		rmap.put(Constants.LOGOUT_REPONSE, response);
+		return ret.toString();
+	}
+	
+	// --------------------------------
 }
