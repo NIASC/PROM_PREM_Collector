@@ -71,7 +71,7 @@ public class JSONRead
 		dbm.put(ServletConst.CMD_ADD_CLINIC, JSONRead::addClinic);
 		dbm.put(Constants.CMD_GET_CLINICS, JSONRead::getClinics);
 		dbm.put(Constants.CMD_GET_USER, JSONRead::getUser);
-		dbm.put(Constants.CMD_SET_PASSWORD, db::setPassword);
+		dbm.put(Constants.CMD_SET_PASSWORD, JSONRead::setPassword);
 		dbm.put(Constants.CMD_GET_ERR_MSG, db::getErrorMessages);
 		dbm.put(Constants.CMD_GET_INFO_MSG, db::getInfoMessages);
 		dbm.put(Constants.CMD_LOAD_Q, db::loadQuestions);
@@ -220,6 +220,23 @@ public class JSONRead
 		}
 		return out.jobj.toString();
 	}
+	
+	private static String setPassword(JSONObject obj)
+	{
+		JSONMapData in = new JSONMapData(obj);
+
+		String name = in.jmap.get("name");
+		String oldPass = in.jmap.get("old_password");
+		String newPass = in.jmap.get("new_password");
+		String newSalt = in.jmap.get("new_salt");
+
+		db.setPassword(name, oldPass, newPass, newSalt);
+		
+		JSONMapData out = new JSONMapData(null);
+		out.jmap.put("command", Constants.CMD_GET_USER);
+		out.jmap.put("name", name);
+		return getUser(out.jobj);
+	}
 
 	/**
 	 * Requests to log in.
@@ -275,6 +292,17 @@ public class JSONRead
 		} catch (ParseException pe) {
 			throw new NullPointerException("JSON parse error");
 		}
+	}
+
+
+	private static Map<String, String> getUser(String username) throws Exception
+	{
+		JSONMapData getuser = new JSONMapData(null);
+		getuser.jmap.put("command", "get_user");
+		getuser.jmap.put("name", username);
+		
+		JSONMapData out = new JSONMapData((JSONObject) parser.parse(getUser(getuser.jobj)));
+		return out.jmap;
 	}
 	
 	private static class JSONMapData

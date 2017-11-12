@@ -106,7 +106,8 @@ public interface Database
 	 * 
 	 * @return A JSONObject that contains the user with the new password.
 	 */
-	public String setPassword(JSONObject obj);
+	public boolean setPassword(String name, String oldPass,
+			String newPass, String newSalt);
 	
 	/**
 	 * Retrieves the error messages from the database.

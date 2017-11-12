@@ -220,56 +220,24 @@ public class MySQL_Database implements Database
 	}
 
 	@Override
-	public String setPassword(JSONObject obj)
+	public boolean setPassword(String name, String oldPass,
+			String newPass, String newSalt)
 	{
-		Map<String, String> omap = (Map<String, String>) obj;
-
-		JSONObject err = new JSONObject();
-		Map<String, String> emap = (Map<String, String>) err;
-		emap.put("command", Constants.CMD_GET_ERR_MSG);
-
-		Map<String, String> userobj;
-		try
-		{
-			userobj = getUser(omap.get("name"));
-		} catch (Exception e)
-		{
-			throw new NullPointerException("Can only update password for existing users");
-		}
-		
-		Map<String, String> user = (Map<String, String>) getJSONObject(userobj.get("user"));
-		
-		String oldPass = omap.get("old_password");
-		String newPass = omap.get("new_password");
-		String newSalt = omap.get("new_salt");
-
-		if (!user.get("password").equals(oldPass))
-		{
-			emap.put("user", (new JSONObject()).toString());
-			return err.toString();
+		_User _user = _getUser(name);
+		if (!_user.password.equals(oldPass)) {
+			return false;
 		}
 		
 		String qInsert = String.format(
 				"UPDATE `users` SET `password`='%s',`salt`='%s',`update_password`=%d WHERE `users`.`name` = '%s'",
-				newPass, newSalt, 0, user.get("name"));
-		try
-		{
-			queryUpdate(qInsert);
-		}
-		catch (DBWriteException dbw)
-		{
-			logger.log("Database write error", dbw);
-			emap.put("user", (new JSONObject()).toString());
-			return err.toString();
-		}
-
-		JSONObject jobj = new JSONObject();
+				newPass, newSalt, 0, name);
 		try {
-			jobj = (JSONObject) getUser(omap.get("name"));
-		} catch (Exception e) {
-			
+			queryUpdate(qInsert);
+			return true;
+		} catch (DBWriteException dbw) {
+			logger.log("Database write error", dbw);
+			return false;
 		}
-		return jobj.toString();
 	}
 
 	@Override
