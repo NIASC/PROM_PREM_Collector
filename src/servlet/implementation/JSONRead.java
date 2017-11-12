@@ -28,6 +28,7 @@ import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -79,7 +80,7 @@ public class JSONRead
 		dbm.put(Constants.CMD_GET_INFO_MSG, JSONRead::getInfoMessages);
 		dbm.put(Constants.CMD_LOAD_Q, JSONRead::loadQuestions);
 		dbm.put(Constants.CMD_LOAD_QR_DATE, JSONRead::loadQResultDates);
-		dbm.put(Constants.CMD_LOAD_QR, db::loadQResults);
+		dbm.put(Constants.CMD_LOAD_QR, JSONRead::loadQResults);
 		dbm.put(Constants.CMD_REQ_REGISTR, db::requestRegistration);
 		dbm.put(ServletConst.CMD_RSP_REGISTR, db::respondRegistration);
 		dbm.put(Constants.CMD_REQ_LOGIN, JSONRead::requestLogin);
@@ -300,6 +301,31 @@ public class JSONRead
 		out.jmap.put("dates", dates.jarr.toString());
 		return out.jobj.toString();
 	}
+	
+	private static String loadQResults(JSONObject obj)
+	{
+		JSONMapData in = new JSONMapData(obj);
+		JSONMapData out = new JSONMapData(null);
+		out.jmap.put("command", Constants.CMD_LOAD_QR);
+
+		_User _user = db._getUser(in.jmap.get("name"));
+		JSONArrData questions = new JSONArrData(getJSONArray(in.jmap.get("questions")));
+
+		List<Map<String, String>> _results = db.loadQResults(
+				_user.clinic_id, questions.jlist,
+				getDate(in.jmap.get("begin")),
+				getDate(in.jmap.get("end")));
+
+		JSONArrData results = new JSONArrData(null);
+		for (Map<String, String> m : _results) {
+			JSONMapData answers = new JSONMapData(null);
+			for (Entry<String, String> e : m.entrySet())
+				answers.jmap.put(e.getKey(), e.getValue());
+			results.jlist.add(answers.jobj.toString());
+		}
+		out.jmap.put("results", results.jarr.toString());
+		return out.jobj.toString();
+	}
 
 	/**
 	 * Requests to log in.
@@ -352,8 +378,17 @@ public class JSONRead
 	{
 		try {
 			return (JSONObject) parser.parse(str);
-		} catch (ParseException pe) {
-			throw new NullPointerException("JSON parse error");
+		} catch (Exception e) {
+			return null;
+		}
+	}
+
+	private static JSONArray getJSONArray(String str)
+	{
+		try {
+			return (JSONArray) parser.parse(str);
+		} catch (Exception e) {
+			return null;
 		}
 	}
 
@@ -387,6 +422,15 @@ public class JSONRead
 			out.jmap.put(e.getKey(), message.jobj.toString());
 		}
 		return out.jobj;
+	}
+	
+	private static Date getDate(String date)
+	{
+		try {
+			return (new SimpleDateFormat("yyyy-MM-dd")).parse(date);
+		} catch (java.text.ParseException e) {
+			return new Date(0L);
+		}
 	}
 	
 	private static class JSONMapData

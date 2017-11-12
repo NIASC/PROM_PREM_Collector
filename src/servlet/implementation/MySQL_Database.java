@@ -317,85 +317,36 @@ public class MySQL_Database implements Database
 	}
 	
 	@Override
-	public String loadQResults(JSONObject obj)
+	public List<Map<String, String>> loadQResults(int clinic_id,
+			List<String> qlist,
+			Date begin, Date end)
 	{
-		Map<String, String> omap = (Map<String, String>) obj;
-		
-		JSONObject ret = new JSONObject();
-		Map<String, String> rmap = (Map<String, String>) ret;
-		rmap.put("command", Constants.CMD_LOAD_QR);
-
-		Map<String, String> userobj;
-		try
-		{
-			userobj = getUser(omap.get("name"));
-		} catch (Exception e)
-		{
-			rmap.put("dates", (new JSONObject()).toString());
-			logger.log("No user specified");
-			return ret.toString();
-		}
-		
-		Map<String, String> user = (Map<String, String>) getJSONObject(userobj.get("user"));
-		
+		List<Map<String, String>> _results = new ArrayList<Map<String, String>>();
 		try (Connection conn = dataSource.getConnection())
 		{
-			Statement s = conn.createStatement();
-
-			JSONParser parser = new JSONParser();
-			JSONArray questions;
-			try{
-				questions = (JSONArray) parser.parse(omap.get("questions"));
-			} catch (ParseException pe)
-			{
-				rmap.put("results", (new JSONObject()).toString());
-				logger.log("Error parsing JSON object", pe);
-				return ret.toString();
-			} catch (NullPointerException e)
-			{
-				rmap.put("results", (new JSONObject()).toString());
-				logger.log("Missing 'questions' entry", e);
-				return ret.toString();
-			}
-			
-			List<String> qlist = (List<String>) questions;
-			
 			List<String> lstr = new ArrayList<String>();
-			for (Iterator<String> itr = qlist.iterator(); itr.hasNext();)
-				lstr.add("`" + itr.next() + "`");
-			
-			ResultSet rs = query(s, String.format(
-					"SELECT %s FROM `questionnaire_answers` WHERE `clinic_id` = %d AND `date` BETWEEN '%s' AND '%s'",
-					String.join(", ", lstr), Integer.parseInt(user.get("clinic_id")),
-					omap.get("begin"), omap.get("end")));
+			for (String str : qlist)
+				lstr.add("`" + str + "`");
 
-			JSONArray results = new JSONArray();
-			List<String> rlist = (List<String>) results;
-			while (rs.next())
-			{
-				JSONObject answers = new JSONObject();
-				Map<String, String> amap = (Map<String, String>) answers;
-				for (Iterator<String> itr = qlist.iterator(); itr.hasNext();)
-				{
-					String q = itr.next();
-					amap.put(q, rs.getString(q));
-				}
-				rlist.add(answers.toString());
+			SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd");
+			ResultSet rs = query(conn.createStatement(), String.format(
+					"SELECT %s FROM `questionnaire_answers` WHERE `clinic_id` = %d AND `date` BETWEEN '%s' AND '%s'",
+					String.join(", ", lstr), clinic_id,
+					sdf.format(begin), sdf.format(end)));
+
+			while (rs.next()) {
+				Map<String, String> _answers = new HashMap<String, String>();
+				for (String q : qlist)
+					_answers.put(q, rs.getString(q));
+				_results.add(_answers);
 			}
-			rmap.put("results", results.toString());
-		}
-		catch (DBReadException dbr)
-		{
-			rmap.put("results", (new JSONArray()).toString());
+		} catch (DBReadException dbr) {
 			logger.log("Database read error", dbr);
-		}
-		catch (SQLException e)
-		{
-			rmap.put("results", (new JSONArray()).toString());
+		} catch (SQLException e) {
 			logger.log("Error opening connection to database "
 					+ "or while parsing SQL ResultSet", e);
 		}
-		return ret.toString();
+		return _results;
 	}
 	
 	@Override

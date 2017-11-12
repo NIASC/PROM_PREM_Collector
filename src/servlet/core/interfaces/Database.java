@@ -20,6 +20,7 @@
  */
 package servlet.core.interfaces;
 
+import java.util.Date;
 import java.util.List;
 import java.util.Map;
 
@@ -157,7 +158,8 @@ public interface Database
 	 * 
 	 * @return A JSONObject that contains the questionnaire results.
 	 */
-	public String loadQResults(JSONObject obj);
+	public List<Map<String, String>> loadQResults(
+			int clinic_id, List<String> qlist, Date begin, Date end);
 	
 	/**
 	 * Sends a registration request to an administrator.
