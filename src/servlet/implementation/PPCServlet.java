@@ -77,7 +77,9 @@ public class PPCServlet extends HttpServlet
 			while ((str = br.readLine()) != null)
 				sb.append(str);
 			
-			out.print(ppc.handleRequest(sb.toString()));
+			out.print(ppc.handleRequest(sb.toString(),
+					request.getRemoteAddr(),
+					request.getLocalAddr()));
 			out.flush();
 			out.close();
 		} catch (Exception e) {

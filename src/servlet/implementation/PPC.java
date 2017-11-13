@@ -61,11 +61,11 @@ public class PPC
 	 * 
 	 * @return The response from the servlet.
 	 */
-	public String handleRequest(String message)
+	public String handleRequest(String message, String remoteAddr, String hostAddr)
 	{
 		try {
 			JSONMapData obj = new JSONMapData(getJSONObject(message));
-			return getDBMethod(obj.jmap.get("command")).netfunc(obj.jobj);
+			return getDBMethod(obj.jmap.get("command")).netfunc(obj.jobj, remoteAddr, hostAddr);
 		} catch (Exception e) {
 			logger.log("Unknown request", e);
 		}
@@ -176,13 +176,13 @@ public class PPC
 		return dbm.get(command);
 	}
 	
-	private String addUser(JSONObject obj)
+	private String addUser(JSONObject obj, String remoteAddr, String hostAddr)
 	{
 		JSONMapData in = new JSONMapData(obj);
 		JSONMapData out = new JSONMapData(null);
 		out.jmap.put("command", ServletConst.CMD_ADD_USER);
 		
-		boolean success = db.addUser(
+		boolean success = remoteAddr.equals(hostAddr) && db.addUser(
 				Integer.parseInt(in.jmap.get("clinic_id")),
 				in.jmap.get("name"), in.jmap.get("password"),
 				in.jmap.get("email"), in.jmap.get("salt"));
@@ -194,7 +194,7 @@ public class PPC
 		return out.jobj.toString();
 	}
 	
-	private String addQuestionnaireAnswers(JSONObject obj)
+	private String addQuestionnaireAnswers(JSONObject obj, String remoteAddr, String hostAddr)
 	{
 		JSONMapData in = new JSONMapData(obj);
 		JSONMapData out = new JSONMapData(null);
@@ -220,13 +220,13 @@ public class PPC
 		return out.jobj.toString();
 	}
 	
-	private String addClinic(JSONObject obj)
+	private String addClinic(JSONObject obj, String remoteAddr, String hostAddr)
 	{
 		JSONMapData in = new JSONMapData(obj);
 		JSONMapData out = new JSONMapData(null);
 		out.jmap.put("command", ServletConst.CMD_ADD_CLINIC);
 		
-		if (db.addClinic(in.jmap.get("name"))) {
+		if (remoteAddr.equals(hostAddr) && db.addClinic(in.jmap.get("name"))) {
 			out.jmap.put(Constants.INSERT_RESULT, Constants.INSERT_SUCCESS);
 		} else {
 			out.jmap.put(Constants.INSERT_RESULT, Constants.INSERT_FAIL);
@@ -234,20 +234,21 @@ public class PPC
 		return out.jobj.toString();
 	}
 	
-	private String getClinics(JSONObject obj)
+	private String getClinics(JSONObject obj, String remoteAddr, String hostAddr)
 	{
 		JSONMapData out = new JSONMapData(null);
 		out.jmap.put("command", Constants.CMD_GET_CLINICS);
 			
 		Map<Integer, String> _clinics = db.getClinics();
 		JSONMapData clinics = new JSONMapData(null);
-		for (Entry<Integer, String> e : _clinics.entrySet())
-			clinics.jmap.put(Integer.toString(e.getKey()), e.getValue());
+		if (remoteAddr.equals(hostAddr))
+			for (Entry<Integer, String> e : _clinics.entrySet())
+				clinics.jmap.put(Integer.toString(e.getKey()), e.getValue());
 		out.jmap.put("clinics", clinics.jobj.toString());
 		return out.jobj.toString();
 	}
 	
-	private String getUser(JSONObject obj)
+	private String getUser(JSONObject obj, String remoteAddr, String hostAddr)
 	{
 		JSONMapData in = new JSONMapData(obj);
 		JSONMapData out = new JSONMapData(null);
@@ -269,7 +270,7 @@ public class PPC
 		return out.jobj.toString();
 	}
 	
-	private String setPassword(JSONObject obj)
+	private String setPassword(JSONObject obj, String remoteAddr, String hostAddr)
 	{
 		JSONMapData in = new JSONMapData(obj);
 
@@ -283,10 +284,10 @@ public class PPC
 		JSONMapData out = new JSONMapData(null);
 		out.jmap.put("command", Constants.CMD_GET_USER);
 		out.jmap.put("name", name);
-		return getUser(out.jobj);
+		return getUser(out.jobj, remoteAddr, hostAddr);
 	}
 	
-	private String getErrorMessages(JSONObject obj)
+	private String getErrorMessages(JSONObject obj, String remoteAddr, String hostAddr)
 	{
 		JSONMapData out = new JSONMapData(null);
 		out.jmap.put("command", Constants.CMD_GET_ERR_MSG);
@@ -294,7 +295,7 @@ public class PPC
 		return out.jobj.toString();
 	}
 	
-	private String getInfoMessages(JSONObject obj)
+	private String getInfoMessages(JSONObject obj, String remoteAddr, String hostAddr)
 	{
 		JSONMapData out = new JSONMapData(null);
 		out.jmap.put("command", Constants.CMD_GET_INFO_MSG);
@@ -302,7 +303,7 @@ public class PPC
 		return out.jobj.toString();
 	}
 	
-	private String loadQuestions(JSONObject obj)
+	private String loadQuestions(JSONObject obj, String remoteAddr, String hostAddr)
 	{
 		JSONMapData out = new JSONMapData(null);
 		out.jmap.put("command", Constants.CMD_LOAD_Q);
@@ -330,7 +331,7 @@ public class PPC
 		return out.jobj.toString();
 	}
 	
-	private String loadQResultDates(JSONObject obj)
+	private String loadQResultDates(JSONObject obj, String remoteAddr, String hostAddr)
 	{
 		JSONMapData in = new JSONMapData(obj);
 		JSONMapData out = new JSONMapData(null);
@@ -346,7 +347,7 @@ public class PPC
 		return out.jobj.toString();
 	}
 	
-	private String loadQResults(JSONObject obj)
+	private String loadQResults(JSONObject obj, String remoteAddr, String hostAddr)
 	{
 		JSONMapData in = new JSONMapData(obj);
 		JSONMapData out = new JSONMapData(null);
@@ -379,7 +380,7 @@ public class PPC
 	 * 
 	 * @return A JSONObject that contains the status of the request.
 	 */
-	private String requestRegistration(JSONObject obj)
+	private String requestRegistration(JSONObject obj, String remoteAddr, String hostAddr)
 	{
 		JSONMapData in = new JSONMapData(obj);
 		JSONMapData out = new JSONMapData(null);
@@ -401,7 +402,7 @@ public class PPC
 	 * 
 	 * @return A JSONObject that contains the status of the request.
 	 */
-	private String respondRegistration(JSONObject obj)
+	private String respondRegistration(JSONObject obj, String remoteAddr, String hostAddr)
 	{
 		JSONMapData in = new JSONMapData(obj);
 		JSONMapData out = new JSONMapData(null);
@@ -422,7 +423,7 @@ public class PPC
 	 * 
 	 * @return A JSONObject that contains the status of the request.
 	 */
-	private String requestLogin(JSONObject obj)
+	private String requestLogin(JSONObject obj, String remoteAddr, String hostAddr)
 	{
 		JSONMapData in = new JSONMapData(obj);
 		JSONMapData out = new JSONMapData(null);
@@ -444,6 +445,8 @@ public class PPC
 		if (response == Constants.SUCCESS) {
 			out.jmap.put(Constants.LOGIN_UID, Long.toString(uid));
 		}
+		out.jmap.put("remote_ip", remoteAddr);
+		out.jmap.put("host_ip", hostAddr);
 		return out.jobj.toString();
 	}
 
@@ -455,7 +458,7 @@ public class PPC
 	 * 
 	 * @return A JSONObject that contains the status of the request.
 	 */
-	private String requestLogout(JSONObject obj)
+	private String requestLogout(JSONObject obj, String remoteAddr, String hostAddr)
 	{
 		JSONMapData in = new JSONMapData(obj);
 		JSONMapData out = new JSONMapData(null);
@@ -528,6 +531,6 @@ public class PPC
 		 * @return The String representation of the JSONObject that
 		 * 		contains the answer.
 		 */
-		public String netfunc(JSONObject obj);
+		public String netfunc(JSONObject obj, String remoteAddr, String hostAddr);
 	}
 }
