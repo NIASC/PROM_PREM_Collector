@@ -476,8 +476,9 @@ public class PPC
 		JSONMapData in = new JSONMapData(obj);
 		JSONMapData out = new JSONMapData(null);
 		out.jmap.put("command", Constants.CMD_REQ_LOGOUT);
-
-		String response = um.delUser(in.jmap.get("name")) ? Constants.SUCCESS_STR : Constants.ERROR_STR;
+		
+		long uid = Long.parseLong(in.jmap.get("uid"));
+		String response = um.delUser(um.nameForUID(uid)) ? Constants.SUCCESS_STR : Constants.ERROR_STR;
 		out.jmap.put(Constants.LOGOUT_REPONSE, response);
 		return out.jobj.toString();
 	}
