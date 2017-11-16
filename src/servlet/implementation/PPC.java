@@ -277,7 +277,8 @@ public class PPC
 	{
 		JSONMapData in = new JSONMapData(obj);
 
-		String name = Crypto.decrypt(in.jmap.get("name"));
+		long uid = Long.parseLong(Crypto.decrypt(in.jmap.get("uid")));
+		String name = um.nameForUID(uid);
 		String oldPass = Crypto.decrypt(in.jmap.get("old_password"));
 		String newPass1 = Crypto.decrypt(in.jmap.get("new_password1"));
 		String newPass2 = Crypto.decrypt(in.jmap.get("new_password2"));
@@ -443,6 +444,7 @@ public class PPC
 		User user = db.getUser(Crypto.decrypt(in.jmap.get("name")));
 		if (user == null
 				|| !user.passwordMatch(Crypto.decrypt(in.jmap.get("password")))) {
+			out.jmap.put("update_password", "0");
 			out.jmap.put(Constants.LOGIN_REPONSE, Constants.INVALID_DETAILS_STR);
 			return out.jobj.toString();
 		}
