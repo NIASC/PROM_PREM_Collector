@@ -36,6 +36,7 @@ import common.implementation.Constants;
 import servlet.core.Crypto;
 import servlet.core.MailMan;
 import servlet.core.PPCLogger;
+import servlet.core.PasswordHandle;
 import servlet.core.ServletConst;
 import servlet.core.User;
 import servlet.core.UserManager;
@@ -43,6 +44,7 @@ import servlet.core._Message;
 import servlet.core._Question;
 import servlet.core.interfaces.Database;
 import servlet.core.interfaces.Encryption;
+import servlet.core.interfaces.Implementations;
 
 /**
  * This class handles redirecting a request from the applet to the
@@ -275,17 +277,25 @@ public class PPC
 	{
 		JSONMapData in = new JSONMapData(obj);
 
-		String name = in.jmap.get("name");
-		String oldPass = in.jmap.get("old_password");
-		String newPass = in.jmap.get("new_password");
-		String newSalt = in.jmap.get("new_salt");
+		String name = Crypto.decrypt(in.jmap.get("name"));
+		String oldPass = Crypto.decrypt(in.jmap.get("old_password"));
+		String newPass1 = Crypto.decrypt(in.jmap.get("new_password1"));
+		String newPass2 = Crypto.decrypt(in.jmap.get("new_password2"));
 
-		db.setPassword(name, oldPass, newPass, newSalt);
+		Encryption hash = Implementations.Encryption();
+		String newSalt = hash.getNewSalt();
 		
+		User user = db.getUser(name);
+		int status = PasswordHandle.newPassError(user, oldPass, newPass1, newPass2);
+		if (status == Constants.SUCCESS) {
+			db.setPassword(name, user.hashWithSalt(oldPass),
+					hash.hashString(newPass1, newSalt), newSalt);
+		}
 		JSONMapData out = new JSONMapData(null);
-		out.jmap.put("command", Constants.CMD_GET_USER);
-		out.jmap.put("name", name);
-		return getUser(out.jobj, remoteAddr, hostAddr);
+		out.jmap.put("command", Constants.CMD_SET_PASSWORD);
+		out.jmap.put(Constants.SETPASS_REPONSE,
+				Integer.toString(status));
+		return out.jobj.toString();
 	}
 	
 	private String getErrorMessages(JSONObject obj, String remoteAddr, String hostAddr)
@@ -434,8 +444,6 @@ public class PPC
 		if (user == null
 				|| !user.passwordMatch(Crypto.decrypt(in.jmap.get("password")))) {
 			out.jmap.put(Constants.LOGIN_REPONSE, Constants.INVALID_DETAILS_STR);
-			out.jmap.put("__name__", Crypto.decrypt(in.jmap.get("name")));
-			out.jmap.put("__password__", Crypto.decrypt(in.jmap.get("password")));
 			return out.jobj.toString();
 		}
 
@@ -446,6 +454,7 @@ public class PPC
 		
 		int response = um.addUser(user.name, uid);
 		out.jmap.put(Constants.LOGIN_REPONSE, Integer.toString(response));
+		out.jmap.put("update_password", user.update_password ? "1" : "0");
 		if (response == Constants.SUCCESS) {
 			out.jmap.put(Constants.LOGIN_UID, Long.toString(uid));
 		}

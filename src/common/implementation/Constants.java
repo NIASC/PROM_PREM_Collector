@@ -62,9 +62,15 @@ public abstract class Constants {
 	
 	public static final int ERROR = -1;
 	public static final int SUCCESS = 0;
-	public static final int SERVER_FULL = 2;
-	public static final int ALREADY_ONLINE = 4;
-	public static final int INVALID_DETAILS = 8;
+	public static final int SERVER_FULL = 0x2;
+	public static final int ALREADY_ONLINE = 0x4;
+	public static final int INVALID_DETAILS = 0x8;
+
+	public static final String SETPASS_REPONSE = "setpass_response";
+	public static final int MISMATCH_NEW = 0x10;
+	public static final int PASSWORD_SHORT = 0x20;
+	public static final int PASSWORD_SIMPLE = 0x40;
+	public static final int UPDATE_PASSWORD = 0x80;
 	
 	public static final String LOGIN_REPONSE = "login_response";
 	public static final String LOGOUT_REPONSE = "logout_response";
