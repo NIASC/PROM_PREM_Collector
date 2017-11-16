@@ -349,7 +349,26 @@ public class PPC
 		JSONMapData out = new JSONMapData(null);
 		out.jmap.put("command", Constants.CMD_LOAD_QR_DATE);
 
-		User user = db.getUser(in.jmap.get("name"));
+		String _uid = in.jmap.get("uid");
+		if (_uid == null) {
+			out.jmap.put("dates", new JSONObject().toString());
+			out.jmap.put("info", "uid string not found");
+			return out.jobj.toString();
+		}
+		long uid = 0L;
+		try {
+			uid = Long.parseLong(Crypto.decrypt(in.jmap.get("uid")));
+		} catch (Exception e) {
+			out.jmap.put("dates", new JSONObject().toString());
+			out.jmap.put("info", "error parsing uid");
+			return out.jobj.toString();
+		}
+		User user = db.getUser(um.nameForUID(uid));
+		if (user == null) {
+			out.jmap.put("dates", new JSONObject().toString());
+			out.jmap.put("info", "could not find user");
+			return out.jobj.toString();
+		}
 		List<String> dlist = db.loadQResultDates(user.clinic_id);
 
 		JSONArrData dates = new JSONArrData(null);
@@ -365,7 +384,8 @@ public class PPC
 		JSONMapData out = new JSONMapData(null);
 		out.jmap.put("command", Constants.CMD_LOAD_QR);
 
-		User _user = db.getUser(in.jmap.get("name"));
+		long uid = Long.parseLong(Crypto.decrypt(in.jmap.get("uid")));
+		User _user = db.getUser(um.nameForUID(uid));
 		JSONArrData questions = new JSONArrData(getJSONArray(in.jmap.get("questions")));
 
 		List<Map<String, String>> _results = db.loadQResults(
