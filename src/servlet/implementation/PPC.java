@@ -202,9 +202,17 @@ public class PPC
 		JSONMapData in = new JSONMapData(obj);
 		JSONMapData out = new JSONMapData(null);
 		out.jmap.put("command", Constants.CMD_ADD_QANS);
+
+		long uid = Long.parseLong(Crypto.decrypt(in.jmap.get("uid")));
+		int clinic_id = db.getUser(um.nameForUID(uid)).clinic_id;
+
+		JSONMapData patient = new JSONMapData(getJSONObject(in.jmap.get("patient")));
+		String forename = Crypto.decrypt(patient.jmap.get("forename"));
+		String surname = Crypto.decrypt(patient.jmap.get("surname"));
+		String personal_id = Crypto.decrypt(patient.jmap.get("personal_id"));
 		
-		int clinic_id = Integer.parseInt(in.jmap.get("clinic_id"));
-		String identifier = in.jmap.get("identifier");
+		Encryption encrypt = Implementations.Encryption();
+		String identifier = encrypt.encryptMessage(forename, personal_id, surname);
 
 		JSONMapData m = new JSONMapData(getJSONObject(in.jmap.get("questions")));
 		List<String> question_ids = new ArrayList<String>();
