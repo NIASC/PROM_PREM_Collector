@@ -24,9 +24,9 @@ import java.util.Date;
 import java.util.List;
 import java.util.Map;
 
+import servlet.core.User;
 import servlet.core._Message;
 import servlet.core._Question;
-import servlet.core._User;
 
 
 /**
@@ -97,7 +97,7 @@ public interface Database
 	 * 
 	 * @return A JSONObject that contains the user.
 	 */
-	public _User _getUser(String username);
+	public User getUser(String username);
 	
 	/**
 	 * Updates the password for the user contained in {@code obj}.

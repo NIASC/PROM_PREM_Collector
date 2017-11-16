@@ -33,13 +33,14 @@ import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
 
 import common.implementation.Constants;
+import servlet.core.Crypto;
 import servlet.core.MailMan;
 import servlet.core.PPCLogger;
 import servlet.core.ServletConst;
+import servlet.core.User;
 import servlet.core.UserManager;
 import servlet.core._Message;
 import servlet.core._Question;
-import servlet.core._User;
 import servlet.core.interfaces.Database;
 import servlet.core.interfaces.Encryption;
 
@@ -254,7 +255,7 @@ public class PPC
 		JSONMapData out = new JSONMapData(null);
 		out.jmap.put("command", Constants.CMD_GET_USER);
 
-		_User _user = db._getUser(in.jmap.get("name"));
+		User _user = db.getUser(in.jmap.get("name"));
 		JSONMapData user = new JSONMapData(null);
 		if (_user != null) {
 			user.jmap.put("clinic_id", Integer.toString(_user.clinic_id));
@@ -337,7 +338,7 @@ public class PPC
 		JSONMapData out = new JSONMapData(null);
 		out.jmap.put("command", Constants.CMD_LOAD_QR_DATE);
 
-		_User user = db._getUser(in.jmap.get("name"));
+		User user = db.getUser(in.jmap.get("name"));
 		List<String> dlist = db.loadQResultDates(user.clinic_id);
 
 		JSONArrData dates = new JSONArrData(null);
@@ -353,7 +354,7 @@ public class PPC
 		JSONMapData out = new JSONMapData(null);
 		out.jmap.put("command", Constants.CMD_LOAD_QR);
 
-		_User _user = db._getUser(in.jmap.get("name"));
+		User _user = db.getUser(in.jmap.get("name"));
 		JSONArrData questions = new JSONArrData(getJSONArray(in.jmap.get("questions")));
 
 		List<Map<String, String>> _results = db.loadQResults(
@@ -429,18 +430,21 @@ public class PPC
 		JSONMapData out = new JSONMapData(null);
 		out.jmap.put("command", Constants.CMD_REQ_LOGIN);
 
-		_User _user = db._getUser(in.jmap.get("name"));
-		if (!_user.password.equals(in.jmap.get("password"))) {
+		User user = db.getUser(Crypto.decrypt(in.jmap.get("name")));
+		if (user == null
+				|| !user.passwordMatch(Crypto.decrypt(in.jmap.get("password")))) {
 			out.jmap.put(Constants.LOGIN_REPONSE, Constants.INVALID_DETAILS_STR);
+			out.jmap.put("__name__", Crypto.decrypt(in.jmap.get("name")));
+			out.jmap.put("__password__", Crypto.decrypt(in.jmap.get("password")));
 			return out.jobj.toString();
 		}
 
 		String hash = crypto.encryptMessage(
 				Long.toHexString((new Date()).getTime()),
-				_user.name, crypto.getNewSalt());
+				user.name, crypto.getNewSalt());
 		long uid = Long.parseLong(hash.substring(0, 2*Long.BYTES-1), 2*Long.BYTES);
 		
-		int response = um.addUser(_user.name, uid);
+		int response = um.addUser(user.name, uid);
 		out.jmap.put(Constants.LOGIN_REPONSE, Integer.toString(response));
 		if (response == Constants.SUCCESS) {
 			out.jmap.put(Constants.LOGIN_UID, Long.toString(uid));

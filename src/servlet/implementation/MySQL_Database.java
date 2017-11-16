@@ -38,9 +38,9 @@ import javax.naming.NamingException;
 import javax.sql.DataSource;
 
 import servlet.core.PPCLogger;
+import servlet.core.User;
 import servlet.core._Message;
 import servlet.core._Question;
-import servlet.core._User;
 import servlet.core.interfaces.Database;
 import servlet.implementation.exceptions.DBReadException;
 import servlet.implementation.exceptions.DBWriteException;
@@ -172,17 +172,17 @@ public class MySQL_Database implements Database
 	}
 
 	@Override
-	public _User _getUser(String username)
+	public User getUser(String username)
 	{
 		try (Connection conn = dataSource.getConnection())
 		{
 			Statement s = conn.createStatement();
 			ResultSet rs = query(s, "SELECT `clinic_id`, `name`, `password`, `email`, `salt`, `update_password` FROM `users`");
 
-			_User _user = null;
+			User _user = null;
 			while (rs.next()) {
 				if (rs.getString("name").equals(username)) {
-					_user = new _User();
+					_user = new User();
 					_user.clinic_id = rs.getInt("clinic_id");
 					_user.name = rs.getString("name");
 					_user.password = rs.getString("password");
@@ -206,7 +206,7 @@ public class MySQL_Database implements Database
 	public boolean setPassword(String name, String oldPass,
 			String newPass, String newSalt)
 	{
-		_User _user = _getUser(name);
+		User _user = getUser(name);
 		if (!_user.password.equals(oldPass)) {
 			return false;
 		}

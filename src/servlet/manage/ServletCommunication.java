@@ -34,7 +34,7 @@ import org.json.simple.parser.JSONParser;
 
 import common.implementation.Constants;
 import servlet.core.ServletConst;
-import servlet.core._User;
+import servlet.core.User;
 
 /**
  * This class is an example of an implementation of
@@ -145,7 +145,7 @@ public class ServletCommunication
 	 * @return If the user was found the instance of the user is
 	 * 		returned else {@code null}.
 	 */
-	public _User getUser(String username)
+	public User getUser(String username)
 	{
 		JSONMapData out = new JSONMapData(null);
 		out.jmap.put("command", Constants.CMD_GET_USER);
@@ -154,7 +154,7 @@ public class ServletCommunication
 		JSONMapData _ans = new JSONMapData(sendMessage(out.jobj));
 		JSONMapData _user = new JSONMapData(getJSONObject(_ans.jmap.get("user")));
 		try {
-			_User _usr = new _User();
+			User _usr = new User();
 			_usr.clinic_id = Integer.parseInt(_user.jmap.get("clinic_id"));
 			_usr.name = _user.jmap.get("name");
 			_usr.password = _user.jmap.get("password");
