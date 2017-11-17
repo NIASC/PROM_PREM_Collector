@@ -203,13 +203,14 @@ public class PPC
 		JSONMapData out = new JSONMapData(null);
 		out.jmap.put("command", Constants.CMD_ADD_QANS);
 
-		long uid = Long.parseLong(Crypto.decrypt(in.jmap.get("uid")));
+		JSONMapData inpl = new JSONMapData(getJSONObject(Crypto.decrypt(in.jmap.get("details"))));
+		long uid = Long.parseLong(inpl.jmap.get("uid"));
 		int clinic_id = db.getUser(um.nameForUID(uid)).clinic_id;
 
-		JSONMapData patient = new JSONMapData(getJSONObject(in.jmap.get("patient")));
-		String forename = Crypto.decrypt(patient.jmap.get("forename"));
-		String surname = Crypto.decrypt(patient.jmap.get("surname"));
-		String personal_id = Crypto.decrypt(patient.jmap.get("personal_id"));
+		JSONMapData patient = new JSONMapData(getJSONObject(Crypto.decrypt(in.jmap.get("patient"))));
+		String forename = patient.jmap.get("forename");
+		String surname = patient.jmap.get("surname");
+		String personal_id = patient.jmap.get("personal_id");
 		
 		Encryption encrypt = Implementations.Encryption();
 		String identifier = encrypt.encryptMessage(forename, personal_id, surname);
@@ -267,7 +268,7 @@ public class PPC
 
 		User _user = db.getUser(in.jmap.get("name"));
 		JSONMapData user = new JSONMapData(null);
-		if (_user != null) {
+		if (remoteAddr.equals(hostAddr) && _user != null) {
 			user.jmap.put("clinic_id", Integer.toString(_user.clinic_id));
 			user.jmap.put("name", _user.name);
 			user.jmap.put("password", _user.password);
@@ -285,11 +286,12 @@ public class PPC
 	{
 		JSONMapData in = new JSONMapData(obj);
 
-		long uid = Long.parseLong(Crypto.decrypt(in.jmap.get("uid")));
+		JSONMapData inpl = new JSONMapData(getJSONObject(Crypto.decrypt(in.jmap.get("details"))));
+		long uid = Long.parseLong(inpl.jmap.get("uid"));
 		String name = um.nameForUID(uid);
-		String oldPass = Crypto.decrypt(in.jmap.get("old_password"));
-		String newPass1 = Crypto.decrypt(in.jmap.get("new_password1"));
-		String newPass2 = Crypto.decrypt(in.jmap.get("new_password2"));
+		String oldPass = inpl.jmap.get("old_password");
+		String newPass1 = inpl.jmap.get("new_password1");
+		String newPass2 = inpl.jmap.get("new_password2");
 
 		Encryption hash = Implementations.Encryption();
 		String newSalt = hash.getNewSalt();
@@ -357,24 +359,11 @@ public class PPC
 		JSONMapData out = new JSONMapData(null);
 		out.jmap.put("command", Constants.CMD_LOAD_QR_DATE);
 
-		String _uid = in.jmap.get("uid");
-		if (_uid == null) {
-			out.jmap.put("dates", new JSONObject().toString());
-			out.jmap.put("info", "uid string not found");
-			return out.jobj.toString();
-		}
-		long uid = 0L;
-		try {
-			uid = Long.parseLong(Crypto.decrypt(in.jmap.get("uid")));
-		} catch (Exception e) {
-			out.jmap.put("dates", new JSONObject().toString());
-			out.jmap.put("info", "error parsing uid");
-			return out.jobj.toString();
-		}
+		JSONMapData inpl = new JSONMapData(getJSONObject(Crypto.decrypt(in.jmap.get("details"))));
+		long uid = Long.parseLong(inpl.jmap.get("uid"));
 		User user = db.getUser(um.nameForUID(uid));
 		if (user == null) {
 			out.jmap.put("dates", new JSONObject().toString());
-			out.jmap.put("info", "could not find user");
 			return out.jobj.toString();
 		}
 		List<String> dlist = db.loadQResultDates(user.clinic_id);
@@ -392,7 +381,8 @@ public class PPC
 		JSONMapData out = new JSONMapData(null);
 		out.jmap.put("command", Constants.CMD_LOAD_QR);
 
-		long uid = Long.parseLong(Crypto.decrypt(in.jmap.get("uid")));
+		JSONMapData inpl = new JSONMapData(getJSONObject(Crypto.decrypt(in.jmap.get("details"))));
+		long uid = Long.parseLong(inpl.jmap.get("uid"));
 		User _user = db.getUser(um.nameForUID(uid));
 		JSONArrData questions = new JSONArrData(getJSONArray(in.jmap.get("questions")));
 
@@ -425,8 +415,10 @@ public class PPC
 		JSONMapData in = new JSONMapData(obj);
 		JSONMapData out = new JSONMapData(null);
 		out.jmap.put("command", Constants.CMD_REQ_REGISTR);
+
+		JSONMapData inpl = new JSONMapData(getJSONObject(Crypto.decrypt(in.jmap.get("details"))));
 		
-		if (MailMan.sendRegReq(in.jmap.get("name"), in.jmap.get("email"), in.jmap.get("clinic")))
+		if (MailMan.sendRegReq(inpl.jmap.get("name"), inpl.jmap.get("email"), inpl.jmap.get("clinic")))
 			out.jmap.put(Constants.INSERT_RESULT, Constants.INSERT_SUCCESS);
 		else
 			out.jmap.put(Constants.INSERT_RESULT, Constants.INSERT_FAIL);
@@ -448,7 +440,8 @@ public class PPC
 		JSONMapData out = new JSONMapData(null);
 		out.jmap.put("command", ServletConst.CMD_RSP_REGISTR);
 		
-		if (MailMan.sendRegResp(in.jmap.get("username"), in.jmap.get("password"), in.jmap.get("email")))
+		if (MailMan.sendRegResp(in.jmap.get("username"),
+				in.jmap.get("password"), in.jmap.get("email")))
 			out.jmap.put(Constants.INSERT_RESULT, Constants.INSERT_SUCCESS);
 		else
 			out.jmap.put(Constants.INSERT_RESULT, Constants.INSERT_FAIL);
@@ -469,9 +462,10 @@ public class PPC
 		JSONMapData out = new JSONMapData(null);
 		out.jmap.put("command", Constants.CMD_REQ_LOGIN);
 
-		User user = db.getUser(Crypto.decrypt(in.jmap.get("name")));
+		JSONMapData inpl = new JSONMapData(getJSONObject(Crypto.decrypt(in.jmap.get("details"))));
+		User user = db.getUser(inpl.jmap.get("name"));
 		if (user == null
-				|| !user.passwordMatch(Crypto.decrypt(in.jmap.get("password")))) {
+				|| !user.passwordMatch(inpl.jmap.get("password"))) {
 			out.jmap.put("update_password", "0");
 			out.jmap.put(Constants.LOGIN_REPONSE, Constants.INVALID_DETAILS_STR);
 			return out.jobj.toString();
@@ -506,8 +500,9 @@ public class PPC
 		JSONMapData in = new JSONMapData(obj);
 		JSONMapData out = new JSONMapData(null);
 		out.jmap.put("command", Constants.CMD_REQ_LOGOUT);
-		
-		long uid = Long.parseLong(in.jmap.get("uid"));
+
+		JSONMapData inpl = new JSONMapData(getJSONObject(Crypto.decrypt(in.jmap.get("details"))));
+		long uid = Long.parseLong(inpl.jmap.get("uid"));
 		String response = um.delUser(um.nameForUID(uid)) ? Constants.SUCCESS_STR : Constants.ERROR_STR;
 		out.jmap.put(Constants.LOGOUT_REPONSE, response);
 		return out.jobj.toString();
