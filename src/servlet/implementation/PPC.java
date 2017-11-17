@@ -71,8 +71,8 @@ public class PPC
 			return getDBMethod(obj.jmap.get("command")).netfunc(obj.jobj, remoteAddr, hostAddr);
 		} catch (Exception e) {
 			logger.log("Unknown request", e);
+			return null;
 		}
-		return null;
 	}
 	
 	PPC()
@@ -179,7 +179,7 @@ public class PPC
 		return dbm.get(command);
 	}
 	
-	private String addUser(JSONObject obj, String remoteAddr, String hostAddr)
+	private String addUser(JSONObject obj, String remoteAddr, String hostAddr) throws Exception
 	{
 		JSONMapData in = new JSONMapData(obj);
 		JSONMapData out = new JSONMapData(null);
@@ -570,6 +570,6 @@ public class PPC
 		 * @return The String representation of the JSONObject that
 		 * 		contains the answer.
 		 */
-		public String netfunc(JSONObject obj, String remoteAddr, String hostAddr);
+		public String netfunc(JSONObject obj, String remoteAddr, String hostAddr) throws Exception;
 	}
 }
