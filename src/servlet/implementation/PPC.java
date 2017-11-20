@@ -363,7 +363,7 @@ public class PPC
 		long uid = Long.parseLong(inpl.jmap.get("uid"));
 		User user = db.getUser(um.nameForUID(uid));
 		if (user == null) {
-			out.jmap.put("dates", new JSONObject().toString());
+			out.jmap.put("dates", new JSONArray().toString());
 			return out.jobj.toString();
 		}
 		List<String> dlist = db.loadQResultDates(user.clinic_id);

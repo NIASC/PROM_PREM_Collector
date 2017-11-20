@@ -184,8 +184,8 @@ public class UserManager
 	
 	private class activityMonitor implements Runnable
 	{
-		final int inactiveTimer = 360; // cycles
-		final long cycleTime = 5000; // ms
+		final int inactiveTimer = 180; // cycles
+		final long cycleTime = 10000; // ms
 		@Override
 		public void run() {
 			while (running) {
