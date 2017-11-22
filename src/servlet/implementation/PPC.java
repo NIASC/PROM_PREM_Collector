@@ -22,6 +22,7 @@ package servlet.implementation;
 
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
@@ -425,7 +426,9 @@ public class PPC
 		for (Map<String, String> m : _results) {
 			JSONMapData answers = new JSONMapData(null);
 			for (Entry<String, String> e : m.entrySet())
-				answers.jmap.put(e.getKey(), e.getValue());
+				answers.jmap.put(String.format("%d",
+						Integer.parseInt(e.getKey().substring("question".length()))),
+						QDBFormat.getQFormat(e.getValue()));
 			results.jlist.add(answers.jobj.toString());
 		}
 		out.jmap.put("results", results.jarr.toString());
@@ -633,32 +636,34 @@ public class PPC
 				return "''";
 		}
 		
-		static Object getQFormat(String dbEntry)
+		static String getQFormat(String dbEntry)
 		{
+			JSONMapData fmt = new JSONMapData(null);
 			if (dbEntry == null || dbEntry.trim().isEmpty())
-				return null;
+				return fmt.toString();
 			
 			if (dbEntry.startsWith("option")) {
-                /* single option */
-				return Integer.valueOf(dbEntry.substring("option".length()));
+				fmt.jmap.put("SingleOption", String.format("%d",
+						Integer.parseInt(dbEntry.substring("option".length()))));
 			} else if (dbEntry.startsWith("slider")) {
-                /* slider */
-				return Integer.valueOf(dbEntry.substring("slider".length()));
+				fmt.jmap.put("Slider", String.format("%d",
+						Integer.parseInt(dbEntry.substring("slider".length()))));
 			} else if (dbEntry.startsWith("[") && dbEntry.endsWith("]")) {
                 /* multiple answers */
 				List<String> entries = Arrays.asList(dbEntry.split(","));
+				JSONArrData options = new JSONArrData(null);
 				if (entries.get(0).startsWith("option")) {
                     /* multiple option */
-					List<Integer> lint = new ArrayList<>();
 					for (String str : entries)
-						lint.add(Integer.valueOf(str.substring("option".length())));
-					return lint;
+						options.jlist.add(String.format("%d",
+								Integer.parseInt(str.substring("option".length()))));
+					fmt.jmap.put("MultipleOption", options.jarr.toString());
 				}
 			} else {
                 /* must be plain text entry */
 				return dbEntry;
 			}
-			return null;
+			return fmt.jobj.toString();
 		}
 	}
 }
