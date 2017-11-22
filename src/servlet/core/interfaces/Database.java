@@ -110,24 +110,6 @@ public interface Database
 			String newPass, String newSalt);
 	
 	/**
-	 * Retrieves the error messages from the database.
-	 * 
-	 * @param obj The JSONObject that contains the request.
-	 * 
-	 * @return A JSONObject that contains the error messages.
-	 */
-	public Map<String, _Message> getErrorMessages();
-	
-	/**
-	 * Retrieves the information messages from the database.
-	 * 
-	 * @param obj The JSONObject that contains the request.
-	 * 
-	 * @return A JSONObject that contains the information messages.
-	 */
-	public Map<String, _Message> getInfoMessages();
-	
-	/**
 	 * Retrieves the questionnaire questions from the database.
 	 * 
 	 * @param obj The JSONObject that contains the request.

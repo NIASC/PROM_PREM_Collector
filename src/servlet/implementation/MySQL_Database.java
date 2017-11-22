@@ -230,18 +230,6 @@ public class MySQL_Database implements Database
 			return false;
 		}
 	}
-
-	@Override
-	public Map<String, _Message> getErrorMessages()
-	{
-		return getMessages("error_messages");
-	}
-
-	@Override
-	public Map<String, _Message> getInfoMessages()
-	{
-		return getMessages("info_messages");
-	}
 	
 	@Override
 	public Map<Integer, _Question> loadQuestions()

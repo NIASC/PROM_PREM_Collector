@@ -229,6 +229,7 @@ public class ServletCommunication
 			/* send message */
 			OutputStream os = connection.getOutputStream();
 			OutputStreamWriter osw = new OutputStreamWriter(os, "UTF-8");
+			System.out.printf("OUT: '%s'\n", obj.toString());
 			osw.write(obj.toString());
 			osw.flush();
 			osw.close();
@@ -241,6 +242,7 @@ public class ServletCommunication
 			while ((inputLine = in.readLine()) != null)
 				sb.append(inputLine);
 			in.close();
+			System.out.printf("IN: '%s'\n", sb.toString());
 			return getJSONObject(sb.toString());
 		} catch (Exception ex) {
 			ex.printStackTrace();
