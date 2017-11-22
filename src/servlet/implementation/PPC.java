@@ -84,6 +84,7 @@ public class PPC
 		crypto = new SHA_Encryption();
 		qdbf = new QDBFormat();
 
+		dbm.put(Constants.CMD_PING, this::ping);
 		dbm.put(ServletConst.CMD_ADD_USER, this::addUser);
 		dbm.put(Constants.CMD_ADD_QANS, this::addQuestionnaireAnswers);
 		dbm.put(ServletConst.CMD_ADD_CLINIC, this::addClinic);
@@ -141,6 +142,22 @@ public class PPC
 	private NetworkFunction getDBMethod(String command)
 	{
 		return dbm.get(command);
+	}
+	
+	private MapData ping(MapData in, String remoteAddr, String hostAddr)
+	{
+		MapData out = new MapData();
+		out.put("command", Constants.CMD_PING);
+		
+		try {
+			if (processPing(in))
+				out.put(Constants.INSERT_RESULT, Constants.INSERT_SUCCESS);
+			else
+				out.put(Constants.INSERT_RESULT, Constants.INSERT_FAIL);
+		} catch (Exception e) {
+			out.put(Constants.INSERT_RESULT, Constants.INSERT_FAIL);
+		}
+		return out;
 	}
 	
 	private MapData addUser(MapData in, String remoteAddr, String hostAddr)
@@ -378,6 +395,15 @@ public class PPC
 	}
 	
 	// --------------------------------
+	
+	private boolean processPing(MapData in)
+			throws NullPointerException, NumberFormatException,
+			org.json.simple.parser.ParseException,
+			ClassCastException
+	{
+		MapData inpl = new MapData(Crypto.decrypt(in.get("details")));
+		return um.refreshIdleTimer(Long.parseLong(inpl.get("uid")));
+	}
 	
 	private boolean storeUser(MapData in)
 			throws NullPointerException, NumberFormatException,

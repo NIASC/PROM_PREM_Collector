@@ -105,14 +105,27 @@ public class UserManager
 		return true;
 	}
 	
-	public String nameForUID(long uid) {
-		for (_User user : _users.values())
-			if (user.uid == uid)
-				return user.name;
-		return null;
+	public boolean refreshIdleTimer(long uid)
+	{
+		synchronized(_users) {
+			_User user = _users.get(nameForUID(uid));
+			if (user == null)
+				return false;
+			user.loginTimer = 0;
+			return true;
+		}
 	}
 	
-	public void terminate()
+	public String nameForUID(long uid) {
+		synchronized(_users) {
+			for (_User user : _users.values())
+				if (user.uid == uid)
+					return user.name;
+			return null;
+		}
+	}
+	
+	public synchronized void terminate()
 	{
 		running = false;
 		if (monitor.isAlive()) {
@@ -163,8 +176,10 @@ public class UserManager
 	
 	private void _kickAllUsers()
 	{
-		for (_User user : _users.values()) {
-			_kickUser(user);
+		synchronized(_users) {
+			for (_User user : _users.values()) {
+				_kickUser(user);
+			}
 		}
 	}
 	
@@ -184,14 +199,18 @@ public class UserManager
 	
 	private class activityMonitor implements Runnable
 	{
-		final int inactiveTimer = 180; // cycles
-		final long cycleTime = 10000; // ms
+		final int inactiveTimer = 4; // cycles
+		final long cycleTime = 5000; // ms
+		
 		@Override
 		public void run() {
 			while (running) {
-				for (_User user : _users.values())
-					if (user.loginTimer++ > inactiveTimer)
-						_kickUser(user);
+				synchronized(_users) {
+					for (_User user : _users.values()) {
+						if (user.loginTimer++ > inactiveTimer)
+							_kickUser(user);
+					}
+				}
 				try {
 					Thread.sleep(cycleTime);
 				} catch (InterruptedException e) {
@@ -199,5 +218,5 @@ public class UserManager
 				}
 			}
 		}
-}
+	}
 }

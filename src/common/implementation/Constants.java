@@ -80,7 +80,8 @@ public abstract class Constants {
 	public static final String SERVER_FULL_STR = Integer.toString(SERVER_FULL);
 	public static final String ALREADY_ONLINE_STR = Integer.toString(ALREADY_ONLINE);
 	public static final String INVALID_DETAILS_STR = Integer.toString(INVALID_DETAILS);
-	
+
+	public static final String CMD_PING         = "ping";
 	public static final String CMD_ADD_QANS		= "add_questionnaire_answers";
 	public static final String CMD_GET_CLINICS	= "get_clinics";
 	public static final String CMD_GET_USER		= "get_user";
