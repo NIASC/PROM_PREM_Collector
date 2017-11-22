@@ -206,58 +206,12 @@ public class PPC
 		JSONMapData out = new JSONMapData(null);
 		out.jmap.put("command", Constants.CMD_ADD_QANS);
 		
-		String _details = in.jmap.get("details");
-		String _patient = in.jmap.get("patient");
-		String _questions = in.jmap.get("questions");
-
-		JSONMapData inpl, patient;
 		try {
-			inpl = new JSONMapData(getJSONObject(Crypto.decrypt(_details)));
-			patient = new JSONMapData(getJSONObject(Crypto.decrypt(_patient)));
-		} catch (NumberFormatException e) {
-			out.jmap.put(Constants.INSERT_RESULT, Constants.INSERT_FAIL);
-			return out.jobj.toString();
-		}
-		
-		String _uid = inpl.jmap.get("uid");
-		long uid;
-		try {
-			uid = Long.parseLong(_uid);
-		} catch (NumberFormatException e) {
-			out.jmap.put(Constants.INSERT_RESULT, Constants.INSERT_FAIL);
-			return out.jobj.toString();
-		}
-		
-		int clinic_id;
-		try {
-			clinic_id = db.getUser(um.nameForUID(uid)).clinic_id;
-		} catch (NullPointerException e) {
-			out.jmap.put(Constants.INSERT_RESULT, Constants.INSERT_FAIL);
-			return out.jobj.toString();
-		}
-
-		String forename = patient.jmap.get("forename");
-		String surname = patient.jmap.get("surname");
-		String personal_id = patient.jmap.get("personal_id");
-		
-		String identifier;
-		try {
-			Encryption encrypt = Implementations.Encryption();
-			identifier = encrypt.encryptMessage(forename, personal_id, surname);
-		} catch (NullPointerException e) {
-			out.jmap.put(Constants.INSERT_RESULT, Constants.INSERT_FAIL);
-			return out.jobj.toString();
-		}
-
-		List<String> question_answers = new ArrayList<String>();
-		JSONArrData m = new JSONArrData(getJSONArray(_questions));
-		for (String e : m.jlist)
-			question_answers.add(QDBFormat.getDBFormat(new JSONMapData(getJSONObject(e))));
-		
-		if (db.addPatient(clinic_id, identifier)
-				&& db.addQuestionnaireAnswers(clinic_id, identifier, question_answers)) {
-			out.jmap.put(Constants.INSERT_RESULT, Constants.INSERT_SUCCESS);
-		} else {
+			if (storeQestionnaireAnswers(in))
+				out.jmap.put(Constants.INSERT_RESULT, Constants.INSERT_SUCCESS);
+			else
+				out.jmap.put(Constants.INSERT_RESULT, Constants.INSERT_FAIL);
+		} catch (NullPointerException | NumberFormatException e) {
 			out.jmap.put(Constants.INSERT_RESULT, Constants.INSERT_FAIL);
 		}
 		return out.jobj.toString();
@@ -316,7 +270,235 @@ public class PPC
 	private String setPassword(JSONObject obj, String remoteAddr, String hostAddr)
 	{
 		JSONMapData in = new JSONMapData(obj);
+		JSONMapData out = new JSONMapData(null);
+		out.jmap.put("command", Constants.CMD_SET_PASSWORD);
+		try {
+			int status = storePassword(in);
+			out.jmap.put(Constants.SETPASS_REPONSE,
+					Integer.toString(status));
+		} catch (NullPointerException | NumberFormatException e) {
+			out.jmap.put(Constants.SETPASS_REPONSE,
+					Integer.toString(Constants.ERROR));
+		}
+		return out.jobj.toString();
+	}
+	
+	@Deprecated
+	private String getErrorMessages(JSONObject obj, String remoteAddr, String hostAddr)
+	{
+		JSONMapData out = new JSONMapData(null);
+		out.jmap.put("command", Constants.CMD_GET_ERR_MSG);
+		out.jmap.put("messages", getMessages(db.getErrorMessages()).toString());
+		return out.jobj.toString();
+	}
 
+	@Deprecated
+	private String getInfoMessages(JSONObject obj, String remoteAddr, String hostAddr)
+	{
+		JSONMapData out = new JSONMapData(null);
+		out.jmap.put("command", Constants.CMD_GET_INFO_MSG);
+		out.jmap.put("messages", getMessages(db.getInfoMessages()).toString());
+		return out.jobj.toString();
+	}
+	
+	private String loadQuestions(JSONObject obj, String remoteAddr, String hostAddr)
+	{
+		JSONMapData out = new JSONMapData(null);
+		out.jmap.put("command", Constants.CMD_LOAD_Q);
+		
+		try {
+			out.jmap.put("questions", retrieveQuestions().jobj.toString());
+		} catch (NullPointerException | NumberFormatException e) {
+			out.jmap.put("questions", new JSONMapData(null).jobj.toString());
+		}
+		return out.jobj.toString();
+	}
+	
+	private String loadQResultDates(JSONObject obj, String remoteAddr, String hostAddr)
+	{
+		JSONMapData in = new JSONMapData(obj);
+		JSONMapData out = new JSONMapData(null);
+		out.jmap.put("command", Constants.CMD_LOAD_QR_DATE);
+
+		try {
+			out.jmap.put("dates", retrieveQResultDates(in).jarr.toString());
+		} catch (NullPointerException | NumberFormatException e) {
+			out.jmap.put("dates", new JSONArrData(null).jarr.toString());
+		}
+		return out.jobj.toString();
+	}
+	
+	private String loadQResults(JSONObject obj, String remoteAddr, String hostAddr)
+	{
+		JSONMapData in = new JSONMapData(obj);
+		JSONMapData out = new JSONMapData(null);
+		out.jmap.put("command", Constants.CMD_LOAD_QR);
+		
+		try {
+			out.jmap.put("results", retrieveQResults(in).jarr.toString());
+		} catch (Exception e) {
+			out.jmap.put("results", new JSONArrData(null).jarr.toString());
+		}
+		return out.jobj.toString();
+	}
+
+	/**
+	 * Sends a registration request to an administrator.
+	 * 
+	 * @param obj The JSONObject that contains the request, including
+	 * 		the name, clinic and email.
+	 * 
+	 * @return A JSONObject that contains the status of the request.
+	 */
+	private String requestRegistration(JSONObject obj, String remoteAddr, String hostAddr)
+	{
+		JSONMapData in = new JSONMapData(obj);
+		JSONMapData out = new JSONMapData(null);
+		out.jmap.put("command", Constants.CMD_REQ_REGISTR);
+
+		try {
+			if (sendRegistration(in))
+				out.jmap.put(Constants.INSERT_RESULT, Constants.INSERT_SUCCESS);
+			else
+				out.jmap.put(Constants.INSERT_RESULT, Constants.INSERT_FAIL);
+		} catch (Exception e) {
+			out.jmap.put(Constants.INSERT_RESULT, Constants.INSERT_FAIL);
+		}
+		return out.jobj.toString();
+	}
+
+	/**
+	 * Sends a registration responds that contains the login details
+	 * to the user that have been registered.
+	 * 
+	 * @param obj The JSONObject that contains the request, including
+	 * 		the usename and password.
+	 * 
+	 * @return A JSONObject that contains the status of the request.
+	 */
+	private String respondRegistration(JSONObject obj, String remoteAddr, String hostAddr)
+	{
+		JSONMapData in = new JSONMapData(obj);
+		JSONMapData out = new JSONMapData(null);
+		out.jmap.put("command", ServletConst.CMD_RSP_REGISTR);
+		
+		try {
+			if (sendRegResp(in))
+				out.jmap.put(Constants.INSERT_RESULT, Constants.INSERT_SUCCESS);
+			else
+				out.jmap.put(Constants.INSERT_RESULT, Constants.INSERT_FAIL);
+		} catch (Exception e) {
+			out.jmap.put(Constants.INSERT_RESULT, Constants.INSERT_FAIL);
+		}
+		return out.jobj.toString();
+	}
+
+	/**
+	 * Requests to log in.
+	 * 
+	 * @param obj The JSONObject that contains the request, including the
+	 * 		username.
+	 * 
+	 * @return A JSONObject that contains the status of the request.
+	 */
+	private String requestLogin(JSONObject obj, String remoteAddr, String hostAddr)
+	{
+		JSONMapData in = new JSONMapData(obj);
+		JSONMapData out = new JSONMapData(null);
+		out.jmap.put("command", Constants.CMD_REQ_LOGIN);
+
+		try {
+			UserLogin ret = login(in);
+			out.jmap.put(Constants.LOGIN_REPONSE, Integer.toString(ret.response));
+			out.jmap.put("update_password", ret.user.update_password ? "1" : "0");
+			if (ret.response == Constants.SUCCESS)
+				out.jmap.put(Constants.LOGIN_UID, Long.toString(ret.uid));
+			else
+				out.jmap.put(Constants.LOGIN_UID, Long.toString(0L));
+		} catch (Exception e) {
+			out.jmap.put("update_password", "0");
+			out.jmap.put(Constants.LOGIN_REPONSE, Constants.INVALID_DETAILS_STR);
+			out.jmap.put(Constants.LOGIN_UID, Long.toString(0L));
+		}
+		return out.jobj.toString();
+	}
+
+	/**
+	 * Requests to log out.
+	 * 
+	 * @param obj The JSONObject that contains the request, including the
+	 * 		username.
+	 * 
+	 * @return A JSONObject that contains the status of the request.
+	 */
+	private String requestLogout(JSONObject obj, String remoteAddr, String hostAddr)
+	{
+		JSONMapData in = new JSONMapData(obj);
+		JSONMapData out = new JSONMapData(null);
+		out.jmap.put("command", Constants.CMD_REQ_LOGOUT);
+
+		try {
+			out.jmap.put(Constants.LOGOUT_REPONSE, Integer.toString(logout(in)));
+		} catch (Exception e) {
+			out.jmap.put(Constants.LOGOUT_REPONSE, Integer.toString(Constants.ERROR));
+		}
+		return out.jobj.toString();
+	}
+	
+	// --------------------------------
+
+	@Deprecated
+	private JSONObject getMessages(Map<String, _Message> _msg)
+	{
+		JSONMapData out = new JSONMapData(null);
+		for (Entry<String, _Message> e : _msg.entrySet()) {
+			_Message _message = e.getValue();
+			
+			JSONMapData msg = new JSONMapData(null);
+			for (Entry<String, String> _e : _message.msg.entrySet()) {
+				msg.jmap.put(_e.getKey(), _e.getValue());
+			}
+
+			JSONMapData message = new JSONMapData(null);
+			message.jmap.put("name", _message.name);
+			message.jmap.put("code", _message.code);
+			message.jmap.put("message", msg.jobj.toString());
+
+			out.jmap.put(e.getKey(), message.jobj.toString());
+		}
+		return out.jobj;
+	}
+	
+	private boolean storeQestionnaireAnswers(JSONMapData in)
+			throws NullPointerException, NumberFormatException
+	{
+		String _details = in.jmap.get("details");
+		String _patient = in.jmap.get("patient");
+		String _questions = in.jmap.get("questions");
+
+		JSONMapData inpl = new JSONMapData(getJSONObject(Crypto.decrypt(_details)));
+		JSONMapData patient = new JSONMapData(getJSONObject(Crypto.decrypt(_patient)));
+		
+		long uid = Long.parseLong(inpl.jmap.get("uid"));
+		int clinic_id = db.getUser(um.nameForUID(uid)).clinic_id;
+
+		String identifier = Implementations.Encryption().encryptMessage(
+				patient.jmap.get("forename"),
+				patient.jmap.get("personal_id"),
+				patient.jmap.get("surname"));
+
+		List<String> answers = new ArrayList<String>();
+		JSONArrData m = new JSONArrData(getJSONArray(_questions));
+		for (String str : m.jlist)
+			answers.add(QDBFormat.getDBFormat(new JSONMapData(getJSONObject(str))));
+		
+		return db.addPatient(clinic_id, identifier)
+				&& db.addQuestionnaireAnswers(clinic_id, identifier, answers);
+	}
+	
+	private int storePassword(JSONMapData in)
+			throws NullPointerException, NumberFormatException
+	{
 		JSONMapData inpl = new JSONMapData(getJSONObject(Crypto.decrypt(in.jmap.get("details"))));
 		long uid = Long.parseLong(inpl.jmap.get("uid"));
 		String name = um.nameForUID(uid);
@@ -333,34 +515,12 @@ public class PPC
 			db.setPassword(name, user.hashWithSalt(oldPass),
 					hash.hashString(newPass1, newSalt), newSalt);
 		}
-		JSONMapData out = new JSONMapData(null);
-		out.jmap.put("command", Constants.CMD_SET_PASSWORD);
-		out.jmap.put(Constants.SETPASS_REPONSE,
-				Integer.toString(status));
-		return out.jobj.toString();
+		return status;
 	}
 	
-	private String getErrorMessages(JSONObject obj, String remoteAddr, String hostAddr)
+	private JSONMapData retrieveQuestions()
+			throws NullPointerException, NumberFormatException
 	{
-		JSONMapData out = new JSONMapData(null);
-		out.jmap.put("command", Constants.CMD_GET_ERR_MSG);
-		out.jmap.put("messages", getMessages(db.getErrorMessages()).toString());
-		return out.jobj.toString();
-	}
-	
-	private String getInfoMessages(JSONObject obj, String remoteAddr, String hostAddr)
-	{
-		JSONMapData out = new JSONMapData(null);
-		out.jmap.put("command", Constants.CMD_GET_INFO_MSG);
-		out.jmap.put("messages", getMessages(db.getInfoMessages()).toString());
-		return out.jobj.toString();
-	}
-	
-	private String loadQuestions(JSONObject obj, String remoteAddr, String hostAddr)
-	{
-		JSONMapData out = new JSONMapData(null);
-		out.jmap.put("command", Constants.CMD_LOAD_Q);
-		
 		Map<Integer, _Question> questions = db.loadQuestions();
 		JSONMapData _questions = new JSONMapData(null);
 		for (Entry<Integer, _Question> _e : questions.entrySet()) {
@@ -380,38 +540,26 @@ public class PPC
 			_questions.jmap.put(Integer.toString(_e.getKey()),
 					_question.jobj.toString());
 		}
-		out.jmap.put("questions", _questions.jobj.toString());
-		return out.jobj.toString();
+		return _questions;
 	}
 	
-	private String loadQResultDates(JSONObject obj, String remoteAddr, String hostAddr)
+	private JSONArrData retrieveQResultDates(JSONMapData in)
+			throws NullPointerException, NumberFormatException
 	{
-		JSONMapData in = new JSONMapData(obj);
-		JSONMapData out = new JSONMapData(null);
-		out.jmap.put("command", Constants.CMD_LOAD_QR_DATE);
-
 		JSONMapData inpl = new JSONMapData(getJSONObject(Crypto.decrypt(in.jmap.get("details"))));
 		long uid = Long.parseLong(inpl.jmap.get("uid"));
 		User user = db.getUser(um.nameForUID(uid));
-		if (user == null) {
-			out.jmap.put("dates", new JSONArray().toString());
-			return out.jobj.toString();
-		}
 		List<String> dlist = db.loadQResultDates(user.clinic_id);
 
 		JSONArrData dates = new JSONArrData(null);
 		for (String str : dlist)
 			dates.jlist.add(str);
-		out.jmap.put("dates", dates.jarr.toString());
-		return out.jobj.toString();
+		return dates;
 	}
 	
-	private String loadQResults(JSONObject obj, String remoteAddr, String hostAddr)
+	private JSONArrData retrieveQResults(JSONMapData in)
+			throws NullPointerException, NumberFormatException
 	{
-		JSONMapData in = new JSONMapData(obj);
-		JSONMapData out = new JSONMapData(null);
-		out.jmap.put("command", Constants.CMD_LOAD_QR);
-
 		JSONMapData inpl = new JSONMapData(getJSONObject(Crypto.decrypt(in.jmap.get("details"))));
 		long uid = Long.parseLong(inpl.jmap.get("uid"));
 		User _user = db.getUser(um.nameForUID(uid));
@@ -433,137 +581,53 @@ public class PPC
 						QDBFormat.getQFormat(e.getValue()));
 			results.jlist.add(answers.jobj.toString());
 		}
-		out.jmap.put("results", results.jarr.toString());
-		return out.jobj.toString();
+		return results;
 	}
-
-	/**
-	 * Sends a registration request to an administrator.
-	 * 
-	 * @param obj The JSONObject that contains the request, including
-	 * 		the name, clinic and email.
-	 * 
-	 * @return A JSONObject that contains the status of the request.
-	 */
-	private String requestRegistration(JSONObject obj, String remoteAddr, String hostAddr)
+	
+	private boolean sendRegistration(JSONMapData in)
+			throws NullPointerException, NumberFormatException
 	{
-		JSONMapData in = new JSONMapData(obj);
-		JSONMapData out = new JSONMapData(null);
-		out.jmap.put("command", Constants.CMD_REQ_REGISTR);
-
 		JSONMapData inpl = new JSONMapData(getJSONObject(Crypto.decrypt(in.jmap.get("details"))));
+		String name = inpl.jmap.get("name");
+		String email = inpl.jmap.get("email");
+		String clinic = inpl.jmap.get("clinic");
 		
-		if (MailMan.sendRegReq(inpl.jmap.get("name"), inpl.jmap.get("email"), inpl.jmap.get("clinic")))
-			out.jmap.put(Constants.INSERT_RESULT, Constants.INSERT_SUCCESS);
-		else
-			out.jmap.put(Constants.INSERT_RESULT, Constants.INSERT_FAIL);
-		return out.jobj.toString();
+		return MailMan.sendRegReq(name, email, clinic);
 	}
-
-	/**
-	 * Sends a registration responds that contains the login details
-	 * to the user that have been registered.
-	 * 
-	 * @param obj The JSONObject that contains the request, including
-	 * 		the usename and password.
-	 * 
-	 * @return A JSONObject that contains the status of the request.
-	 */
-	private String respondRegistration(JSONObject obj, String remoteAddr, String hostAddr)
+	
+	private boolean sendRegResp(JSONMapData in)
+			throws NullPointerException, NumberFormatException
 	{
-		JSONMapData in = new JSONMapData(obj);
-		JSONMapData out = new JSONMapData(null);
-		out.jmap.put("command", ServletConst.CMD_RSP_REGISTR);
-		
-		if (MailMan.sendRegResp(in.jmap.get("username"),
-				in.jmap.get("password"), in.jmap.get("email")))
-			out.jmap.put(Constants.INSERT_RESULT, Constants.INSERT_SUCCESS);
-		else
-			out.jmap.put(Constants.INSERT_RESULT, Constants.INSERT_FAIL);
-		return out.jobj.toString();
+		String username = in.jmap.get("username");
+		String password = in.jmap.get("password");
+		String email = in.jmap.get("password");
+		return MailMan.sendRegResp(username, password, email);
 	}
-
-	/**
-	 * Requests to log in.
-	 * 
-	 * @param obj The JSONObject that contains the request, including the
-	 * 		username.
-	 * 
-	 * @return A JSONObject that contains the status of the request.
-	 */
-	private String requestLogin(JSONObject obj, String remoteAddr, String hostAddr)
+	
+	private UserLogin login(JSONMapData in)
+			throws NullPointerException, NumberFormatException
 	{
-		JSONMapData in = new JSONMapData(obj);
-		JSONMapData out = new JSONMapData(null);
-		out.jmap.put("command", Constants.CMD_REQ_LOGIN);
-
+		UserLogin ret = new UserLogin();
 		JSONMapData inpl = new JSONMapData(getJSONObject(Crypto.decrypt(in.jmap.get("details"))));
-		User user = db.getUser(inpl.jmap.get("name"));
-		if (user == null
-				|| !user.passwordMatch(inpl.jmap.get("password"))) {
-			out.jmap.put("update_password", "0");
-			out.jmap.put(Constants.LOGIN_REPONSE, Constants.INVALID_DETAILS_STR);
-			return out.jobj.toString();
-		}
+		ret.user = db.getUser(inpl.jmap.get("name"));
+		if (!ret.user.passwordMatch(inpl.jmap.get("password")))
+			throw new NullPointerException("invalid details");
 
 		String hash = crypto.encryptMessage(
 				Long.toHexString((new Date()).getTime()),
-				user.name, crypto.getNewSalt());
-		long uid = Long.parseLong(hash.substring(0, 2*Long.BYTES-1), 2*Long.BYTES);
+				ret.user.name, crypto.getNewSalt());
+		ret.uid = Long.parseLong(hash.substring(0, 2*Long.BYTES-1), 2*Long.BYTES);
 		
-		int response = um.addUser(user.name, uid);
-		out.jmap.put(Constants.LOGIN_REPONSE, Integer.toString(response));
-		out.jmap.put("update_password", user.update_password ? "1" : "0");
-		if (response == Constants.SUCCESS) {
-			out.jmap.put(Constants.LOGIN_UID, Long.toString(uid));
-		}
-		out.jmap.put("remote_ip", remoteAddr);
-		out.jmap.put("host_ip", hostAddr);
-		return out.jobj.toString();
+		ret.response = um.addUser(ret.user.name, ret.uid);
+		return ret;
 	}
-
-	/**
-	 * Requests to log out.
-	 * 
-	 * @param obj The JSONObject that contains the request, including the
-	 * 		username.
-	 * 
-	 * @return A JSONObject that contains the status of the request.
-	 */
-	private String requestLogout(JSONObject obj, String remoteAddr, String hostAddr)
+	
+	private int logout(JSONMapData in)
+			throws NullPointerException, NumberFormatException
 	{
-		JSONMapData in = new JSONMapData(obj);
-		JSONMapData out = new JSONMapData(null);
-		out.jmap.put("command", Constants.CMD_REQ_LOGOUT);
-
 		JSONMapData inpl = new JSONMapData(getJSONObject(Crypto.decrypt(in.jmap.get("details"))));
 		long uid = Long.parseLong(inpl.jmap.get("uid"));
-		String response = um.delUser(um.nameForUID(uid)) ? Constants.SUCCESS_STR : Constants.ERROR_STR;
-		out.jmap.put(Constants.LOGOUT_REPONSE, response);
-		return out.jobj.toString();
-	}
-	
-	// --------------------------------
-	
-	private JSONObject getMessages(Map<String, _Message> _msg)
-	{
-		JSONMapData out = new JSONMapData(null);
-		for (Entry<String, _Message> e : _msg.entrySet()) {
-			_Message _message = e.getValue();
-			
-			JSONMapData msg = new JSONMapData(null);
-			for (Entry<String, String> _e : _message.msg.entrySet()) {
-				msg.jmap.put(_e.getKey(), _e.getValue());
-			}
-
-			JSONMapData message = new JSONMapData(null);
-			message.jmap.put("name", _message.name);
-			message.jmap.put("code", _message.code);
-			message.jmap.put("message", msg.jobj.toString());
-
-			out.jmap.put(e.getKey(), message.jobj.toString());
-		}
-		return out.jobj;
+		return um.delUser(um.nameForUID(uid)) ? Constants.SUCCESS : Constants.ERROR;
 	}
 	
 	private static class JSONMapData
@@ -642,7 +706,7 @@ public class PPC
 		{
 			JSONMapData fmt = new JSONMapData(null);
 			if (dbEntry == null || dbEntry.trim().isEmpty())
-				return fmt.toString();
+				return fmt.jobj.toString();
 			
 			if (dbEntry.startsWith("option")) {
 				fmt.jmap.put("SingleOption", dbEntry.substring("option".length()));
@@ -660,9 +724,16 @@ public class PPC
 				}
 			} else {
                 /* must be plain text entry */
-				return dbEntry;
+				fmt.jmap.put("Area", dbEntry);
 			}
 			return fmt.jobj.toString();
 		}
+	}
+	
+	private class UserLogin
+	{
+		User user;
+		long uid;
+		int response;
 	}
 }
