@@ -82,6 +82,7 @@ public class PPC
 		db = MySQL_Database.getDatabase();
 		um = UserManager.getUserManager();
 		crypto = new SHA_Encryption();
+		qdbf = new QDBFormat();
 
 		dbm.put(ServletConst.CMD_ADD_USER, this::addUser);
 		dbm.put(Constants.CMD_ADD_QANS, this::addQuestionnaireAnswers);
@@ -109,6 +110,7 @@ public class PPC
 	private Database db;
 	private UserManager um;
 	private Encryption crypto;
+	private QDBFormat qdbf;
 	
 	static {
 		logger = PPCLogger.getLogger();
@@ -378,7 +380,8 @@ public class PPC
 	// --------------------------------
 	
 	private boolean storeUser(MapData in)
-			throws NullPointerException, NumberFormatException
+			throws NullPointerException, NumberFormatException,
+			IllegalArgumentException
 	{
 		int clinic_id = Integer.parseInt(in.get("clinic_id"));
 		String name = in.get("name");
@@ -407,7 +410,7 @@ public class PPC
 		List<String> answers = new ArrayList<String>();
 		ListData m = new ListData(in.get("questions"));
 		for (String str : m.iterable())
-			answers.add(QDBFormat.getDBFormat(new MapData(str)));
+			answers.add(qdbf.getDBFormat(new MapData(str)));
 		
 		return db.addPatient(clinic_id, identifier)
 				&& db.addQuestionnaireAnswers(clinic_id, identifier, answers);
@@ -532,7 +535,7 @@ public class PPC
 			MapData answers = new MapData();
 			for (Entry<String, String> e : m.entrySet())
 				answers.put(e.getKey().substring("question".length()),
-						QDBFormat.getQFormat(e.getValue()));
+						qdbf.getQFormat(e.getValue()));
 			results.add(answers.toString());
 		}
 		return results;
@@ -693,40 +696,32 @@ public class PPC
 		public MapData netfunc(MapData in, String remoteAddr, String hostAddr) throws Exception;
 	}
 
-	private static class QDBFormat
+	private class QDBFormat
 	{
-		static String getDBFormat(MapData fc)
+		String getDBFormat(MapData fc)
 				throws org.json.simple.parser.ParseException,
 				ClassCastException,
 				NumberFormatException
 		{
 			String val = null;
-			if ((val = fc.get("SingleOption")) != null) {
-				
-				return String.format("'option%d'", Integer.parseInt(val));
-				
-			} else if ((val = fc.get("MultipleOption")) != null) {
-				
-				ListData options = new ListData(val);
+			if ((val = fc.get("SingleOption")) != null)
+				return db.escapeReplace(String.format("option%d",
+						Integer.parseInt(val)));
+			else if ((val = fc.get("MultipleOption")) != null) {
 				List<String> lstr = new ArrayList<>();
-				for (String str : options.iterable())
+				for (String str : new ListData(val).iterable())
 					lstr.add(String.format("option%d", Integer.parseInt(str)));
-				return String.format("[%s]", String.join(",", lstr));
-				
-			} else if ((val = fc.get("Slider")) != null) {
-				
-				return String.format("'slider%d'", Integer.parseInt(val));
-				
-			} else if ((val = fc.get("Area")) != null) {
-				
-				return String.format("'%s'", val);
-				
-			} else
-				
-				return "''";
+				return db.escapeReplace(lstr);
+			} else if ((val = fc.get("Slider")) != null)
+				return db.escapeReplace(String.format("slider%d",
+						Integer.parseInt(val)));
+			else if ((val = fc.get("Area")) != null)
+				return db.escapeReplace(val);
+			else
+				return db.escapeReplace("");
 		}
 		
-		static String getQFormat(String dbEntry)
+		String getQFormat(String dbEntry)
 		{
 			MapData fmt = new MapData();
 			if (dbEntry == null || dbEntry.trim().isEmpty())
@@ -736,9 +731,9 @@ public class PPC
 				fmt.put("SingleOption", dbEntry.substring("option".length()));
 			} else if (dbEntry.startsWith("slider")) {
 				fmt.put("Slider", dbEntry.substring("slider".length()));
-			} else if (dbEntry.startsWith("[") && dbEntry.endsWith("]")) {
+			} else if (db.isSQLList(dbEntry)) {
                 /* multiple answers */
-				List<String> entries = Arrays.asList(dbEntry.split(","));
+				List<String> entries = db.SQLListToJavaList(dbEntry);
 				ListData options = new ListData();
 				if (entries.get(0).startsWith("option")) {
                     /* multiple option */

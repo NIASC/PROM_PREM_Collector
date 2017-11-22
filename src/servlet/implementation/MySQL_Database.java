@@ -26,6 +26,7 @@ import java.sql.SQLException;
 import java.sql.Statement;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
@@ -40,7 +41,6 @@ import javax.sql.DataSource;
 
 import servlet.core.PPCLogger;
 import servlet.core.User;
-import servlet.core._Message;
 import servlet.core._Question;
 import servlet.core.interfaces.Database;
 import servlet.implementation.exceptions.DBReadException;
@@ -80,14 +80,46 @@ public class MySQL_Database implements Database
 	}
 
 	@Override
+	public String escapeReplace(String str)
+	{
+		return String.format("'%s'", str.replace("\'", "\""));
+	}
+
+	@Override
+	public String escapeReplace(List<String> lstr)
+	{
+		List<String> out = new ArrayList<>();
+		for (String str : lstr)
+			out.add(escapeReplace(str));
+		return String.format("[%s]", String.join(",", out));
+	}
+	
+	public boolean isSQLList(String s)
+	{
+		return s.startsWith("[") && s.endsWith("]");
+	}
+	
+	public List<String> SQLListToJavaList(String l)
+			throws IllegalArgumentException
+	{
+		if (!isSQLList(l))
+			throw new IllegalArgumentException("Not an SQL list");
+		return Arrays.asList(l.substring(1, l.length()-1).split(","));
+	}
+
+	@Override
 	public boolean addUser(int clinic_id, String name,
 			String password, String email, String salt)
 	{
 		SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd");
 		String qInsert = String.format(
 				"INSERT INTO `users` (`clinic_id`, `name`, `password`, `email`, `registered`, `salt`, `update_password`) VALUES ('%d', '%s', '%s', '%s', '%s', '%s', '%d')",
-				clinic_id, name, password, email,
-				sdf.format(new Date()), salt, 1);
+				clinic_id,
+				_escapeReplace(name),
+				_escapeReplace(password),
+				_escapeReplace(email),
+				sdf.format(new Date()),
+				_escapeReplace(salt), 1);
 		try {
 			queryUpdate(qInsert);
 			return true;
@@ -103,7 +135,8 @@ public class MySQL_Database implements Database
 	{
 		String patientInsert = String.format(
 				"INSERT INTO `patients` (`clinic_id`, `identifier`, `id`) VALUES ('%d', '%s', NULL)",
-				clinic_id, identifier);
+				clinic_id,
+				_escapeReplace(identifier));
 		try {
 			if (!patientInDatabase(identifier))
 				queryUpdate(patientInsert);
@@ -128,16 +161,18 @@ public class MySQL_Database implements Database
 		
 		for (int i = 0; i < question_answers.size(); ++i)
 			question_ids.add(String.format("`question%d`", i));
-		
+
+		SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd");
 		String resultInsert = String.format("INSERT INTO `questionnaire_answers` (`clinic_id`, `patient_identifier`, `date`, %s) VALUES ('%d', '%s', '%s', %s)",
-				String.join(", ", question_ids), clinic_id, identifier,
-				(new SimpleDateFormat("yyyy-MM-dd")).format(new Date()),
+				String.join(", ", question_ids),
+				clinic_id,
+				_escapeReplace(identifier),
+				sdf.format(new Date()),
 				String.join(", ", question_answers));
 		try {
 			queryUpdate(resultInsert);
 			return true;
-		}
-		catch (DBWriteException dbw) {
+		} catch (DBWriteException dbw) {
 			logger.log("Database write error", dbw);
 			return false;
 		}
@@ -148,7 +183,7 @@ public class MySQL_Database implements Database
 	{
 		String qInsert = String.format(
 				"INSERT INTO `clinics` (`id`, `name`) VALUES (NULL, '%s')",
-				name);
+				_escapeReplace(name));
 		try {
 			queryUpdate(qInsert);
 			return true;
@@ -177,28 +212,23 @@ public class MySQL_Database implements Database
 	}
 
 	@Override
-	public User getUser(String username) throws NullPointerException
+	public User getUser(String username)
 	{
-		if (username == null)
-			throw new NullPointerException("null user!");
-		
+		String q = String.format("SELECT `clinic_id`, `name`, `password`, `email`, `salt`, `update_password` FROM `users` WHERE `users`.`name`='%s'",
+				_escapeReplace(username));
 		try (Connection conn = dataSource.getConnection())
 		{
-			Statement s = conn.createStatement();
-			ResultSet rs = query(s, "SELECT `clinic_id`, `name`, `password`, `email`, `salt`, `update_password` FROM `users`");
+			ResultSet rs = query(conn.createStatement(), q);
 
 			User _user = null;
-			while (rs.next()) {
-				if (rs.getString("name").equals(username)) {
-					_user = new User();
-					_user.clinic_id = rs.getInt("clinic_id");
-					_user.name = rs.getString("name");
-					_user.password = rs.getString("password");
-					_user.email = rs.getString("email");
-					_user.salt = rs.getString("salt");
-					_user.update_password = rs.getInt("update_password") > 0;
-					break;
-				}
+			if (rs.next()) {
+				_user = new User();
+				_user.clinic_id = rs.getInt("clinic_id");
+				_user.name = rs.getString("name");
+				_user.password = rs.getString("password");
+				_user.email = rs.getString("email");
+				_user.salt = rs.getString("salt");
+				_user.update_password = rs.getInt("update_password") > 0;
 			}
 			return _user;
 		} catch (DBReadException dbr) {
@@ -215,13 +245,16 @@ public class MySQL_Database implements Database
 			String newPass, String newSalt)
 	{
 		User _user = getUser(name);
-		if (!_user.password.equals(oldPass)) {
+		if (!_user.password.equals(_escapeReplace(oldPass))) {
 			return false;
 		}
 		
 		String qInsert = String.format(
-				"UPDATE `users` SET `password`='%s',`salt`='%s',`update_password`=%d WHERE `users`.`name` = '%s'",
-				newPass, newSalt, 0, name);
+				"UPDATE `users` SET `password`='%s',`salt`='%s',`update_password`='%d' WHERE `users`.`name`='%s'",
+				_escapeReplace(newPass),
+				_escapeReplace(newSalt),
+				0,
+				_escapeReplace(name));
 		try {
 			queryUpdate(qInsert);
 			return true;
@@ -275,11 +308,12 @@ public class MySQL_Database implements Database
 	@Override
 	public List<String> loadQResultDates(int clinic_id)
 	{
+		String q = String.format(
+				"SELECT `date` FROM `questionnaire_answers` WHERE `clinic_id`='%d'",
+				clinic_id);
 		List<String> dlist = new ArrayList<String>();
 		try (Connection conn = dataSource.getConnection()) {
-			ResultSet rs = query(conn.createStatement(), String.format(
-					"SELECT `date` FROM `questionnaire_answers` WHERE `clinic_id` = %d",
-					clinic_id));
+			ResultSet rs = query(conn.createStatement(), q);
 			
 			while (rs.next())
 				dlist.add(rs.getString("date"));
@@ -305,16 +339,19 @@ public class MySQL_Database implements Database
 				lstr.add(String.format("`question%d`", i));
 
 			SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd");
-			ResultSet rs = query(conn.createStatement(), String.format(
-					"SELECT %s FROM `questionnaire_answers` WHERE `clinic_id` = %d AND `date` BETWEEN '%s' AND '%s'",
-					String.join(", ", lstr), clinic_id,
-					sdf.format(begin), sdf.format(end)));
+			String q = String.format(
+					"SELECT %s FROM `questionnaire_answers` WHERE `clinic_id`='%d' AND `date` BETWEEN '%s' AND '%s'",
+					String.join(", ", lstr),
+					clinic_id,
+					sdf.format(begin),
+					sdf.format(end));
+			ResultSet rs = query(conn.createStatement(), q);
 
 			while (rs.next()) {
 				Map<String, String> _answers = new HashMap<String, String>();
 				for (Integer i : qlist) {
-					String q = String.format("question%d", i);
-					_answers.put(q, rs.getString(q));
+					String str = String.format("question%d", i);
+					_answers.put(str, rs.getString(str));
 				}
 				_results.add(_answers);
 			}
@@ -345,14 +382,11 @@ public class MySQL_Database implements Database
 	 */
 	private MySQL_Database()
 	{
-		try
-		{
+		try {
 			Context initContext = new InitialContext();
 			Context envContext = (Context) initContext.lookup("java:comp/env");
 			dataSource = (DataSource) envContext.lookup("jdbc/prom_prem_db");
-		}
-		catch (NamingException e)
-		{
+		} catch (NamingException e) {
 			logger.log("FATAL: Could not load database configuration", e);
 			System.exit(1);
 		}
@@ -370,13 +404,14 @@ public class MySQL_Database implements Database
 			throws SQLException, DBReadException
 	{
 		Connection conn = dataSource.getConnection();
-		Statement s = conn.createStatement();
-		ResultSet rs = query(s, "SELECT `identifier` FROM `patients`");
+		String q = String.format(
+				"SELECT `identifier` FROM `patients` where `patients`.`identifier`='%s'",
+				_escapeReplace(identifier));
+		ResultSet rs = query(conn.createStatement(), q);
+		boolean exsist = rs.next();
+		conn.close();
 		
-		while (rs.next())
-			if (rs.getString("identifier").equals(identifier))
-				return true;
-		return false;
+		return exsist;
 	}
 	
 	/**
@@ -392,12 +427,9 @@ public class MySQL_Database implements Database
 	 */
 	private void queryUpdate(String message) throws DBWriteException
 	{
-		try (Connection c = dataSource.getConnection())
-		{
+		try (Connection c = dataSource.getConnection()) {
 			c.createStatement().executeUpdate(message);
-		}
-		catch (SQLException se)
-		{
+		} catch (SQLException se) {
 			throw new DBWriteException(String.format(
 					"Database could not process request: '%s'. Check your arguments.",
 					message));
@@ -422,55 +454,17 @@ public class MySQL_Database implements Database
 	 */
 	private ResultSet query(Statement s, String message) throws DBReadException
 	{
-		try
-		{
+		try {
 			return s.executeQuery(message);
-		}
-		catch (SQLException se)
-		{
+		} catch (SQLException se) {
 			throw new DBReadException(String.format(
 					"Database could not process request: '%s'. Check your arguments.",
 					message));
 		}
 	}
-
-	/**
-	 * Retrieves messages from the database and places them in
-	 * {@code retobj}
-	 * 
-	 * @param tableName The name of the (message) table to retrieve
-	 * 		messages from.
-	 * 
-	 * @param retobj The map to put the messages in.
-	 * 
-	 * @return true if the messages were put in the map.
-	 */
-	private Map<String, _Message> getMessages(String tableName)
+	
+	private String _escapeReplace(String str)
 	{
-		Map<String, _Message> mmap = new HashMap<String, _Message>();
-		try (Connection conn = dataSource.getConnection()) {
-			ResultSet rs = query(conn.createStatement(), String.format(
-					"SELECT `code`, `name`, `locale`, `message` FROM `%s`",
-					tableName));
-			
-			while (rs.next()) {
-				_Message _msg = new _Message();
-				String name = rs.getString("name");
-				_msg.name = name;
-				_msg.code = rs.getString("code");
-				_msg.addMessage(rs.getString("locale"),
-						rs.getString("message"));
-
-				mmap.put(name, _msg);
-			}
-		}
-		catch (DBReadException dbr) {
-			logger.log("Database read error", dbr);
-		}
-		catch (SQLException e) {
-			logger.log("Error opening connection to database "
-					+ "or while parsing SQL ResultSet", e);
-		}
-		return mmap;
+		return String.format("%s", str.replace("\'", "\""));
 	}
 }

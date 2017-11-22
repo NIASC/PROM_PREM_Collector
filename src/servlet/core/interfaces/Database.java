@@ -43,6 +43,21 @@ public interface Database
 	/* Public */
 	
 	/**
+	 * Replaces database escape characters with a safe equivalent.
+	 * 
+	 * @param str The string to process
+	 * @return The database-safe equivalent of the input string.
+	 */
+	String escapeReplace(String str);
+
+	String escapeReplace(List<String> str);
+	
+	boolean isSQLList(String s);
+	
+	List<String> SQLListToJavaList(String sqlList)
+			throws IllegalArgumentException;
+	
+	/**
 	 * Adds a user contained in {@code obj} to the database.
 	 * 
 	 * @param obj The JSONObject that contains the user data.
