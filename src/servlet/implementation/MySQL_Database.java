@@ -306,15 +306,15 @@ public class MySQL_Database implements Database
 	
 	@Override
 	public List<Map<String, String>> loadQResults(int clinic_id,
-			List<String> qlist,
+			List<Integer> qlist,
 			Date begin, Date end)
 	{
 		List<Map<String, String>> _results = new ArrayList<Map<String, String>>();
 		try (Connection conn = dataSource.getConnection())
 		{
 			List<String> lstr = new ArrayList<String>();
-			for (String str : qlist)
-				lstr.add("`" + str + "`");
+			for (Integer i : qlist)
+				lstr.add(String.format("`question%d`", i));
 
 			SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd");
 			ResultSet rs = query(conn.createStatement(), String.format(
@@ -324,8 +324,10 @@ public class MySQL_Database implements Database
 
 			while (rs.next()) {
 				Map<String, String> _answers = new HashMap<String, String>();
-				for (String q : qlist)
+				for (Integer i : qlist) {
+					String q = String.format("question%d", i);
 					_answers.put(q, rs.getString(q));
+				}
 				_results.add(_answers);
 			}
 		} catch (DBReadException dbr) {

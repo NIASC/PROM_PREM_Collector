@@ -416,9 +416,12 @@ public class PPC
 		long uid = Long.parseLong(inpl.jmap.get("uid"));
 		User _user = db.getUser(um.nameForUID(uid));
 		JSONArrData questions = new JSONArrData(getJSONArray(in.jmap.get("questions")));
+		List<Integer> qlist = new ArrayList<Integer>();
+		for (String str : questions.jlist)
+			qlist.add(Integer.parseInt(str));
 
 		List<Map<String, String>> _results = db.loadQResults(
-				_user.clinic_id, questions.jlist,
+				_user.clinic_id, qlist,
 				getDate(in.jmap.get("begin")),
 				getDate(in.jmap.get("end")));
 
@@ -426,8 +429,7 @@ public class PPC
 		for (Map<String, String> m : _results) {
 			JSONMapData answers = new JSONMapData(null);
 			for (Entry<String, String> e : m.entrySet())
-				answers.jmap.put(String.format("%d",
-						Integer.parseInt(e.getKey().substring("question".length()))),
+				answers.jmap.put(e.getKey().substring("question".length()),
 						QDBFormat.getQFormat(e.getValue()));
 			results.jlist.add(answers.jobj.toString());
 		}
@@ -643,11 +645,9 @@ public class PPC
 				return fmt.toString();
 			
 			if (dbEntry.startsWith("option")) {
-				fmt.jmap.put("SingleOption", String.format("%d",
-						Integer.parseInt(dbEntry.substring("option".length()))));
+				fmt.jmap.put("SingleOption", dbEntry.substring("option".length()));
 			} else if (dbEntry.startsWith("slider")) {
-				fmt.jmap.put("Slider", String.format("%d",
-						Integer.parseInt(dbEntry.substring("slider".length()))));
+				fmt.jmap.put("Slider", dbEntry.substring("slider".length()));
 			} else if (dbEntry.startsWith("[") && dbEntry.endsWith("]")) {
                 /* multiple answers */
 				List<String> entries = Arrays.asList(dbEntry.split(","));
@@ -655,8 +655,7 @@ public class PPC
 				if (entries.get(0).startsWith("option")) {
                     /* multiple option */
 					for (String str : entries)
-						options.jlist.add(String.format("%d",
-								Integer.parseInt(str.substring("option".length()))));
+						options.jlist.add(str.substring("option".length()));
 					fmt.jmap.put("MultipleOption", options.jarr.toString());
 				}
 			} else {

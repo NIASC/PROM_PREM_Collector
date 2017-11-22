@@ -156,7 +156,7 @@ public interface Database
 	 * @return A JSONObject that contains the questionnaire results.
 	 */
 	public List<Map<String, String>> loadQResults(
-			int clinic_id, List<String> qlist, Date begin, Date end);
+			int clinic_id, List<Integer> qlist, Date begin, Date end);
 	
 	/* Protected */
 	
