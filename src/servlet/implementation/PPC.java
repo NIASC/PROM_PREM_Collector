@@ -197,34 +197,64 @@ public class PPC
 		return out.jobj.toString();
 	}
 	
-	private String addQuestionnaireAnswers(JSONObject obj, String remoteAddr, String hostAddr)
+	private String addQuestionnaireAnswers(
+			JSONObject obj, String remoteAddr, String hostAddr)
+					throws NullPointerException
 	{
 		JSONMapData in = new JSONMapData(obj);
 		JSONMapData out = new JSONMapData(null);
 		out.jmap.put("command", Constants.CMD_ADD_QANS);
+		
+		String _details = in.jmap.get("details");
+		String _patient = in.jmap.get("patient");
+		String _questions = in.jmap.get("questions");
 
-		JSONMapData inpl = new JSONMapData(getJSONObject(Crypto.decrypt(in.jmap.get("details"))));
-		long uid = Long.parseLong(inpl.jmap.get("uid"));
-		int clinic_id = db.getUser(um.nameForUID(uid)).clinic_id;
+		JSONMapData inpl, patient;
+		try {
+			inpl = new JSONMapData(getJSONObject(Crypto.decrypt(_details)));
+			patient = new JSONMapData(getJSONObject(Crypto.decrypt(_patient)));
+		} catch (NumberFormatException e) {
+			out.jmap.put(Constants.INSERT_RESULT, Constants.INSERT_FAIL);
+			return out.jobj.toString();
+		}
+		
+		String _uid = inpl.jmap.get("uid");
+		long uid;
+		try {
+			uid = Long.parseLong(_uid);
+		} catch (NumberFormatException e) {
+			out.jmap.put(Constants.INSERT_RESULT, Constants.INSERT_FAIL);
+			return out.jobj.toString();
+		}
+		
+		int clinic_id;
+		try {
+			clinic_id = db.getUser(um.nameForUID(uid)).clinic_id;
+		} catch (NullPointerException e) {
+			out.jmap.put(Constants.INSERT_RESULT, Constants.INSERT_FAIL);
+			return out.jobj.toString();
+		}
 
-		JSONMapData patient = new JSONMapData(getJSONObject(Crypto.decrypt(in.jmap.get("patient"))));
 		String forename = patient.jmap.get("forename");
 		String surname = patient.jmap.get("surname");
 		String personal_id = patient.jmap.get("personal_id");
 		
-		Encryption encrypt = Implementations.Encryption();
-		String identifier = encrypt.encryptMessage(forename, personal_id, surname);
-
-		JSONMapData m = new JSONMapData(getJSONObject(in.jmap.get("questions")));
-		List<String> question_ids = new ArrayList<String>();
-		List<String> question_answers = new ArrayList<String>();
-		for (Entry<String, String> e : m.jmap.entrySet()) {
-			question_ids.add(e.getKey());
-			question_answers.add(e.getValue());
+		String identifier;
+		try {
+			Encryption encrypt = Implementations.Encryption();
+			identifier = encrypt.encryptMessage(forename, personal_id, surname);
+		} catch (NullPointerException e) {
+			out.jmap.put(Constants.INSERT_RESULT, Constants.INSERT_FAIL);
+			return out.jobj.toString();
 		}
+
+		List<String> question_answers = new ArrayList<String>();
+		JSONArrData m = new JSONArrData(getJSONArray(_questions));
+		for (String e : m.jlist)
+			question_answers.add(QDBFormat.getDBFormat(new JSONMapData(getJSONObject(e))));
 		
 		if (db.addPatient(clinic_id, identifier)
-				&& db.addQuestionnaireAnswers(clinic_id, identifier, question_ids, question_answers)) {
+				&& db.addQuestionnaireAnswers(clinic_id, identifier, question_answers)) {
 			out.jmap.put(Constants.INSERT_RESULT, Constants.INSERT_SUCCESS);
 		} else {
 			out.jmap.put(Constants.INSERT_RESULT, Constants.INSERT_FAIL);
@@ -531,7 +561,7 @@ public class PPC
 		return out.jobj;
 	}
 	
-	private class JSONMapData
+	private static class JSONMapData
 	{
 		JSONObject jobj;
 		Map<String, String> jmap;
@@ -544,7 +574,7 @@ public class PPC
 		}
 	}
 	
-	private class JSONArrData
+	private static class JSONArrData
 	{
 		JSONArray jarr;
 		List<String> jlist;
@@ -571,5 +601,64 @@ public class PPC
 		 * 		contains the answer.
 		 */
 		public String netfunc(JSONObject obj, String remoteAddr, String hostAddr) throws Exception;
+	}
+
+	private static class QDBFormat
+	{
+		static String getDBFormat(JSONMapData fc)
+		{
+			String val = null;
+			if ((val = fc.jmap.get("SingleOption")) != null) {
+				
+				return String.format("'option%d'", Integer.parseInt(val));
+				
+			} else if ((val = fc.jmap.get("MultipleOption")) != null) {
+				
+				JSONArrData options = new JSONArrData(getJSONArray(val));
+				List<String> lstr = new ArrayList<>();
+				for (String str : options.jlist)
+					lstr.add(String.format("option%d", Integer.parseInt(str)));
+				return String.format("[%s]", String.join(",", lstr));
+				
+			} else if ((val = fc.jmap.get("Slider")) != null) {
+				
+				return String.format("'slider%d'", Integer.parseInt(val));
+				
+			} else if ((val = fc.jmap.get("Area")) != null) {
+				
+				return String.format("'%s'", val);
+				
+			} else
+				
+				return "''";
+		}
+		
+		static Object getQFormat(String dbEntry)
+		{
+			if (dbEntry == null || dbEntry.trim().isEmpty())
+				return null;
+			
+			if (dbEntry.startsWith("option")) {
+                /* single option */
+				return Integer.valueOf(dbEntry.substring("option".length()));
+			} else if (dbEntry.startsWith("slider")) {
+                /* slider */
+				return Integer.valueOf(dbEntry.substring("slider".length()));
+			} else if (dbEntry.startsWith("[") && dbEntry.endsWith("]")) {
+                /* multiple answers */
+				List<String> entries = Arrays.asList(dbEntry.split(","));
+				if (entries.get(0).startsWith("option")) {
+                    /* multiple option */
+					List<Integer> lint = new ArrayList<>();
+					for (String str : entries)
+						lint.add(Integer.valueOf(str.substring("option".length())));
+					return lint;
+				}
+			} else {
+                /* must be plain text entry */
+				return dbEntry;
+			}
+			return null;
+		}
 	}
 }

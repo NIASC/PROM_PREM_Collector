@@ -67,7 +67,6 @@ public interface Database
 	 */
 	public boolean addQuestionnaireAnswers(
 			int clinic_id, String identifier,
-			List<String> question_ids,
 			List<String> question_answers);
 	
 	/**

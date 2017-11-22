@@ -8,7 +8,7 @@ import common.Utilities;
 
 public class Crypto
 {
-	public static String decrypt(String messageEncrypted)
+	public static String decrypt(String messageEncrypted) throws NumberFormatException
 	{
 		String msg[] = messageEncrypted.split(":");
 		byte b[] = new byte[msg.length];

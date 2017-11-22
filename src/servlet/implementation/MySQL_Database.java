@@ -30,6 +30,7 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.TreeMap;
 
 import javax.naming.Context;
@@ -121,9 +122,13 @@ public class MySQL_Database implements Database
 	@Override
 	public boolean addQuestionnaireAnswers(
 			int clinic_id, String identifier,
-			List<String> question_ids,
 			List<String> question_answers)
 	{
+		List<String> question_ids = new ArrayList<String>();
+		
+		for (int i = 0; i < question_answers.size(); ++i)
+			question_ids.add(String.format("`question%d`", i));
+		
 		String resultInsert = String.format("INSERT INTO `questionnaire_answers` (`clinic_id`, `patient_identifier`, `date`, %s) VALUES ('%d', '%s', '%s', %s)",
 				String.join(", ", question_ids), clinic_id, identifier,
 				(new SimpleDateFormat("yyyy-MM-dd")).format(new Date()),
@@ -172,8 +177,11 @@ public class MySQL_Database implements Database
 	}
 
 	@Override
-	public User getUser(String username)
+	public User getUser(String username) throws NullPointerException
 	{
+		if (username == null)
+			throw new NullPointerException("null user!");
+		
 		try (Connection conn = dataSource.getConnection())
 		{
 			Statement s = conn.createStatement();

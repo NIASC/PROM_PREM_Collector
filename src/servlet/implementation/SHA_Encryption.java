@@ -74,7 +74,11 @@ public class SHA_Encryption implements Encryption
 	@Override
 	public String encryptMessage(
 			String prepend, String message, String append)
+					throws NullPointerException
 	{
+		if (prepend == null || message == null || append == null)
+			throw new NullPointerException("got null string(s)!");
+		
 		String messageDigest = prepend + message + append;
 		return String.format("%064x", new BigInteger(1,
 				md.digest(messageDigest.getBytes())));
