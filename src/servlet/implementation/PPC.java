@@ -85,6 +85,7 @@ public class PPC
 		qdbf = new QDBFormat();
 
 		dbm.put(Constants.CMD_PING, this::ping);
+		dbm.put(Constants.CMD_VALIDATE_PID, this::validatePatientID);
 		dbm.put(ServletConst.CMD_ADD_USER, this::addUser);
 		dbm.put(Constants.CMD_ADD_QANS, this::addQuestionnaireAnswers);
 		dbm.put(ServletConst.CMD_ADD_CLINIC, this::addClinic);
@@ -151,6 +152,22 @@ public class PPC
 		
 		try {
 			if (processPing(in))
+				out.put(Constants.INSERT_RESULT, Constants.INSERT_SUCCESS);
+			else
+				out.put(Constants.INSERT_RESULT, Constants.INSERT_FAIL);
+		} catch (Exception e) {
+			out.put(Constants.INSERT_RESULT, Constants.INSERT_FAIL);
+		}
+		return out;
+	}
+	
+	private MapData validatePatientID(MapData in, String remoteAddr, String hostAddr)
+	{
+		MapData out = new MapData();
+		out.put("command", Constants.CMD_VALIDATE_PID);
+		
+		try {
+			if (validatePersonalID(in))
 				out.put(Constants.INSERT_RESULT, Constants.INSERT_SUCCESS);
 			else
 				out.put(Constants.INSERT_RESULT, Constants.INSERT_FAIL);
@@ -367,7 +384,7 @@ public class PPC
 				out.put(Constants.LOGIN_UID, Long.toString(0L));
 		} catch (Exception e) {
 			out.put("update_password", "0");
-			out.put(Constants.LOGIN_REPONSE, Constants.INVALID_DETAILS_STR);
+			out.put(Constants.LOGIN_REPONSE, Integer.toString(Constants.INVALID_DETAILS));
 			out.put(Constants.LOGIN_UID, Long.toString(0L));
 		}
 		return out;
@@ -405,6 +422,22 @@ public class PPC
 		return um.refreshIdleTimer(Long.parseLong(inpl.get("uid")));
 	}
 	
+	private boolean validatePersonalID(MapData in)
+			throws NullPointerException, NumberFormatException,
+			org.json.simple.parser.ParseException,
+			ClassCastException
+	{
+		MapData inpl = new MapData(Crypto.decrypt(in.get("details")));
+		MapData patient = new MapData(Crypto.decrypt(in.get("patient")));
+		
+		long uid = Long.parseLong(inpl.get("uid"));
+		String personalID = patient.get("personal_id");
+		
+		servlet.core.interfaces.Locale loc = Implementations.Locale();
+		return db.getUser(um.nameForUID(uid)) != null
+				&& loc.formatPersonalID(personalID) != null;
+	}
+	
 	private boolean storeUser(MapData in)
 			throws NullPointerException, NumberFormatException,
 			IllegalArgumentException
@@ -428,10 +461,14 @@ public class PPC
 		long uid = Long.parseLong(inpl.get("uid"));
 		int clinic_id = db.getUser(um.nameForUID(uid)).clinic_id;
 
+		servlet.core.interfaces.Locale loc = Implementations.Locale();
+		String forename = patient.get("forename");
+		String personalID = loc.formatPersonalID(patient.get("personal_id"));
+		String surname = patient.get("surname");
+		if (personalID == null)
+			throw new NullPointerException("malformed patient personal id");
 		String identifier = Implementations.Encryption().encryptMessage(
-				patient.get("forename"),
-				patient.get("personal_id"),
-				patient.get("surname"));
+				forename, personalID, surname);
 
 		List<String> answers = new ArrayList<String>();
 		ListData m = new ListData(in.get("questions"));

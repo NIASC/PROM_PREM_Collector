@@ -20,6 +20,7 @@
  */
 package servlet.core.interfaces;
 
+import servlet.implementation.LocaleSE;
 import servlet.implementation.MySQL_Database;
 import servlet.implementation.SHA_Encryption;
 
@@ -57,6 +58,11 @@ public abstract class Implementations
 	public static Encryption Encryption()
 	{
 		return new SHA_Encryption();
+	}
+	
+	public static Locale Locale()
+	{
+		return new LocaleSE();
 	}
 	
 	/* Protected */
