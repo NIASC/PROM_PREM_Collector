@@ -1,0 +1,4 @@
+jdbc_driver=com.mysql.jdbc.Driver
+url=jdbc:mysql://localhost/prom_prem_db
+db_login=<sql-user>
+db_password=<sql-user-password>
