@@ -326,11 +326,11 @@ public class MySQL_Database implements Database
 	}
 	
 	@Override
-	public List<Map<String, String>> loadQResults(int clinic_id,
+	public List<Map<Integer, String>> loadQResults(int clinic_id,
 			List<Integer> qlist,
 			Date begin, Date end)
 	{
-		List<Map<String, String>> _results = new ArrayList<Map<String, String>>();
+		List<Map<Integer, String>> _results = new ArrayList<Map<Integer, String>>();
 		try (Connection conn = dataSource.getConnection())
 		{
 			List<String> lstr = new ArrayList<String>();
@@ -347,10 +347,10 @@ public class MySQL_Database implements Database
 			ResultSet rs = query(conn.createStatement(), q);
 
 			while (rs.next()) {
-				Map<String, String> _answers = new HashMap<String, String>();
+				Map<Integer, String> _answers = new HashMap<Integer, String>();
 				for (Integer i : qlist) {
 					String str = String.format("question%d", i);
-					_answers.put(str, rs.getString(str));
+					_answers.put(i, rs.getString(str));
 				}
 				_results.add(_answers);
 			}

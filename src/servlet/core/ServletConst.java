@@ -1,23 +1,3 @@
-/** ServletConst.java
- * 
- * Copyright 2017 Marcus Malmquist
- * 
- * This file is part of PROM_PREM_Collector.
- * 
- * PROM_PREM_Collector is free software: you can redistribute it
- * and/or modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation, either version 3 of
- * the License, or (at your option) any later version.
- * 
- * PROM_PREM_Collector is distributed in the hope that it will be
- * useful, but WITHOUT ANY WARRANTY; without even the implied warranty
- * of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
- * GNU General Public License for more details.
- * 
- * You should have received a copy of the GNU General Public License
- * along with PROM_PREM_Collector.  If not, see
- * <http://www.gnu.org/licenses/>.
- */
 package servlet.core;
 
 import java.io.IOException;
@@ -26,13 +6,6 @@ import java.util.Properties;
 
 import common.Utilities;
 
-/**
- * This class contains useful constants for the servlet and loads the
- * serlvet settings file.
- * 
- * @author Marcus Malmquist
- *
- */
 public abstract class ServletConst
 {
 	private static final String filePath = "servlet/core/settings.ini";
@@ -68,7 +41,109 @@ public abstract class ServletConst
 		LOG_COUNT = logcount.intValue();
 	}
 
-	public static final String CMD_ADD_USER		= "add_user";
-	public static final String CMD_ADD_CLINIC	= "add_clinic";
-	public static final String CMD_RSP_REGISTR	= "respond_registration";
+	public static enum _Packet {
+		__NULL__,
+		_TYPE,
+		_DATA,
+		__RESERVED0__,
+		__RESERVED1__,
+		__RESERVED2__,
+		__RESERVED3__,
+		__RESERVED4__,
+		_ADMIN;
+		
+		public enum _Admin {
+			__NULL__,
+			YES,
+			NO
+		}
+		
+		public static enum _Types {
+			__NULL__,
+			GET_USER,
+			GET_CLINICS,
+			ADD_USER,
+			ADD_CLINIC,
+			RSP_REGISTR;
+		}
+
+		public enum _Data {
+			__NULL__;
+			
+			public static enum _GetUser {
+				__NULL__,
+				USER,
+				USERNAME;
+				public static enum User {
+					CLINIC_ID,
+					USERNAME,
+					PASSWORD,
+					EMAIL,
+					SALT,
+					UPDATE_PASSWORD;
+					public static enum UpdatePassword {
+						YES,
+						NO
+					}
+				}
+			} // _GetUser
+			
+			public static enum _GetClinics {
+				__NULL__,
+				CLINICS
+			} // _GetClinics
+			
+			public static enum _AddUser {
+				__NULL__,
+				RESPONSE,
+				DETAILS;
+				
+				public static enum Response {
+					__NULL__,
+					FAIL,
+					SUCCESS
+				}
+				
+				public static enum Details {
+					__NULL__,
+					CLINIC_ID,
+					NAME,
+					PASSWORD,
+					EMAIL,
+					SALT
+				}
+			} // _AddUser
+			
+			public static enum _AddClinic {
+				__NULL__,
+				RESPONSE,
+				NAME;
+				
+				public static enum Response {
+					__NULL__,
+					FAIL,
+					SUCCESS
+				}
+			} // _AddClinic
+			
+			public static enum _RespondRegistration {
+				__NULL__,
+				RESPONSE,
+				DETAILS;
+				
+				public static enum Response {
+					__NULL__,
+					FAIL,
+					SUCCESS
+				}
+				
+				public static enum Details {
+					__NULL__,
+					USERNAME,
+					PASSWORD,
+					EMAIL
+				}
+			} // _RespondRegistration
+		} // _Packets
+	}
 }

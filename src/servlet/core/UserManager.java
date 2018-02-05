@@ -25,7 +25,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import common.implementation.Constants;
+import common.implementation.Constants.Packet.Data;
 
 /**
  * This class keeps track of which users are online and how many users
@@ -76,16 +76,16 @@ public class UserManager
 	 * 		<code>Constants.SUCCESS_STR</code>
 	 * 			If the user was successfully added.
 	 */
-	public synchronized int addUser(String username, long uid)
+	public synchronized Data.RequestLogin.Response addUser(String username, long uid)
 	{
 		if (username == null || username.isEmpty())
-			return Constants.ERROR;
+			return Data.RequestLogin.Response.ERROR;
 		if (users.size() >= MAX_USERS)
-			return Constants.SERVER_FULL;
+			return Data.RequestLogin.Response.SERVER_FULL;
 		if (users.contains(username))
-			return Constants.ALREADY_ONLINE;
+			return Data.RequestLogin.Response.ALREADY_ONLINE;
 		_addUser(username, uid);
-		return Constants.SUCCESS;
+		return Data.RequestLogin.Response.SUCCESS;
 	}
 	
 	/**
