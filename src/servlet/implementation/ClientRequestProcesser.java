@@ -14,67 +14,54 @@ import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
 
 import common.implementation.Constants;
-import static common.implementation.Constants.Packet.TYPE;
-import static common.implementation.Constants.Packet.DATA;
+import static common.implementation.Packet.TYPE;
+import static common.implementation.Packet.DATA;
+import static servlet.implementation.AdminPacket._ADMIN;
+import static servlet.implementation.AdminPacket._DATA;
+import static servlet.implementation.AdminPacket._TYPE;
 
-import common.implementation.Constants.Packet.Data;
-import common.implementation.Constants.Packet.Types;
 import common.implementation.Constants.QuestionTypes;
-import servlet.core.Crypto;
-import servlet.core.MailMan;
-import servlet.core.PPCLogger;
-import servlet.core.PasswordHandle;
-import static servlet.core.ServletConst._Packet._TYPE;
-import static servlet.core.ServletConst._Packet._ADMIN;
-import static servlet.core.ServletConst._Packet._DATA;
-
-import servlet.core.ServletConst._Packet._Admin;
-import servlet.core.ServletConst._Packet._Data;
-import servlet.core.ServletConst._Packet._Types;
-import servlet.core.User;
+import common.implementation.Packet.Data;
+import common.implementation.Packet.Types;
+import servlet.core.ServletLogger;
 import servlet.core.UserManager;
-import servlet.core._Question;
 import servlet.core.interfaces.Database;
 import servlet.core.interfaces.Encryption;
 import servlet.core.interfaces.Implementations;
+import servlet.implementation.AdminPacket.Admin;
+import servlet.implementation.AdminPacket.AdminData;
+import servlet.implementation.AdminPacket.AdminTypes;
 
-
-public class PPC
+public class ClientRequestProcesser
 {
 	public String handleRequest(String message, String remoteAddr, String hostAddr)
 	{
 		try {
 			MapData obj = new MapData(message);
-			_Admin admin = _Admin.NO;
+			Admin admin = Admin.NO;
 			if (obj.get(_ADMIN) != null) {
 				try {
-					admin = Constants.getEnum(_Admin.values(), obj.get(_ADMIN));
+					admin = Constants.getEnum(Admin.values(), obj.get(_ADMIN));
 				} catch (NumberFormatException ignores) { }
 			}
-			if (Constants.equal(_Admin.YES, admin) && remoteAddr.equals(hostAddr)) {
-				_Types _packet = Constants.getEnum(_Types.values(), obj.get(_TYPE));
-				MapData out = getAdminMethod(_packet).netfunc(obj);
-				out.put(_Types.__NULL__, String.format("AdminFunction -- RemoteAddr: %s, HostAddr: %s", remoteAddr, hostAddr));
-				return out.toString();
+			if (Constants.equal(Admin.YES, admin) && remoteAddr.equals(hostAddr)) {
+				AdminTypes _packet = Constants.getEnum(AdminTypes.values(), obj.get(_TYPE));
+				return getAdminMethod(_packet).netfunc(obj).toString();
 			} else {
 				Types packet = Constants.getEnum(Types.values(), obj.get(TYPE));
-				MapData out = getUserMethod(packet).netfunc(obj);
-				out.put(Types.__NULL__, String.format("UserFunction -- RemoteAddr: %s, HostAddr: %s", remoteAddr, hostAddr));
-				return out.toString();	
+				return getUserMethod(packet).netfunc(obj).toString();	
 			}
 		} catch (Exception e) {
 			logger.log("Unknown request", e);
-			MapData out = new MapData();
-			out.put(Types.__NULL__, String.format("Error -- RemoteAddr: %s, HostAddr: %s", remoteAddr, hostAddr));
-			return out.toString();
+			return new MapData().toString();
 		}
 	}
 	
-	PPC()
+	ClientRequestProcesser()
 	{
-		db = MySQL_Database.getDatabase();
-		um = UserManager.getUserManager();
-		crypto = new SHA_Encryption();
+		db = MySQLDatabase.MYSQL;
+		um = UserManager.MANAGER;
+		crypto = SHAEncryption.SHA;
 		qdbf = new QDBFormat();
 
 		userMethods = new HashMap<Enum<?>, NetworkFunction>();
@@ -90,19 +77,18 @@ public class PPC
 		userMethods.put(Types.REQ_LOGOUT, this::requestLogout);
 
 		adminMethods = new HashMap<Enum<?>, NetworkFunction>();
-		adminMethods.put(_Types.GET_USER, this::_getUser);
-		adminMethods.put(_Types.GET_CLINICS, this::_getClinics);
-		adminMethods.put(_Types.ADD_USER, this::_addUser);
-		adminMethods.put(_Types.ADD_CLINIC, this::_addClinic);
-		adminMethods.put(_Types.RSP_REGISTR, this::_respondRegistration);
+		adminMethods.put(AdminTypes.GET_USER, this::_getUser);
+		adminMethods.put(AdminTypes.GET_CLINICS, this::_getClinics);
+		adminMethods.put(AdminTypes.ADD_USER, this::_addUser);
+		adminMethods.put(AdminTypes.ADD_CLINIC, this::_addClinic);
+		adminMethods.put(AdminTypes.RSP_REGISTR, this::_respondRegistration);
 	}
 	
-	void terminate()
-	{
+	void terminate() {
 		um.terminate();
 	}
 	
-	private static PPCLogger logger;
+	private static ServletLogger logger;
 	private static JSONParser parser;
 	private Map<Enum<?>, NetworkFunction> userMethods;
 	private Map<Enum<?>, NetworkFunction> adminMethods;
@@ -112,7 +98,7 @@ public class PPC
 	private QDBFormat qdbf;
 	
 	static {
-		logger = PPCLogger.getLogger();
+		logger = ServletLogger.LOGGER;
 		parser = new JSONParser();
 	}
 	
@@ -130,7 +116,7 @@ public class PPC
 		return userMethods.get(command);
 	}
 	
-	private NetworkFunction getAdminMethod(_Types command)
+	private NetworkFunction getAdminMethod(AdminTypes command)
 	{
 		return adminMethods.get(command);
 	}
@@ -277,6 +263,7 @@ public class PPC
 			response = ret.response;
 			if (ret.user.update_password) { update_password = Data.RequestLogin.UpdatePassword.YES; }
 			if (Constants.equal(ret.response, Data.RequestLogin.Response.SUCCESS)) { uid = Long.toString(ret.uid); }
+			logger.log("User " + ret.user + " logged in and was given UID '" + uid + "'");
 		} catch (Exception e) { }
 		data.put(Data.RequestLogin.RESPONSE, response);
 		data.put(Data.RequestLogin.UPDATE_PASSWORD, update_password);
@@ -305,14 +292,14 @@ public class PPC
 	private MapData _getUser(MapData in)
 	{
 		MapData out = new MapData();
-		out.put(_TYPE, _Types.GET_USER);
+		out.put(_TYPE, AdminTypes.GET_USER);
 
 		MapData data = new MapData();
 		String result = new MapData().toString();
 		try {
 			result = _retrieveUser(new MapData(in.get(_DATA))).toString();
 		} catch (Exception e) { }
-		data.put(_Data._GetUser.USER, result);
+		data.put(AdminData.AdminGetUser.USER, result);
 		
 		out.put(_DATA, data.toString());
 		return out;
@@ -321,14 +308,14 @@ public class PPC
 	private MapData _getClinics(MapData in)
 	{
 		MapData out = new MapData();
-		out.put(_TYPE, _Types.GET_CLINICS);
+		out.put(_TYPE, AdminTypes.GET_CLINICS);
 
 		MapData data = new MapData();
 		String result = new MapData().toString();
 		try {
 			result = _retrieveClinics().toString();
 		} catch (Exception e) { }
-		data.put(_Data._GetClinics.CLINICS, result);
+		data.put(AdminData.AdminGetClinics.CLINICS, result);
 		
 		out.put(_DATA, data.toString());
 		return out;
@@ -337,14 +324,14 @@ public class PPC
 	private MapData _addUser(MapData in)
 	{
 		MapData out = new MapData();
-		out.put(_TYPE, _Types.ADD_USER);
+		out.put(_TYPE, AdminTypes.ADD_USER);
 
 		MapData data = new MapData();
-		_Data._AddUser.Response result = _Data._AddUser.Response.FAIL;
+		AdminData.AdminAddUser.Response result = AdminData.AdminAddUser.Response.FAIL;
 		try {
-			if (_storeUser(new MapData(in.get(_DATA)))) { result = _Data._AddUser.Response.SUCCESS; }
+			if (_storeUser(new MapData(in.get(_DATA)))) { result = AdminData.AdminAddUser.Response.SUCCESS; }
 		} catch (Exception e) { }
-		data.put(_Data._AddUser.RESPONSE, result);
+		data.put(AdminData.AdminAddUser.RESPONSE, result);
 		
 		out.put(_DATA, data.toString());
 		return out;
@@ -353,14 +340,14 @@ public class PPC
 	private MapData _addClinic(MapData in)
 	{
 		MapData out = new MapData();
-		out.put(_TYPE, _Types.ADD_CLINIC);
+		out.put(_TYPE, AdminTypes.ADD_CLINIC);
 
 		MapData data = new MapData();
-		_Data._AddClinic.Response result = _Data._AddClinic.Response.FAIL;
+		AdminData.AdminAddClinic.Response result = AdminData.AdminAddClinic.Response.FAIL;
 		try {
-			if (_storeClinic(new MapData(in.get(_DATA)))) { result = _Data._AddClinic.Response.SUCCESS; }
+			if (_storeClinic(new MapData(in.get(_DATA)))) { result = AdminData.AdminAddClinic.Response.SUCCESS; }
 		} catch (Exception e) { }
-		data.put(_Data._AddClinic.RESPONSE, result);
+		data.put(AdminData.AdminAddClinic.RESPONSE, result);
 		
 		out.put(_DATA, data.toString());
 		return out;
@@ -369,14 +356,14 @@ public class PPC
 	private MapData _respondRegistration(MapData in)
 	{
 		MapData out = new MapData();
-		out.put(_TYPE, _Types.RSP_REGISTR);
+		out.put(_TYPE, AdminTypes.RSP_REGISTR);
 
 		MapData data = new MapData();
-		_Data._RespondRegistration.Response result = _Data._RespondRegistration.Response.FAIL;
+		AdminData.AdminRespondRegistration.Response result = AdminData.AdminRespondRegistration.Response.FAIL;
 		try {
-			if (_sendRegResp(new MapData(in.get(_DATA)))) { result = _Data._RespondRegistration.Response.SUCCESS; }
+			if (_sendRegResp(new MapData(in.get(_DATA)))) { result = AdminData.AdminRespondRegistration.Response.SUCCESS; }
 		} catch (Exception e) { }
-		data.put(_Data._RespondRegistration.RESPONSE, result);
+		data.put(AdminData.AdminRespondRegistration.RESPONSE, result);
 		
 		out.put(_DATA, data.toString());
 		return out;
@@ -426,7 +413,7 @@ public class PPC
 		String surname = patient.get(Data.AddQuestionnaireAnswers.Patient.SURNAME);
 		if (personalID == null)
 			throw new NullPointerException("malformed patient personal id");
-		String identifier = Implementations.Encryption().encryptMessage(
+		String identifier = Implementations.Encryption().hashMessage(
 				forename, personalID, surname);
 
 		List<String> answers = new ArrayList<String>();
@@ -451,13 +438,13 @@ public class PPC
 		String newPass2 = inpl.get(Data.SetPassword.Details.NEW_PASSWORD2);
 
 		Encryption hash = Implementations.Encryption();
-		String newSalt = hash.getNewSalt();
+		String newSalt = hash.generateNewSalt();
 		
 		User user = db.getUser(name);
 		Data.SetPassword.Response status = PasswordHandle.newPassError(user, oldPass, newPass1, newPass2);
 		if (Constants.equal(status, Data.SetPassword.Response.SUCCESS)) {
 			db.setPassword(name, user.hashWithSalt(oldPass),
-					hash.hashString(newPass1, newSalt), newSalt);
+					hash.hashMessage(newPass1, newSalt), newSalt);
 		}
 		return status;
 	}
@@ -465,10 +452,10 @@ public class PPC
 	private MapData retrieveQuestions()
 			throws NullPointerException, NumberFormatException
 	{
-		Map<Integer, _Question> questions = db.loadQuestions();
+		Map<Integer, QuestionData> questions = db.loadQuestions();
 		MapData _questions = new MapData();
-		for (Entry<Integer, _Question> _e : questions.entrySet()) {
-			_Question _q = _e.getValue();
+		for (Entry<Integer, QuestionData> _e : questions.entrySet()) {
+			QuestionData _q = _e.getValue();
 			MapData _question = new MapData();
 			ListData options = new ListData();
 			for (String str : _q.options) {
@@ -497,7 +484,7 @@ public class PPC
 		MapData inpl = new MapData(Crypto.decrypt(in.get(Data.LoadQResultDates.DETAILS)));
 		long uid = Long.parseLong(inpl.get(Data.LoadQResultDates.Details.UID));
 		User user = db.getUser(um.nameForUID(uid));
-		List<String> dlist = db.loadQResultDates(user.clinic_id);
+		List<String> dlist = db.loadQuestionResultDates(user.clinic_id);
 
 		ListData dates = new ListData();
 		for (String str : dlist) {
@@ -520,7 +507,7 @@ public class PPC
 			qlist.add(Integer.parseInt(str));
 		}
 		
-		List<Map<Integer, String>> _results = db.loadQResults(
+		List<Map<Integer, String>> _results = db.loadQuestionResults(
 				_user.clinic_id, qlist,
 				getDate(in.get(Data.LoadQResults.BEGIN)),
 				getDate(in.get(Data.LoadQResults.END)));
@@ -556,15 +543,16 @@ public class PPC
 		UserLogin ret = new UserLogin();
 		MapData inpl = new MapData(Crypto.decrypt(in.get(Data.RequestLogin.DETAILS)));
 		ret.user = db.getUser(inpl.get(Data.RequestLogin.Details.USERNAME));
-		if (!ret.user.passwordMatch(inpl.get(Data.RequestLogin.Details.PASSWORD)))
+		if (!ret.user.passwordMatches(inpl.get(Data.RequestLogin.Details.PASSWORD))) {
 			throw new NullPointerException("invalid details");
+		}
 
-		String hash = crypto.encryptMessage(
+		String hash = crypto.hashMessage(
 				Long.toHexString(System.currentTimeMillis()),
-				ret.user.name, crypto.getNewSalt());
+				ret.user.name, crypto.generateNewSalt());
 		ret.uid = Long.parseLong(hash.substring(0, 2*Long.BYTES-1), 2*Long.BYTES);
 		
-		ret.response = um.addUser(ret.user.name, ret.uid);
+		ret.response = um.addUserToListOfOnline(ret.user.name, ret.uid);
 		return ret;
 	}
 	
@@ -575,21 +563,22 @@ public class PPC
 	{
 		MapData inpl = new MapData(Crypto.decrypt(in.get(Data.RequestLogout.DETAILS)));
 		long uid = Long.parseLong(inpl.get(Data.RequestLogout.Details.UID));
-		return um.delUser(um.nameForUID(uid)) ? Data.RequestLogout.Response.SUCCESS : Data.RequestLogout.Response.ERROR;
+		logger.log("User " + um.nameForUID(uid) + " with UID '" + uid + "' logged out");
+		return um.delUserFromListOfOnline(um.nameForUID(uid)) ? Data.RequestLogout.Response.SUCCESS : Data.RequestLogout.Response.ERROR;
 	}
 	
 	private MapData _retrieveUser(MapData in)
 			throws NullPointerException, NumberFormatException
 	{
-		User _user = db.getUser(in.get(_Data._GetUser.USERNAME));
+		User _user = db.getUser(in.get(AdminData.AdminGetUser.USERNAME));
 		MapData user = new MapData();
-		user.put(_Data._GetUser.User.CLINIC_ID, Integer.toString(_user.clinic_id));
-		user.put(_Data._GetUser.User.USERNAME, _user.name);
-		user.put(_Data._GetUser.User.PASSWORD, _user.password);
-		user.put(_Data._GetUser.User.EMAIL, _user.email);
-		user.put(_Data._GetUser.User.SALT, _user.salt);
-		user.put(_Data._GetUser.User.UPDATE_PASSWORD,
-				_user.update_password ? _Data._GetUser.User.UpdatePassword.YES : _Data._GetUser.User.UpdatePassword.YES);
+		user.put(AdminData.AdminGetUser.User.CLINIC_ID, Integer.toString(_user.clinic_id));
+		user.put(AdminData.AdminGetUser.User.USERNAME, _user.name);
+		user.put(AdminData.AdminGetUser.User.PASSWORD, _user.password);
+		user.put(AdminData.AdminGetUser.User.EMAIL, _user.email);
+		user.put(AdminData.AdminGetUser.User.SALT, _user.salt);
+		user.put(AdminData.AdminGetUser.User.UPDATE_PASSWORD,
+				_user.update_password ? AdminData.AdminGetUser.User.UpdatePassword.YES : AdminData.AdminGetUser.User.UpdatePassword.YES);
 		return user;
 	}
 	
@@ -607,19 +596,19 @@ public class PPC
 			throws NullPointerException, NumberFormatException,
 			IllegalArgumentException, org.json.simple.parser.ParseException
 	{
-		MapData details = new MapData(in.get(_Data._AddUser.DETAILS));
-		int clinic_id = Integer.parseInt(details.get(_Data._AddUser.Details.CLINIC_ID));
-		String name = details.get(_Data._AddUser.Details.NAME);
-		String password = details.get(_Data._AddUser.Details.PASSWORD);
-		String email = details.get(_Data._AddUser.Details.EMAIL);
-		String salt = details.get(_Data._AddUser.Details.SALT);
+		MapData details = new MapData(in.get(AdminData.AdminAddUser.DETAILS));
+		int clinic_id = Integer.parseInt(details.get(AdminData.AdminAddUser.Details.CLINIC_ID));
+		String name = details.get(AdminData.AdminAddUser.Details.NAME);
+		String password = details.get(AdminData.AdminAddUser.Details.PASSWORD);
+		String email = details.get(AdminData.AdminAddUser.Details.EMAIL);
+		String salt = details.get(AdminData.AdminAddUser.Details.SALT);
 		return db.addUser(clinic_id, name, password, email, salt);
 	}
 	
 	private boolean _storeClinic(MapData in)
 			throws NullPointerException, NumberFormatException
 	{
-		String name = in.get(_Data._AddClinic.NAME);
+		String name = in.get(AdminData.AdminAddClinic.NAME);
 		return db.addClinic(name);
 	}
 	
@@ -628,10 +617,10 @@ public class PPC
 			org.json.simple.parser.ParseException,
 			ClassCastException
 	{
-		MapData details = new MapData(in.get(_Data._RespondRegistration.DETAILS));
-		String username = details.get(_Data._RespondRegistration.Details.USERNAME);
-		String password = details.get(_Data._RespondRegistration.Details.PASSWORD);
-		String email = details.get(_Data._RespondRegistration.Details.EMAIL);
+		MapData details = new MapData(in.get(AdminData.AdminRespondRegistration.DETAILS));
+		String username = details.get(AdminData.AdminRespondRegistration.Details.USERNAME);
+		String password = details.get(AdminData.AdminRespondRegistration.Details.PASSWORD);
+		String email = details.get(AdminData.AdminRespondRegistration.Details.EMAIL);
 		return MailMan.sendRegResp(username, password, email);
 	}
 	

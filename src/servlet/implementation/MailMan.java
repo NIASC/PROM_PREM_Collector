@@ -1,4 +1,4 @@
-package servlet.core;
+package servlet.implementation;
 
 import java.io.IOException;
 import java.util.Properties;
@@ -11,11 +11,11 @@ import javax.mail.internet.InternetAddress;
 import javax.mail.internet.MimeMessage;
 
 import common.Utilities;
+import servlet.core.ServletLogger;
 
 public class MailMan
 {
-	public static boolean sendRegReq(
-			String name, String email, String clinic)
+	public static boolean sendRegReq(String name, String email, String clinic)
 	{
 		String emailSubject = "PROM/PREM: Registration request";
 		String emailDescription = "Registration reguest from";
@@ -49,14 +49,14 @@ public class MailMan
 	private static final String ACCOUNT_FILE =
 			"servlet/implementation/email_accounts.ini";
 	private static Properties mailConfig;
-	private static PPCLogger logger;
+	private static ServletLogger logger;
 	
 	// server mailing account
 	private static String serverEmail, serverPassword, adminEmail;
 	
 	static
 	{
-		logger = PPCLogger.getLogger();
+		logger = ServletLogger.LOGGER;
 		mailConfig = new Properties();
 		try {
 			refreshConfig();

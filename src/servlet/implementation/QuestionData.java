@@ -1,11 +1,10 @@
-package servlet.core;
+package servlet.implementation;
 
 import java.util.ArrayList;
 import java.util.List;
 
-public class _Question
+public class QuestionData
 {
-
 	public List<String> options;
 	public String type;
 	public int id;
@@ -15,8 +14,7 @@ public class _Question
 	public int max_val;
 	public int min_val;
 	
-	public _Question()
-	{
+	public QuestionData() {
 		options = new ArrayList<String>();
-}
+	}
 }

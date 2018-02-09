@@ -90,7 +90,7 @@
       <description>
 	Starts the server-side version of the collector.
       </description>
-      <servlet-class>servlet.implementation.PPCServlet</servlet-class>
+      <servlet-class>servlet.implementation.Servlet</servlet-class>
       <load-on-startup>5</load-on-startup> <!-- Load this servlet at server startup time -->
     </servlet>
 

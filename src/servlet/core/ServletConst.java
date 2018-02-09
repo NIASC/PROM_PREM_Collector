@@ -1,5 +1,6 @@
 package servlet.core;
 
+import java.io.File;
 import java.io.IOException;
 import java.net.URL;
 import java.util.Properties;
@@ -14,8 +15,7 @@ public abstract class ServletConst
 	public static final String LOG_DIR;
 	public static final int LOG_SIZE, LOG_COUNT;
 	
-	static
-	{
+	static {
 		URL url = null;
 		String logdir = null;
 		Integer logsize = null, logcount = null;
@@ -25,6 +25,11 @@ public abstract class ServletConst
 			logdir = props.getProperty("logdir");
 			if (logdir.endsWith("/"))
 				logdir = logdir.substring(0, logdir.length()-1);
+			File logpath = new File(logdir);
+			logpath.mkdirs();
+			if (!logpath.exists()) {
+				throw new IOException("Directory structure for logging could not be created. Verify that you have rwx rights.");
+			}
 			logsize = Integer.parseInt(props.getProperty("logsize"));
 			logcount = Integer.parseInt(props.getProperty("logcount"));
 			url = new URL(props.getProperty("localurl"));
@@ -39,111 +44,5 @@ public abstract class ServletConst
 		LOG_DIR = logdir;
 		LOG_SIZE = logsize.intValue();
 		LOG_COUNT = logcount.intValue();
-	}
-
-	public static enum _Packet {
-		__NULL__,
-		_TYPE,
-		_DATA,
-		__RESERVED0__,
-		__RESERVED1__,
-		__RESERVED2__,
-		__RESERVED3__,
-		__RESERVED4__,
-		_ADMIN;
-		
-		public enum _Admin {
-			__NULL__,
-			YES,
-			NO
-		}
-		
-		public static enum _Types {
-			__NULL__,
-			GET_USER,
-			GET_CLINICS,
-			ADD_USER,
-			ADD_CLINIC,
-			RSP_REGISTR;
-		}
-
-		public enum _Data {
-			__NULL__;
-			
-			public static enum _GetUser {
-				__NULL__,
-				USER,
-				USERNAME;
-				public static enum User {
-					CLINIC_ID,
-					USERNAME,
-					PASSWORD,
-					EMAIL,
-					SALT,
-					UPDATE_PASSWORD;
-					public static enum UpdatePassword {
-						YES,
-						NO
-					}
-				}
-			} // _GetUser
-			
-			public static enum _GetClinics {
-				__NULL__,
-				CLINICS
-			} // _GetClinics
-			
-			public static enum _AddUser {
-				__NULL__,
-				RESPONSE,
-				DETAILS;
-				
-				public static enum Response {
-					__NULL__,
-					FAIL,
-					SUCCESS
-				}
-				
-				public static enum Details {
-					__NULL__,
-					CLINIC_ID,
-					NAME,
-					PASSWORD,
-					EMAIL,
-					SALT
-				}
-			} // _AddUser
-			
-			public static enum _AddClinic {
-				__NULL__,
-				RESPONSE,
-				NAME;
-				
-				public static enum Response {
-					__NULL__,
-					FAIL,
-					SUCCESS
-				}
-			} // _AddClinic
-			
-			public static enum _RespondRegistration {
-				__NULL__,
-				RESPONSE,
-				DETAILS;
-				
-				public static enum Response {
-					__NULL__,
-					FAIL,
-					SUCCESS
-				}
-				
-				public static enum Details {
-					__NULL__,
-					USERNAME,
-					PASSWORD,
-					EMAIL
-				}
-			} // _RespondRegistration
-		} // _Packets
 	}
 }

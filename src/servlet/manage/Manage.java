@@ -1,22 +1,3 @@
-/**
- * Copyright 2017 Marcus Malmquist
- * 
- * This file is part of PROM_PREM_Collector.
- * 
- * PROM_PREM_Collector is free software: you can redistribute it
- * and/or modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation, either version 3 of
- * the License, or (at your option) any later version.
- * 
- * PROM_PREM_Collector is distributed in the hope that it will be
- * useful, but WITHOUT ANY WARRANTY; without even the implied warranty
- * of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
- * GNU General Public License for more details.
- * 
- * You should have received a copy of the GNU General Public License
- * along with PROM_PREM_Collector.  If not, see
- * <http://www.gnu.org/licenses/>.
- */
 package servlet.manage;
 
 import java.util.Map;
@@ -28,70 +9,47 @@ import servlet.core.interfaces.Implementations;
 
 import java.util.Scanner;
 
-/**
- * This class is used for managing the database and is only intended
- * to be used by administrators.
- * The managing includes adding new clinics and users to the database.
- * 
- * @author Marcus Malmquist
- *
- */
 public class Manage
 {
-	/* Public */
-	
-	public static void main(String[] args)
-	{
-		(new Manage()).runManager();
+	public static void main(String[] args) {
+		new Manage().runManager();
 	}
 	
-	/**
-	 * Initializes login variables.
-	 */
-	public Manage()
-	{
-		db = ServletCommunication.getInstance();
+	public Manage() {
+		db = ServletCommunication.SCOM;
 		in = new Scanner(System.in);
 	}
 	
-	/**
-	 * Runs the manager main loop. The administrator is presented with
-	 * available management operations and can choose which one to do.
-	 */
 	public void runManager()
 	{
 		final int EXIT = 0, ADD_CLINIC = 1, ADD_USER = 2;
 		mgr: while (true) {
-			System.out.printf("\n~~~~ PROM/PREM Manager ~~~~\n");
-			System.out.printf("\nWhat would you like to do?\n"
-					+ "%d: %s\n%d: %s\n%d: %s\n",
-					ADD_CLINIC, "Add Clinic",
-					ADD_USER, "Add user",
-					EXIT, "Exit");
+			printfTitle("\n~~~~ PROM/PREM Manager ~~~~\n");
+			printfQuestion("\nWhat would you like to do?\n"
+					+ "%s\n%s\n%s\n",
+					option(ADD_CLINIC, "Add Clinic"),
+					option(ADD_USER, "Add user"),
+					option(EXIT, "Exit"));
 			if (!in.hasNextInt()) {
 				in.next();
-				System.out.printf("Unknown option.\n\n");
+				printfError("Unknown option.\n\n");
 				continue;
 			}
 			switch (in.nextInt()) {
 			case EXIT:
 				break mgr;
 			case ADD_CLINIC:
-				addClinic();
+				newClinic();
 				break;
 			case ADD_USER:
-				addUser();
+				newUser();
 				break;
 			default:
-				System.out.printf("Unknown option.\n\n");
+				printfError("Unknown option.\n\n");
 				continue;
 			}
 		}
 	}
-	
-	/* Protected */
-	
-	/* Private */
 	
 	/**
 	 * Generates a first password. The password contains 8 characters
@@ -147,7 +105,7 @@ public class Manage
 	
 	/**
 	 * Replaces special characters with their ASCII 'equivalent'.<br>
-	 * Example: ö -> o, å -> a.
+	 * Example: ö -&gt; o, å -&gt; a.
 	 * 
 	 * @param str The String to replace special characters.
 	 * 
@@ -219,59 +177,49 @@ public class Manage
 				.replaceAll(String.format("[%s]", ulike), "u");
 	}
 	
-	/**
-	 * Adds a new clinic to the database. The administrator will be
-	 * presented with a form to fill in and the data is formatted
-	 * such that the database can add the clinic.
-	 */
-	private void addClinic()
+	private void newClinic()
 	{
-		System.out.printf("\n~~~~ Add clinic ~~~~\n");
+		printfTitle("\n~~~~ Add clinic ~~~~\n");
 		
 		Map<Integer, String> clinics = db.getClinics();
-		System.out.printf("\nExisting clinics:\n");
+		printfQuestion("\nExisting clinics:\n");
 		for (Entry<Integer, String> e : clinics.entrySet())
-			System.out.printf("%4d: %s\n", e.getKey(), e.getValue());
+			printf("%s\n", option(e.getKey(), e.getValue()));
 		
-		System.out.printf("\nEnter new clinic:\n");
+		printfQuestion("\nEnter new clinic:\n");
 		String clinic;
 		while ((clinic = in.nextLine().trim()).isEmpty())
 			;
 		if (Pattern.compile("[^\\p{Print}]").matcher(clinic).find()) {
-			System.out.printf("Using non-ascii characters may cause trouble.\n\n");
+			printfError("Using non-ascii characters may cause trouble.\n\n");
 			return;
 		}
 		for (String s : clinics.values())
 			if (s.equals(clinic)) {
-				System.out.printf("That clinic already exist.\n\n");
+				printfError("That clinic already exist.\n\n");
 				return;
 			}
-		System.out.printf("\nAdd clinic '%s' to database?\n"
-				+ "%d: Yes\n%d: No\n", clinic, 1, 0);
+		printfQuestion("\nAdd clinic '%s' to database?\n%s\n%s\n",
+				clinic, option(1, "Yes"), option(0, "No"));
 		if (in.hasNextInt())
 			if (in.nextInt() == 1) {
 				if (db.addClinic(clinic))
-					System.out.printf("Clinic added\n");
+					printfConfirm("Clinic added\n");
 				else
-					System.out.printf("Error. Consult the logs for info\n");
+					printfError("Error. Consult the logs for info\n");
 				return;
 			}
 		in.nextLine();
 	}
 	
-	/**
-	 * Adds a new user to the database. The administrator will be
-	 * presented with a form to fill in and the data is formatted
-	 * such that the database can add the user.
-	 */
-	private void addUser()
+	private void newUser()
 	{
-		System.out.printf("\n~~~~ Add user ~~~~\n");
+		printfTitle("\n~~~~ Add user ~~~~\n");
 		/* username */
-		System.out.printf("\nEnter Firstname:\n");
+		printfQuestion("\nEnter Firstname:\n");
 		String firstname;
 		while ((firstname = in.nextLine().trim()).isEmpty());
-		System.out.printf("\nEnter Surname:\n");
+		printfQuestion("\nEnter Surname:\n");
 		String surname;
 		while ((surname = in.nextLine().trim()).isEmpty());
 		
@@ -285,13 +233,13 @@ public class Manage
 		}
 		if (user == null) {
 			/* could not automatically generat username */
-			System.out.printf("Could not generate a random username.\n");
+			printfError("Could not generate a random username.\n");
 			while (user == null) {
-				System.out.printf("\nEnter username:\n");
+				printfQuestion("\nEnter username:\n");
 				String suggested;
 				while ((suggested = in.next().trim()).isEmpty());
 				if (db.getUser(suggested) != null) {
-					System.out.printf("That username is not available.\n");
+					printfError("That username is not available.\n");
 					continue;
 				}
 				user = suggested;
@@ -305,13 +253,13 @@ public class Manage
 		/* clinic */
 		Map<Integer, String> clinics = db.getClinics();
 		if (clinics.size() == 0) {
-			System.out.printf("There are no clinics in the database.\n"
+			printfError("There are no clinics in the database.\n"
 					+ "Please add a clinic before you add a user.\n\n");
 			return;
 		}
-		System.out.printf("\nSelect Clinic:\n");
+		printfQuestion("\nSelect Clinic:\n");
 		for (Entry<Integer, String> e : clinics.entrySet())
-			System.out.printf("%d: %s\n", e.getKey(), e.getValue());
+			printf("%s\n", option(e.getKey(), e.getValue()));
 		Integer clinic = null;
 		if (in.hasNextInt()) {
 			int c = in.nextInt();
@@ -319,32 +267,31 @@ public class Manage
 				clinic = c;
 		} else {
 			in.nextLine();
-			System.out.printf("No such clinic.\n\n");
+			printfError("No such clinic.\n\n");
 			return;
 		}
 
 		/* email */
-		System.out.printf("\nEnter Email:\n");
+		printfQuestion("\nEnter Email:\n");
 		String email;
-		while ((email = in.next().trim()).isEmpty())
-			;
+		while ((email = in.next().trim()).isEmpty());
 		
 		/* verify */
-		System.out.printf("\nAn email with the following login details will be "
+		printfQuestion("\nAn email with the following login details will be "
 				+ "sent to '%s'\n\tUsername: %s\n\tPassword: %s\n"
 				+ "%d: Yes\n%d: No\n", email, user, password, 1, 0);
 		if (in.hasNextInt()) {
 			if (in.nextInt() == 1) {
 				Encryption crypto = Implementations.Encryption();
-				String salt = crypto.getNewSalt();
-				if (db.addUser(user, crypto.hashString(password, salt),
+				String salt = crypto.generateNewSalt();
+				if (db.addUser(user, crypto.hashMessage(password, salt),
 						salt, clinic, email)) {
 					if (db.respondRegistration(user, password, email))
-						System.out.printf("Email sent\n");
+						printfConfirm("Email sent\n");
 					else
-						System.out.printf("Error. Consult the logs for info\n");
+						printfError("Error. Consult the logs for info\n");
 				} else
-					System.out.printf("Error. Consult the logs for info\n");
+					printfError("Error. Consult the logs for info\n");
 				return;
 			}
 		}
@@ -354,4 +301,50 @@ public class Manage
 	
 	private Scanner in;
 	private ServletCommunication db;
+	
+	private String option(int key, String description) {
+		return String.format("%s: %s",
+				TColor.color(TColor.GRN, String.format("%4d", key)),
+				TColor.color(TColor.CYN, description));
+	}
+	
+	private void printf(String format, Object ... args) {
+		System.out.printf(format, args);
+	}
+	
+	private void printfQuestion(String format, Object ... args) {
+		System.err.printf(TColor.color(TColor.YEL, format), args);
+	}
+	
+	private void printfError(String format, Object ... args) {
+		System.err.printf(TColor.color(TColor.RED, format), args);
+	}
+	
+	private void printfConfirm(String format, Object ... args) {
+		System.err.printf(TColor.color(TColor.GRN, format), args);
+	}
+	
+	private void printfTitle(String format, Object ... args) {
+		System.err.printf(TColor.color(TColor.GRN, format), args);
+	}
+	
+	
+	private static abstract class TColor {
+		private static class tColor {
+			String color;
+			tColor(String color) { this.color = color; }
+		}
+		static final tColor NRM = new tColor("\u001B[0m");
+		static final tColor RED = new tColor("\u001B[31m");
+		static final tColor GRN = new tColor("\u001B[32m");
+		static final tColor YEL = new tColor("\u001B[33m");
+		static final tColor BLU = new tColor("\u001B[34m");
+		static final tColor MAG = new tColor("\u001B[35m");
+		static final tColor CYN = new tColor("\u001B[36m");
+		static final tColor WHT = new tColor("\u001B[37m");
+		
+		static String color(tColor color, String message) {
+			return color.color + message + NRM.color;
+		}
+	}
 }

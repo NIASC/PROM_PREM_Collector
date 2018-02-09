@@ -1,18 +1,17 @@
-package servlet.core;
+package servlet.implementation;
 
 import java.util.Arrays;
 import java.util.List;
 import java.util.regex.Pattern;
 
-import common.implementation.Constants.Packet.Data;
+import common.implementation.Packet.Data;
 
 public class PasswordHandle
 {
-	
 	public static Data.SetPassword.Response newPassError(User user,
 			String oldPass, String newPass1, String newPass2)
 	{
-		if (user == null || !user.passwordMatch(oldPass)) {
+		if (user == null || !user.passwordMatches(oldPass)) {
 			return Data.SetPassword.Response.INVALID_DETAILS;
 		}
 		if (!newPass1.equals(newPass2)) {

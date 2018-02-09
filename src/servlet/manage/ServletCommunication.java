@@ -1,9 +1,16 @@
 package servlet.manage;
 
+import static servlet.implementation.AdminPacket._ADMIN;
+import static servlet.implementation.AdminPacket._DATA;
+import static servlet.implementation.AdminPacket._TYPE;
+
 import java.io.BufferedReader;
+import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.OutputStreamWriter;
+import java.io.UnsupportedEncodingException;
 import java.net.HttpURLConnection;
+import java.net.ProtocolException;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.TreeMap;
@@ -13,87 +20,74 @@ import org.json.simple.parser.JSONParser;
 
 import common.implementation.Constants;
 import servlet.core.ServletConst;
+import servlet.implementation.User;
+import servlet.implementation.AdminPacket.Admin;
+import servlet.implementation.AdminPacket.AdminData;
+import servlet.implementation.AdminPacket.AdminTypes;
 
-import static servlet.core.ServletConst._Packet._ADMIN;
-import static servlet.core.ServletConst._Packet._TYPE;
-import static servlet.core.ServletConst._Packet._DATA;
-
-import servlet.core.ServletConst._Packet._Admin;
-import servlet.core.ServletConst._Packet._Data;
-import servlet.core.ServletConst._Packet._Types;
-import servlet.core.User;
-
-public class ServletCommunication
+public enum ServletCommunication
 {
-	public static synchronized ServletCommunication getInstance() {
-		if (database == null) { database = new ServletCommunication(); }
-		return database;
-	}
-
-	@Override
-	public final Object clone() throws CloneNotSupportedException {
-		throw new CloneNotSupportedException();
-	}
+	SCOM;
 
 	public boolean addUser(String username, String password, String salt, int clinic, String email)
 	{
 		JSONMapData out = new JSONMapData();
-		out.put(_TYPE, _Types.ADD_USER);
-		out.put(_ADMIN, _Admin.YES);
+		out.put(_TYPE, AdminTypes.ADD_USER);
+		out.put(_ADMIN, Admin.YES);
 		JSONMapData outData = new JSONMapData();
 
 		JSONMapData details = new JSONMapData();
-		details.put(_Data._AddUser.Details.CLINIC_ID, Integer.toString(clinic));
-		details.put(_Data._AddUser.Details.NAME, username);
-		details.put(_Data._AddUser.Details.PASSWORD, password);
-		details.put(_Data._AddUser.Details.EMAIL, email);
-		details.put(_Data._AddUser.Details.SALT, salt);
+		details.put(AdminData.AdminAddUser.Details.CLINIC_ID, Integer.toString(clinic));
+		details.put(AdminData.AdminAddUser.Details.NAME, username);
+		details.put(AdminData.AdminAddUser.Details.PASSWORD, password);
+		details.put(AdminData.AdminAddUser.Details.EMAIL, email);
+		details.put(AdminData.AdminAddUser.Details.SALT, salt);
 
-		outData.put(_Data._AddUser.DETAILS, details.toString());
+		outData.put(AdminData.AdminAddUser.DETAILS, details.toString());
 		
 		out.put(_DATA, outData.toString());
 		JSONMapData in = sendMessage(out);
 		JSONMapData inData = new JSONMapData(in.get(_DATA));
 		
-		_Data._AddUser.Response insert = _Data._AddUser.Response.FAIL;
+		AdminData.AdminAddUser.Response insert = AdminData.AdminAddUser.Response.FAIL;
 		try {
-			insert = Constants.getEnum(_Data._AddUser.Response.values(), inData.get(_Data._AddUser.RESPONSE));
+			insert = Constants.getEnum(AdminData.AdminAddUser.Response.values(), inData.get(AdminData.AdminAddUser.RESPONSE));
 		} catch (NumberFormatException nfe) { }
-		return Constants.equal(_Data._AddUser.Response.SUCCESS, insert);
+		return Constants.equal(AdminData.AdminAddUser.Response.SUCCESS, insert);
 	}
 
 	public boolean addClinic(String clinicName)
 	{
 		JSONMapData out = new JSONMapData();
-		out.put(_TYPE, _Types.ADD_CLINIC);
-		out.put(_ADMIN, _Admin.YES);
+		out.put(_TYPE, AdminTypes.ADD_CLINIC);
+		out.put(_ADMIN, Admin.YES);
 		JSONMapData outData = new JSONMapData();
 		
-		outData.put(_Data._AddClinic.NAME, clinicName);
+		outData.put(AdminData.AdminAddClinic.NAME, clinicName);
 
 		out.put(_DATA, outData.toString());
 		JSONMapData in = sendMessage(out);
 		JSONMapData inData = new JSONMapData(in.get(_DATA));
 		
-		_Data._AddClinic.Response insert = _Data._AddClinic.Response.FAIL;
+		AdminData.AdminAddClinic.Response insert = AdminData.AdminAddClinic.Response.FAIL;
 		try {
-			insert = Constants.getEnum(_Data._AddClinic.Response.values(), inData.get(_Data._AddClinic.RESPONSE));
+			insert = Constants.getEnum(AdminData.AdminAddClinic.Response.values(), inData.get(AdminData.AdminAddClinic.RESPONSE));
 		} catch (NumberFormatException nfe) { }
-		return Constants.equal(_Data._AddClinic.Response.SUCCESS, insert);
+		return Constants.equal(AdminData.AdminAddClinic.Response.SUCCESS, insert);
 	}
 	
 	public Map<Integer, String> getClinics()
 	{
 		JSONMapData out = new JSONMapData();
-		out.put(_TYPE, _Types.GET_CLINICS);
-		out.put(_ADMIN, _Admin.YES);
+		out.put(_TYPE, AdminTypes.GET_CLINICS);
+		out.put(_ADMIN, Admin.YES);
 		JSONMapData outData = new JSONMapData();
 
 		out.put(_DATA, outData.toString());
 		JSONMapData in = sendMessage(out);
 		JSONMapData inData = new JSONMapData(in.get(_DATA));
 		
-		JSONMapData _clinics = new JSONMapData(inData.get(_Data._GetClinics.CLINICS));
+		JSONMapData _clinics = new JSONMapData(inData.get(AdminData.AdminGetClinics.CLINICS));
 		
 		Map<Integer, String> clinic = new TreeMap<Integer, String>();
 		for (Entry<String, String> e : _clinics.jmap.entrySet()) {
@@ -105,27 +99,27 @@ public class ServletCommunication
 	public User getUser(String username)
 	{
 		JSONMapData out = new JSONMapData();
-		out.put(_TYPE, _Types.GET_USER);
-		out.put(_ADMIN, _Admin.YES);
+		out.put(_TYPE, AdminTypes.GET_USER);
+		out.put(_ADMIN, Admin.YES);
 		JSONMapData outData = new JSONMapData();
 		
-		outData.put(_Data._GetUser.USERNAME, username);
+		outData.put(AdminData.AdminGetUser.USERNAME, username);
 
 		out.put(_DATA, outData.toString());
 		JSONMapData in = sendMessage(out);
 		JSONMapData inData = new JSONMapData(in.get(_DATA));
 		
-		JSONMapData _user = new JSONMapData(inData.get(_Data._GetUser.USER));
+		JSONMapData _user = new JSONMapData(inData.get(AdminData.AdminGetUser.USER));
 		try {
 			User _usr = new User();
-			_usr.clinic_id = Integer.parseInt(_user.get(_Data._GetUser.User.CLINIC_ID));
-			_usr.name = _user.get(_Data._GetUser.User.USERNAME);
-			_usr.password = _user.get(_Data._GetUser.User.PASSWORD);
-			_usr.email = _user.get(_Data._GetUser.User.EMAIL);
-			_usr.salt = _user.get(_Data._GetUser.User.SALT);
-			_Data._GetUser.User.UpdatePassword up = Constants.getEnum(_Data._GetUser.User.UpdatePassword.values(),
-					_user.get(_Data._GetUser.User.UPDATE_PASSWORD));
-			_usr.update_password = Constants.equal(_Data._GetUser.User.UpdatePassword.YES, up);
+			_usr.clinic_id = Integer.parseInt(_user.get(AdminData.AdminGetUser.User.CLINIC_ID));
+			_usr.name = _user.get(AdminData.AdminGetUser.User.USERNAME);
+			_usr.password = _user.get(AdminData.AdminGetUser.User.PASSWORD);
+			_usr.email = _user.get(AdminData.AdminGetUser.User.EMAIL);
+			_usr.salt = _user.get(AdminData.AdminGetUser.User.SALT);
+			AdminData.AdminGetUser.User.UpdatePassword up = Constants.getEnum(AdminData.AdminGetUser.User.UpdatePassword.values(),
+					_user.get(AdminData.AdminGetUser.User.UPDATE_PASSWORD));
+			_usr.update_password = Constants.equal(AdminData.AdminGetUser.User.UpdatePassword.YES, up);
 			return _usr;
 		} catch (NullPointerException | NumberFormatException _e) {
 			return null;
@@ -135,66 +129,73 @@ public class ServletCommunication
 	public boolean respondRegistration(String username, String password, String email)
 	{
 		JSONMapData out = new JSONMapData();
-		out.put(_TYPE, _Types.RSP_REGISTR);
-		out.put(_ADMIN, _Admin.YES);
+		out.put(_TYPE, AdminTypes.RSP_REGISTR);
+		out.put(_ADMIN, Admin.YES);
 		JSONMapData outData = new JSONMapData();
 
 		JSONMapData details = new JSONMapData();
-		details.put(_Data._RespondRegistration.Details.USERNAME, username);
-		details.put(_Data._RespondRegistration.Details.PASSWORD, password);
-		details.put(_Data._RespondRegistration.Details.EMAIL, email);
+		details.put(AdminData.AdminRespondRegistration.Details.USERNAME, username);
+		details.put(AdminData.AdminRespondRegistration.Details.PASSWORD, password);
+		details.put(AdminData.AdminRespondRegistration.Details.EMAIL, email);
 
-		outData.put(_Data._RespondRegistration.DETAILS, details.toString());
+		outData.put(AdminData.AdminRespondRegistration.DETAILS, details.toString());
 
 		out.put(_DATA, outData.toString());
 		JSONMapData in = sendMessage(out);
 		JSONMapData inData = new JSONMapData(in.get(_DATA));
 		
-		_Data._RespondRegistration.Response insert = _Data._RespondRegistration.Response.FAIL;
+		AdminData.AdminRespondRegistration.Response insert = AdminData.AdminRespondRegistration.Response.FAIL;
 		try {
-			insert = Constants.getEnum(_Data._RespondRegistration.Response.values(), inData.get(_Data._RespondRegistration.RESPONSE));
+			insert = Constants.getEnum(AdminData.AdminRespondRegistration.Response.values(), inData.get(AdminData.AdminRespondRegistration.RESPONSE));
 		} catch (NumberFormatException nfe) { }
-		return Constants.equal(_Data._RespondRegistration.Response.SUCCESS, insert);
+		return Constants.equal(AdminData.AdminRespondRegistration.Response.SUCCESS, insert);
 	}
 
-	private static ServletCommunication database;
 	private static JSONParser parser;
 	
 	static {
 		parser = new JSONParser();
 	}
 	
-	private ServletCommunication() {
-	}
-	
 	private JSONMapData sendMessage(JSONMapData obj)
 	{
 		try {
-			HttpURLConnection c = (HttpURLConnection) ServletConst.LOCAL_URL.openConnection();
-			c.setRequestMethod("POST");
-			c.setRequestProperty("Content-Type", "application/json");
-			c.setUseCaches(false);
-			c.setDoInput(true);
-			c.setDoOutput(true);
-			
-			/* send message */
-			OutputStreamWriter out = new OutputStreamWriter(c.getOutputStream(), "UTF-8");
-			System.out.printf("OUT: '%s'\n", obj.toString());
-			out.write(obj.toString());
-			out.flush();
-			out.close();
-
-			/* receive message */
-			BufferedReader in = new BufferedReader(new InputStreamReader(c.getInputStream(), "UTF-8"));
-			StringBuilder sb = new StringBuilder();
-			for (String inputLine; (inputLine = in.readLine()) != null; sb.append(inputLine));
-			in.close();
-			System.out.printf("IN: '%s'\n", sb.toString());
-			return new JSONMapData(sb.toString());
+			HttpURLConnection c = setupHttpConnection();
+			String request = obj.toString();
+			System.out.printf("OUT: '%s'\n", request);
+			sendRequest(c, request);
+			String response = receiveResponse(c);
+			System.out.printf(" IN: '%s'\n", response);
+			return new JSONMapData(response);
 		} catch (Exception ex) {
 			ex.printStackTrace();
 			return null;
 		}
+	}
+
+	private String receiveResponse(HttpURLConnection c) throws UnsupportedEncodingException, IOException {
+		BufferedReader in = new BufferedReader(new InputStreamReader(c.getInputStream(), "UTF-8"));
+		StringBuilder sb = new StringBuilder();
+		for (String inputLine; (inputLine = in.readLine()) != null; sb.append(inputLine));
+		in.close();
+		return sb.toString();
+	}
+
+	private void sendRequest(HttpURLConnection c, String request) throws UnsupportedEncodingException, IOException {
+		OutputStreamWriter out = new OutputStreamWriter(c.getOutputStream(), "UTF-8");
+		out.write(request);
+		out.flush();
+		out.close();
+	}
+
+	private HttpURLConnection setupHttpConnection() throws IOException, ProtocolException {
+		HttpURLConnection c = (HttpURLConnection) ServletConst.LOCAL_URL.openConnection();
+		c.setRequestMethod("POST");
+		c.setRequestProperty("Content-Type", "application/json");
+		c.setUseCaches(false);
+		c.setDoInput(true);
+		c.setDoOutput(true);
+		return c;
 	}
 	
 	private static JSONObject getJSONObject(String str)
