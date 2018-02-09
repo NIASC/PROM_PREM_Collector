@@ -1,4 +1,4 @@
-web/META-INF/context.xml.sample# PROM_PREM_Collector
+# PROM_PREM_Collector
 This is an application designed to collect PROM (patient reported outcome measures) and PREM (patient reported experience measures).
 
 This application is currently being rewritten into a servlet and applet. The wiki page is likely outdated.
@@ -7,7 +7,7 @@ This application is currently being rewritten into a servlet and applet. The wik
 Some tomcat libraries needs to be put in the ant library directory. These libs are `catalina-ant.jar` and `catalina-ant.jar`. This is a part of the tomcat configuration.
 + Apache Ant
 + Apache Tomcat 8
-+ MySQL (or equivalent)
++ MariaDB (or equivalent)
 ## Required libraries
 The required libraries should be put in $CATALINA_HOME/lib.
 + MySQL Connector/J
@@ -16,13 +16,17 @@ The required libraries should be put in $CATALINA_HOME/lib.
 + GNU inetlib
 + JSON Simple
 
+In addition it may be required to copy/link some jar files in $CATALINA_HOMA/lib to $APACHE_ANT_HOME/lib. This is a part of the standard tomcat setup and not specific for this software. The jar files are:
++ catalina.jar
++ tomcat-util.jar
+
 # Setup
 
-start mariadb with `sudo systemctl start mariadb.service`
-start tomcat with `sudo /usr/share/tomcat8/bin/startup.sh`
+start mariadb with `# systemctl start mariadb.service`
+start tomcat with `# systemctl start tomcat8.service`
 
-stop tomcat with `sudo /usr/share/tomcat8/bin/shutdown.sh`
-stop mariadb with `sudo systemctl stop mariadb.service`
+stop tomcat with `# systemctl stop tomcat8.service`
+stop mariadb with `# systemctl stop mariadb.service`
 
 # Deploy servlet
 Currently the application is designed to be accessed via the url `http://localhost:8080/PROM_PREM_Collector/`. This is hard-coded in some places in the code and you may need to change this to make it work. In the future this will be fixed.

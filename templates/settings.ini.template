@@ -1,0 +1,4 @@
+logdir=PPC_SERVER_LOGS_DIR
+logsize=40960
+logcount=10
+localurl=PPC_APP_WEBSITE_URL/PROM_PREM_Collector/main

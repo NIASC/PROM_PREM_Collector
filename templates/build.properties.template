@@ -2,11 +2,11 @@
 app.path=/PROM_PREM_Collector
 
 # server website
-app.website=http://localhost:8080
+app.website=APP_WEBSITE_URL
 
 # Tomcat installation directory
-catalina.home=
+catalina.home=CATALINA_HOME
 
 # Manager webapp username and password
-manager.username=
-manager.password=
+manager.username=MANAGER_USERNAME
+manager.password=MANAGER_PASSWORD 

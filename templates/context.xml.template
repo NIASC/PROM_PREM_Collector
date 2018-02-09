@@ -28,7 +28,7 @@
 
   <Resource name="jdbc/prom_prem_db" auth="Container" type="javax.sql.DataSource"
             maxTotal="100" maxIdle="30" maxWaitMillis="10000"
-            username="" password="" driverClassName="com.mysql.jdbc.Driver"
+            username=PPC_DB_ROOT_NAME password=PPC_DB_ROOT_PASSWD driverClassName="com.mysql.jdbc.Driver"
             url="jdbc:mysql://localhost:3306/prom_prem_db"/>
 
 </Context>
