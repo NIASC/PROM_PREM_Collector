@@ -35,7 +35,8 @@ public enum Packet {
 			public enum Response {
 				__NULL__,
 				FAIL,
-				SUCCESS
+				SUCCESS,
+				NOT_ONLINE
 			}
 		} // Ping
 

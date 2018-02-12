@@ -39,14 +39,15 @@ public enum ServletLogger
 		log(level, sb.toString());
 	}
 	
-	private static SimpleDateFormat datefmt;
-	private static Date currentDate;
+	private static final SimpleDateFormat datefmt = new SimpleDateFormat("yyyy-MM-dd");
+	private static final SimpleDateFormat serverStartFMT = new SimpleDateFormat("yyyy-MM-dd_HH:mm:ss");
+	private static final Date serverStart;
+	private static Date currentDate = new Date(0L);
 	private Handler handler;
 	private Logger logger;
 	
 	static {
-		currentDate = new Date(0L);
-		datefmt = new SimpleDateFormat("yyyy-MM-dd");
+		serverStart = new Date();
 	}
 	
 	private ServletLogger() {
@@ -62,7 +63,7 @@ public enum ServletLogger
 		Date today = new Date();
 		Handler todayHandler = null;
 		try {
-			String outputFilePattern = String.format(ServletConst.LOG_DIR + "/%s.log", datefmt.format(today));
+			String outputFilePattern = String.format("%s/%s.log", ServletConst.LOG_DIR, generateLogfileName(today));
 			todayHandler = new FileHandler(outputFilePattern, ServletConst.LOG_SIZE, ServletConst.LOG_COUNT);
 		} catch (SecurityException | IOException e) { }
 
@@ -71,6 +72,10 @@ public enum ServletLogger
 		} else {
 			logger.log(Level.SEVERE, "Unable to create a log file. Make sure that the logging directory structure exists.");
 		}
+	}
+
+	private String generateLogfileName(Date today) {
+		return String.format("Servlet_%s@%s", serverStartFMT.format(serverStart), datefmt.format(today)) ;
 	}
 
 	private void setNewHandler(Date today, Handler todayHandler) {
@@ -90,7 +95,7 @@ public enum ServletLogger
 	private static class MyFormatter extends Formatter {
 		@Override
 		public String format(LogRecord record) {
-			return String.format("--> %s\n%s",
+			return String.format("--> %s\n%s\n\n",
 					datefmt.format(new Date(record.getMillis())), record.getMessage());
 		}
 		

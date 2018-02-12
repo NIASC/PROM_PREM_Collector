@@ -7,7 +7,7 @@ public enum UserManager {
 	
 	public synchronized Response addUserToListOfOnline(String username, long uid)
 	{
-		if (username == null || username.isEmpty()) {
+		if (username == null || username.isEmpty() || !isAvailable(uid)) {
 			return Response.ERROR;
 		}
 		if (usr.registeredUsersOnline() >= MAX_USERS) {
@@ -38,6 +38,14 @@ public enum UserManager {
 	
 	public String nameForUID(long uid) {
 		return usr.nameForUID(uid);
+	}
+	
+	public boolean isOnline(long uid) {
+		return usr.isOnline(uid);
+	}
+	
+	public boolean isAvailable(long uid) {
+		return !usr.isOnline(uid);
 	}
 	
 	public void terminate() {

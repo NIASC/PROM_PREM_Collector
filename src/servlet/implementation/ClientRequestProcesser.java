@@ -125,7 +125,7 @@ public class ClientRequestProcesser
 			MapData data = new MapData();
 			Data.Ping.Response result = Data.Ping.Response.FAIL;
 			try {
-				if (processPing(new MapData(in.get(DATA)))) { result = Data.Ping.Response.SUCCESS; }
+				result = processPing(new MapData(in.get(DATA)));
 			} catch (Exception ignored) { }
 			data.put(Data.Ping.RESPONSE, result);
 
@@ -133,13 +133,17 @@ public class ClientRequestProcesser
 			return out;
 		}
 		
-		private boolean processPing(MapData in) throws
+		private Data.Ping.Response processPing(MapData in) throws
 				NullPointerException, NumberFormatException,
 				org.json.simple.parser.ParseException,
 				ClassCastException
 		{
 			MapData inpl = new MapData(Crypto.decrypt(in.get(Data.Ping.DETAILS)));
-			return refreshTimer(Long.parseLong(inpl.get(Data.Ping.Details.UID)));
+			long uid = Long.parseLong(inpl.get(Data.Ping.Details.UID));
+			if (um.isOnline(uid)) {
+				return refreshTimer(uid) ? Data.Ping.Response.SUCCESS : Data.Ping.Response.FAIL;
+			}
+			return Data.Ping.Response.NOT_ONLINE;
 		}
 	}
 	
@@ -456,7 +460,7 @@ public class ClientRequestProcesser
 				response = ret.response;
 				if (ret.user.update_password) { update_password = Data.RequestLogin.UpdatePassword.YES; }
 				if (Constants.equal(ret.response, Data.RequestLogin.Response.SUCCESS)) { uid = Long.toString(ret.uid); }
-				logger.log("User " + ret.user + " logged in and was given UID '" + uid + "'");
+				logger.log("User '" + ret.user.name + "' logged in and was given UID '" + uid + "'");
 			} catch (Exception e) { }
 			data.put(Data.RequestLogin.RESPONSE, response);
 			data.put(Data.RequestLogin.UPDATE_PASSWORD, update_password);
@@ -478,12 +482,22 @@ public class ClientRequestProcesser
 				throw new NullPointerException("invalid details");
 			}
 
-			String hash = crypto.hashMessage(
-					Long.toHexString(System.currentTimeMillis()),
-					ret.user.name, crypto.generateNewSalt());
-			ret.uid = Long.parseUnsignedLong(hash.substring(0, 2*Long.BYTES), 16);
+			ret.uid = 0L;
+			final int MAX_ATTEMPTS = 10;
+			for (int i = 0; ret.uid == 0L && i < MAX_ATTEMPTS; ++i) {
+				String hash = crypto.hashMessage(
+						Long.toHexString(System.currentTimeMillis()),
+						ret.user.name, crypto.generateNewSalt());
+				long uid = Long.parseUnsignedLong(hash.substring(0, 2*Long.BYTES), 16);
+				if (um.isAvailable(uid)) {
+					ret.uid = uid;
+					ret.response = um.addUserToListOfOnline(ret.user.name, ret.uid);
+				}
+			}
+			if (ret.uid == 0L) {
+				ret.response = Data.RequestLogin.Response.FAIL;
+			}
 			
-			ret.response = um.addUserToListOfOnline(ret.user.name, ret.uid);
 			return ret;
 		}
 		
@@ -521,7 +535,7 @@ public class ClientRequestProcesser
 			MapData inpl = new MapData(Crypto.decrypt(in.get(Data.RequestLogout.DETAILS)));
 			long uid = Long.parseLong(inpl.get(Data.RequestLogout.Details.UID));
 			refreshTimer(uid);
-			logger.log("User " + um.nameForUID(uid) + " with UID '" + uid + "' logged out");
+			logger.log("User '" + um.nameForUID(uid) + "' with UID '" + uid + "' logged out");
 			return um.delUserFromListOfOnline(uid) ? Data.RequestLogout.Response.SUCCESS : Data.RequestLogout.Response.ERROR;
 		}
 	}
