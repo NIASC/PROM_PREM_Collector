@@ -7,11 +7,11 @@ import servlet.implementation.SHAEncryption;
 public abstract class Implementations
 {
 	public static Database Database() {
-		return MySQLDatabase.MYSQL;
+		return MySQLDatabase.instance;
 	}
 	
 	public static Encryption Encryption() {
-		return SHAEncryption.SHA;
+		return SHAEncryption.instance;
 	}
 	
 	public static Locale Locale() {

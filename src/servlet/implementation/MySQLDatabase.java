@@ -25,7 +25,7 @@ import servlet.implementation.exceptions.DBWriteException;
 
 public enum MySQLDatabase implements Database
 {
-	MYSQL;
+	instance;
 
 	@Override
 	public String escapeReplace(String str) {

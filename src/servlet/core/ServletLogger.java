@@ -87,31 +87,13 @@ public enum ServletLogger
 		return datefmt.format(currentDate).equals(datefmt.format(new Date()));
 	}
 	
-	/**
-	 * A formatter that formats log entries according to the template:<br>
-	 * <code>
-	 * --&gt; date<br>
-	 * messsage<br>
-	 * ...<br>
-	 * --&gt; date<br>
-	 * messsage
-	 * </code>
-	 * 
-	 * @author Marcus Malmquist
-	 *
-	 */
-	private static class MyFormatter extends Formatter
-	{
+	private static class MyFormatter extends Formatter {
 		@Override
 		public String format(LogRecord record) {
 			return String.format("--> %s\n%s",
 					datefmt.format(new Date(record.getMillis())), record.getMessage());
 		}
 		
-		private static SimpleDateFormat datefmt;
-		
-		static {
-			datefmt = new SimpleDateFormat("HH:mm:ss");
-		}
+		private static SimpleDateFormat datefmt = new SimpleDateFormat("HH:mm:ss");
 	}
 }

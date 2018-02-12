@@ -9,7 +9,7 @@ import servlet.core.interfaces.Encryption;
 
 public enum SHAEncryption implements Encryption
 {
-	SHA;
+	instance;
 
 	@Override
 	public String hashMessage(String s, String salt) {
