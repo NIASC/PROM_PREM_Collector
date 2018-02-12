@@ -4,13 +4,12 @@ import java.io.File;
 import java.io.IOException;
 import java.net.URL;
 import java.util.Properties;
+import java.util.logging.Level;
 
-import common.Utilities;
+import res.Resources;
 
 public abstract class ServletConst
 {
-	private static final String filePath = "servlet/core/settings.ini";
-	
 	public static final URL LOCAL_URL;
 	public static final String LOG_DIR;
 	public static final int LOG_SIZE, LOG_COUNT;
@@ -21,7 +20,7 @@ public abstract class ServletConst
 		Integer logsize = null, logcount = null;
 		try {
 			Properties props = new Properties();
-			props.load(Utilities.getResourceStream(ServletConst.class, filePath));
+			props.load(Resources.getStream(Resources.SETTINGS_PATH));
 			logdir = props.getProperty("logdir");
 			if (logdir.endsWith("/"))
 				logdir = logdir.substring(0, logdir.length()-1);
@@ -35,8 +34,7 @@ public abstract class ServletConst
 			url = new URL(props.getProperty("localurl"));
 			props.clear();
 		} catch (IOException | IllegalArgumentException _e) {
-			System.out.printf("FATAL: Could not load servlet settings file!");
-			_e.printStackTrace(System.out);
+			ServletLogger.LOGGER.log(Level.SEVERE, "FATAL: Could not load servlet settings file!", _e);
 			System.exit(1);
 		}
 		

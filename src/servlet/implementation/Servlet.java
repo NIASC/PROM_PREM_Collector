@@ -4,48 +4,28 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.io.UnsupportedEncodingException;
+import java.nio.charset.UnsupportedCharsetException;
 import java.util.Arrays;
+import java.util.logging.Level;
 
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+import common.Util;
+import res.Resources;
 import servlet.core.ServletLogger;
 
 public class Servlet extends HttpServlet
 {
 	@Override
-	public void init() throws ServletException
-	{
-		message = String.join("\n", Arrays.asList(
-				"<html>", 
-				"<head>", 
-				"<title>PROM/PREM Collector</title>", 
-				"</head>",
-				"<body bgcolor=white>", 
-				"<table border=\"0\">", 
-				"<tr>",
-				"<td>",
-				"<div align=\"center\">", 
-				"<h1>PROM/PREM Collector</h1>", 
-				"</div>",
-				"<div align=\"center\">", 
-				"<img src=\"images/NIASC_black.jpg\">",
-				"</div>",
-				"<div align=\"center\">", 
-				"<p>",
-				"The PROM/PREM Collector is developed by NIASC under the GPLv3 license. The web version is under development,<br>", 
-				"but the application is available for download at the",
-				"<a href=\"https://github.com/NIASC/PROM_PREM_Collector/tree/local_version\">NIASC GitHub page</a>.", 
-				"</p>",
-				"</div>", 
-				"</td>",
-				"</tr>",
-				"</table>",
-				"</body>",
-				"</html>"
-		));
+	public void init() throws ServletException {
+		try {
+			message = Util.fileToString(res.Resources.MAIN_PAGE, "UTF-8");
+		} catch (IOException | UnsupportedCharsetException e) {
+			message = "<html><head>404 - Page not found</head><body>The requested page was not found.</body></html>";
+		}
 		ppc = new ClientRequestProcesser();
 	}
 
@@ -55,15 +35,13 @@ public class Servlet extends HttpServlet
 	}
 
 	@Override
-	public void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException
-	{
-		response.setContentType("text/html");
+	public void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+		response.setContentType("text/html; charset=utf-8");
 		response.getWriter().printf(message);
 	}
 
 	@Override
-	protected void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException
-	{
+	protected void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
 		setHttpAttributes(request, response);
 		writeResponse(response, processRequest(request, readRequest(request)));
 	}

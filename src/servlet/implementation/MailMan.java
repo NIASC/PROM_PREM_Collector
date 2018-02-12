@@ -1,7 +1,9 @@
 package servlet.implementation;
 
 import java.io.IOException;
+import java.nio.charset.UnsupportedCharsetException;
 import java.util.Properties;
+import java.util.logging.Level;
 
 import javax.mail.Message;
 import javax.mail.MessagingException;
@@ -10,145 +12,110 @@ import javax.mail.Transport;
 import javax.mail.internet.InternetAddress;
 import javax.mail.internet.MimeMessage;
 
-import common.Utilities;
+import common.Util;
+import res.Resources;
 import servlet.core.ServletLogger;
 
 public class MailMan
 {
-	public static boolean sendRegReq(String name, String email, String clinic)
-	{
+	public static boolean sendRegReq(String name, String email, String clinic) {
+		if (RegReqBodyTemplate == null) {
+			logger.log(Level.WARNING, "The registration request email template was not loaded so the email could not be composed.");
+			return false;
+		}
 		String emailSubject = "PROM/PREM: Registration request";
-		String emailDescription = "Registration reguest from";
-		String emailSignature = "This message was sent from the PROM/PREM Collector";
-		String emailBody = String.format(
-				("%s:<br><br> %s: %s<br>%s: %s<br>%s: %s<br><br> %s"),
-				emailDescription, "Name", name, "E-mail",
-				email, "Clinic", clinic, emailSignature);
-		
-		return send(adminEmail, emailSubject, emailBody, "text/html");
+		String emailBody = RegReqBodyTemplate
+				.replace("PPC_REGREQ_NAME", name)
+				.replace("PPC_REGREQ_EMAIL", email)
+				.replace("PPC_REGREQ_CLINIC", clinic);
+		return send(adminEmail, emailSubject, emailBody, "text/html; charset=utf-8");
 	}
 	
-	public static boolean sendRegResp(
-			String username, String password, String email)
-	{
+	public static boolean sendRegResp(String username, String password, String email) {
+		if (RegRespBodyTemplate == null) {
+			logger.log(Level.WARNING, "The registration response email template was not loaded so the email could not be composed.");
+			return false;
+		}
 		String emailSubject = "PROM/PREM: Registration response";
-		String emailDescription = "You have been registered at the PROM/PREM Collector. "
-				+ "You will find your login details below. When you first log in you will"
-				+ "be asked to update your password.";
-		String emailSignature = "This message was sent from the PROM/PREM Collector";
-		String emailBody = String.format(
-				("%s<br><br> %s: %s<br>%s: %s<br><br> %s"),
-				emailDescription, "Username", username,
-				"Password", password, emailSignature);
-		
-		return send(email, emailSubject, emailBody, "text/html");
+		String emailBody = RegRespBodyTemplate
+				.replace("PPC_REGRESP_USERNAME", username)
+				.replace("PPC_REGRESP_PASSWORD", password);
+		return send(email, emailSubject, emailBody, "text/html; charset=utf-8");
 	}
-	
-	private static final String CONFIG_FILE =
-			"servlet/implementation/email_settings.txt";
-	private static final String ACCOUNT_FILE =
-			"servlet/implementation/email_accounts.ini";
+
+	private static final String RegReqBodyTemplate;
+	private static final String RegRespBodyTemplate;
 	private static Properties mailConfig;
 	private static ServletLogger logger;
-	
-	// server mailing account
 	private static String serverEmail, serverPassword, adminEmail;
 	
-	static
-	{
+	static {
 		logger = ServletLogger.LOGGER;
 		mailConfig = new Properties();
 		try {
 			refreshConfig();
 		} catch (IOException e) {
-			logger.log("FATAL: Could not load email configuration", e);
+			logger.log(Level.SEVERE, "Could not load email configuration", e);
 			System.exit(1);
 		}
+		RegReqBodyTemplate = loadFile(Resources.REGREQ_EMAIL_BODY);
+		RegRespBodyTemplate = loadFile(Resources.REGRESP_EMAIL_BODY);
 	}
 	
-	/**
-	 * reloads the javax.mail config properties as well as
-	 * the email account config.
-	 */
-	private static synchronized void refreshConfig() throws IOException
-	{
-		loadConfig(CONFIG_FILE);
-		loadEmailAccounts(ACCOUNT_FILE);
+	private static String loadFile(String filename1) {
+		String regreq = null;
+		try {
+			regreq = Util.fileToString(filename1, "UTF-8");
+		} catch (IOException e) {
+			logger.log(Level.SEVERE, String.format("Resource '%s' is not available.", Resources.REGREQ_EMAIL_BODY));
+		} catch (UnsupportedCharsetException e) {
+			logger.log(Level.SEVERE, String.format("Charset '%s' not available.", "UTF-8"));
+		}
+		return regreq;
 	}
 	
-	/**
-	 * Loads the javax.mail config properties contained in the
-	 * supplied config file.
-	 * 
-	 * @param filePath The file while the javax.mail config
-	 * 		properties are located.
-	 * 
-	 * @return True if the file was loaded. False if an error
-	 * 		occurred.
-	 */
-	private static synchronized void loadConfig(String filePath) throws IOException
-	{
-		if (!mailConfig.isEmpty())
+	private static synchronized void refreshConfig() throws IOException {
+		loadConfig(Resources.EMAIL_CONFIG);
+		loadEmailAccounts(Resources.EMAIL_ACCOUNTS);
+	}
+	
+	private static synchronized void loadConfig(String filePath) throws IOException {
+		if (!mailConfig.isEmpty()) {
 			mailConfig.clear();
-		mailConfig.load(Utilities.getResourceStream(MailMan.class, filePath));
+		}
+		mailConfig.load(Resources.getStream(filePath));
 	}
 	
-	/**
-	 * Loads the registration program's email account information
-	 * as well as the email address of the administrator who will
-	 * receive registration requests.
-	 * 
-	 * @param filePath The file that contains the email account
-	 * 		information.
-	 * 
-	 * @return True if the file was loaded. False if an error
-	 * 		occurred.
-	 */
-	private static synchronized void loadEmailAccounts(String filePath) throws IOException
-	{
+	private static synchronized void loadEmailAccounts(String filePath) throws IOException {
 		Properties props = new Properties();
-		props.load(Utilities.getResourceStream(MailMan.class, filePath));
+		props.load(Resources.getStream(filePath));
 		adminEmail = props.getProperty("admin_email");
 		serverEmail = props.getProperty("server_email");
 		serverPassword = props.getProperty("server_password");
 		props.clear();
 	}
 
-	/**
-	 * Sends an email from the servlet's email account.
-	 * 
-	 * @param recipient The email address of to send the email to.
-	 * @param emailSubject The subject of the email.
-	 * @param emailBody The body/contents of the email.
-	 * @param bodyFormat The format of the body. This could for
-	 * 		example be 'text', 'html', 'text/html' etc.
-	 */
-	private static boolean send(String recipient, String emailSubject,
-			String emailBody, String bodyFormat)
+	private static boolean send(String recipient, String emailSubject, String emailBody, String bodyFormat)
 	{
-		/* generate session and message instances */
-		Session getMailSession = Session.getDefaultInstance(
-				mailConfig, null);
-		MimeMessage generateMailMessage = new MimeMessage(getMailSession);
-		try
-		{
+		try {
+			/* generate session and message instances */
+			Session s = Session.getDefaultInstance(mailConfig, null);
+			
 			/* create email */
-			generateMailMessage.addRecipient(Message.RecipientType.TO,
-					new InternetAddress(recipient));
-			generateMailMessage.setSubject(emailSubject);
-			generateMailMessage.setContent(emailBody, bodyFormat);
+			MimeMessage msg = new MimeMessage(s);
+			msg.addRecipient(Message.RecipientType.TO, new InternetAddress(recipient));
+			msg.setSubject(emailSubject);
+			msg.setContent(emailBody, bodyFormat);
 			
 			/* login to server email account and send email. */
-			Transport transport = getMailSession.getTransport();
+			Transport transport = s.getTransport();
 			transport.connect(serverEmail, serverPassword);
-			transport.sendMessage(generateMailMessage,
-					generateMailMessage.getAllRecipients());
+			transport.sendMessage(msg, msg.getAllRecipients());
 			transport.close();
-		} catch (MessagingException me)
-		{
+			return true;
+		} catch (MessagingException me) {
 			logger.log("Could not send email", me);
 			return false;
 		}
-		return true;
 	}
 }

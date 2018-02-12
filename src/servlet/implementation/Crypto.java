@@ -4,7 +4,7 @@ import java.io.IOException;
 import java.math.BigInteger;
 import java.util.Properties;
 
-import common.Utilities;
+import res.Resources;
 
 public class Crypto
 {
@@ -24,7 +24,7 @@ public class Crypto
 		BigInteger pow = null, mod = null;
 		try {
 			Properties props = new Properties();
-			props.load(Utilities.getResourceStream(Crypto.class, "servlet/implementation/keys.ini"));
+			props.load(Resources.getStream(Resources.KEY_PATH));
 			mod = new BigInteger(props.getProperty("mod"), 16);
 			pow = new BigInteger(props.getProperty("exp"), 16);
 			props.clear();

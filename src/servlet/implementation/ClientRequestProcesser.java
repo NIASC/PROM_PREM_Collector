@@ -2,16 +2,11 @@ package servlet.implementation;
 
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
-
-import org.json.simple.JSONArray;
-import org.json.simple.JSONObject;
-import org.json.simple.parser.JSONParser;
 
 import common.implementation.Constants;
 import static common.implementation.Packet.TYPE;
@@ -31,13 +26,16 @@ import servlet.core.usermanager.UserManager;
 import servlet.implementation.AdminPacket.Admin;
 import servlet.implementation.AdminPacket.AdminData;
 import servlet.implementation.AdminPacket.AdminTypes;
+import servlet.implementation.io.ListData;
+import servlet.implementation.io.MapData;
+import servlet.implementation.io.PacketData;
 
 public class ClientRequestProcesser
 {
 	public String handleRequest(String message, String remoteAddr, String hostAddr)
 	{
 		try {
-			MapData obj = new MapData(message);
+			MapData obj = packetData.getMapData(message);
 			Admin admin = Admin.NO;
 			if (obj.get(_ADMIN) != null) {
 				try {
@@ -53,12 +51,11 @@ public class ClientRequestProcesser
 			return rp.processRequest(obj).toString();
 		} catch (Exception e) {
 			logger.log("Unknown request", e);
-			return new MapData().toString();
+			return packetData.getMapData().toString();
 		}
 	}
 	
-	public ClientRequestProcesser()
-	{
+	public ClientRequestProcesser() {
 		userMethods.put(Types.PING, Ping.instance);
 		userMethods.put(Types.VALIDATE_PID, ValidatePatientID.instance);
 		userMethods.put(Types.ADD_QANS, AddQuestionnaireAnswers.instance);
@@ -82,7 +79,7 @@ public class ClientRequestProcesser
 	}
 	
 	private static final ServletLogger logger = ServletLogger.LOGGER;
-	private static JSONParser parser = new JSONParser();
+	private static PacketData packetData = PacketData.instance;
 	private Map<Types, RequestProcesser> userMethods = new HashMap<Types, RequestProcesser>();
 	private Map<AdminTypes, RequestProcesser> adminMethods = new HashMap<AdminTypes, RequestProcesser>();
 	
@@ -97,6 +94,7 @@ public class ClientRequestProcesser
 	private interface RequestProcesser {
 		UserManager um = UserManager.instance;
 		Database db = MySQLDatabase.instance;
+		PacketData packetData = PacketData.instance;
 		QDBFormat qdbf = QDBFormat.instance;
 		MapData processRequest(MapData in) throws Exception;
 	}
@@ -119,13 +117,13 @@ public class ClientRequestProcesser
 		
 		@Override
 		public MapData processRequest(MapData in) {
-			MapData out = new MapData();
+			MapData out = packetData.getMapData();
 			out.put(TYPE, Types.PING);
 
-			MapData data = new MapData();
+			MapData data = packetData.getMapData();
 			Data.Ping.Response result = Data.Ping.Response.FAIL;
 			try {
-				result = processPing(new MapData(in.get(DATA)));
+				result = processPing(packetData.getMapData(in.get(DATA)));
 			} catch (Exception ignored) { }
 			data.put(Data.Ping.RESPONSE, result);
 
@@ -133,12 +131,8 @@ public class ClientRequestProcesser
 			return out;
 		}
 		
-		private Data.Ping.Response processPing(MapData in) throws
-				NullPointerException, NumberFormatException,
-				org.json.simple.parser.ParseException,
-				ClassCastException
-		{
-			MapData inpl = new MapData(Crypto.decrypt(in.get(Data.Ping.DETAILS)));
+		private Data.Ping.Response processPing(MapData in) throws Exception {
+			MapData inpl = packetData.getMapData(Crypto.decrypt(in.get(Data.Ping.DETAILS)));
 			long uid = Long.parseLong(inpl.get(Data.Ping.Details.UID));
 			if (um.isOnline(uid)) {
 				return refreshTimer(uid) ? Data.Ping.Response.SUCCESS : Data.Ping.Response.FAIL;
@@ -150,15 +144,14 @@ public class ClientRequestProcesser
 	private enum ValidatePatientID implements LoggedInRequestProcesser {
 		instance;
 
-		public MapData processRequest(MapData in)
-		{
-			MapData out = new MapData();
+		public MapData processRequest(MapData in) {
+			MapData out = packetData.getMapData();
 			out.put(TYPE, Types.VALIDATE_PID);
 
-			MapData data = new MapData();
+			MapData data = packetData.getMapData();
 			Data.ValidatePatientID.Response result = Data.ValidatePatientID.Response.FAIL;
 			try {
-				if (validatePersonalID(new MapData(in.get(DATA)))) { result = Data.ValidatePatientID.Response.SUCCESS; }
+				if (validatePersonalID(packetData.getMapData(in.get(DATA)))) { result = Data.ValidatePatientID.Response.SUCCESS; }
 			} catch (Exception ignored) { }
 			data.put(Data.ValidatePatientID.RESPONSE, result);
 
@@ -166,13 +159,9 @@ public class ClientRequestProcesser
 			return out;
 		}
 		
-		private boolean validatePersonalID(MapData in)
-				throws NullPointerException, NumberFormatException,
-				org.json.simple.parser.ParseException,
-				ClassCastException
-		{
-			MapData inpl = new MapData(Crypto.decrypt(in.get(Data.ValidatePatientID.DETAIL)));
-			MapData patient = new MapData(Crypto.decrypt(in.get(Data.ValidatePatientID.PATIENT)));
+		private boolean validatePersonalID(MapData in) throws Exception {
+			MapData inpl = packetData.getMapData(Crypto.decrypt(in.get(Data.ValidatePatientID.DETAIL)));
+			MapData patient = packetData.getMapData(Crypto.decrypt(in.get(Data.ValidatePatientID.PATIENT)));
 			
 			long uid = Long.parseLong(inpl.get(Data.ValidatePatientID.Details.UID));
 			refreshTimer(uid);
@@ -187,15 +176,14 @@ public class ClientRequestProcesser
 	private enum AddQuestionnaireAnswers implements LoggedInRequestProcesser {
 		instance;
 
-		public MapData processRequest(MapData in)
-		{
-			MapData out = new MapData();
+		public MapData processRequest(MapData in) {
+			MapData out = packetData.getMapData();
 			out.put(TYPE, Types.ADD_QANS);
 
-			MapData data = new MapData();
+			MapData data = packetData.getMapData();
 			Data.AddQuestionnaireAnswers.Response result = Data.AddQuestionnaireAnswers.Response.FAIL;
 			try {
-				if (storeQestionnaireAnswers(new MapData(in.get(DATA)))) { result = Data.AddQuestionnaireAnswers.Response.SUCCESS; }
+				if (storeQestionnaireAnswers(packetData.getMapData(in.get(DATA)))) { result = Data.AddQuestionnaireAnswers.Response.SUCCESS; }
 			} catch (Exception e) { }
 			data.put(Data.AddQuestionnaireAnswers.RESPONSE, result);
 
@@ -203,13 +191,9 @@ public class ClientRequestProcesser
 			return out;
 		}
 		
-		private boolean storeQestionnaireAnswers(MapData in)
-				throws NullPointerException, NumberFormatException,
-				org.json.simple.parser.ParseException,
-				ClassCastException
-		{
-			MapData inpl = new MapData(Crypto.decrypt(in.get(Data.AddQuestionnaireAnswers.DETAILS)));
-			MapData patient = new MapData(Crypto.decrypt(in.get(Data.AddQuestionnaireAnswers.PATIENT)));
+		private boolean storeQestionnaireAnswers(MapData in) throws Exception {
+			MapData inpl = packetData.getMapData(Crypto.decrypt(in.get(Data.AddQuestionnaireAnswers.DETAILS)));
+			MapData patient = packetData.getMapData(Crypto.decrypt(in.get(Data.AddQuestionnaireAnswers.PATIENT)));
 			
 			long uid = Long.parseLong(inpl.get(Data.AddQuestionnaireAnswers.Details.UID));
 			refreshTimer(uid);
@@ -225,9 +209,9 @@ public class ClientRequestProcesser
 					forename, personalID, surname);
 
 			List<String> answers = new ArrayList<String>();
-			ListData m = new ListData(in.get(Data.AddQuestionnaireAnswers.QUESTIONS));
+			ListData m = packetData.getListData(in.get(Data.AddQuestionnaireAnswers.QUESTIONS));
 			for (String str : m.iterable())
-				answers.add(qdbf.getDBFormat(new MapData(str)));
+				answers.add(qdbf.getDBFormat(packetData.getMapData(str)));
 			
 			return db.addPatient(clinic_id, identifier)
 					&& db.addQuestionnaireAnswers(clinic_id, identifier, answers);
@@ -236,15 +220,14 @@ public class ClientRequestProcesser
 	
 	private enum SetPassword implements LoggedInRequestProcesser {
 		instance;
-		public MapData processRequest(MapData in)
-		{
-			MapData out = new MapData();
+		public MapData processRequest(MapData in) {
+			MapData out = packetData.getMapData();
 			out.put(TYPE, Types.SET_PASSWORD);
 
-			MapData data = new MapData();
+			MapData data = packetData.getMapData();
 			Data.SetPassword.Response result = Data.SetPassword.Response.ERROR;
 			try {
-				result = storePassword(new MapData(in.get(DATA)));
+				result = storePassword(packetData.getMapData(in.get(DATA)));
 			} catch (Exception e) { }
 			data.put(Data.SetPassword.RESPONSE, result);
 
@@ -252,12 +235,8 @@ public class ClientRequestProcesser
 			return out;
 		}
 		
-		private Data.SetPassword.Response storePassword(MapData in)
-				throws NullPointerException, NumberFormatException,
-				org.json.simple.parser.ParseException,
-				ClassCastException
-		{
-			MapData inpl = new MapData(Crypto.decrypt(in.get(Data.SetPassword.DETAILS)));
+		private Data.SetPassword.Response storePassword(MapData in) throws Exception {
+			MapData inpl = packetData.getMapData(Crypto.decrypt(in.get(Data.SetPassword.DETAILS)));
 			long uid = Long.parseLong(inpl.get(Data.SetPassword.Details.UID));
 			refreshTimer(uid);
 			String name = um.nameForUID(uid);
@@ -280,13 +259,12 @@ public class ClientRequestProcesser
 
 	private enum LoadQuestions implements RequestProcesser {
 		instance;
-		public MapData processRequest(MapData in)
-		{
-			MapData out = new MapData();
+		public MapData processRequest(MapData in) {
+			MapData out = packetData.getMapData();
 			out.put(TYPE, Types.LOAD_Q);
 
-			MapData data = new MapData();
-			String result = new MapData().toString();
+			MapData data = packetData.getMapData();
+			String result = packetData.getMapData().toString();
 			try {
 				result = retrieveQuestions().toString();
 			} catch (Exception e) { }
@@ -296,15 +274,13 @@ public class ClientRequestProcesser
 			return out;
 		}
 		
-		private MapData retrieveQuestions()
-				throws NullPointerException, NumberFormatException
-		{
+		private MapData retrieveQuestions() throws Exception {
 			Map<Integer, QuestionData> questions = db.loadQuestions();
-			MapData _questions = new MapData();
+			MapData _questions = packetData.getMapData();
 			for (Entry<Integer, QuestionData> _e : questions.entrySet()) {
 				QuestionData _q = _e.getValue();
-				MapData _question = new MapData();
-				ListData options = new ListData();
+				MapData _question = packetData.getMapData();
+				ListData options = packetData.getListData();
 				for (String str : _q.options) {
 					options.add(str);
 				}
@@ -326,15 +302,14 @@ public class ClientRequestProcesser
 
 	private enum LoadQResultDates implements LoggedInRequestProcesser {
 		instance;
-		public MapData processRequest(MapData in)
-		{
-			MapData out = new MapData();
+		public MapData processRequest(MapData in) {
+			MapData out = packetData.getMapData();
 			out.put(TYPE, Types.LOAD_QR_DATE);
 
-			MapData data = new MapData();
-			String result = new ListData().toString();
+			MapData data = packetData.getMapData();
+			String result = packetData.getListData().toString();
 			try {
-				result = retrieveQResultDates(new MapData(in.get(DATA))).toString();
+				result = retrieveQResultDates(packetData.getMapData(in.get(DATA))).toString();
 			} catch (Exception e) { }
 			data.put(Data.LoadQResultDates.DATES, result);
 
@@ -342,18 +317,14 @@ public class ClientRequestProcesser
 			return out;
 		}
 		
-		private ListData retrieveQResultDates(MapData in)
-				throws NullPointerException, NumberFormatException,
-				org.json.simple.parser.ParseException,
-				ClassCastException
-		{
-			MapData inpl = new MapData(Crypto.decrypt(in.get(Data.LoadQResultDates.DETAILS)));
+		private ListData retrieveQResultDates(MapData in) throws Exception {
+			MapData inpl = packetData.getMapData(Crypto.decrypt(in.get(Data.LoadQResultDates.DETAILS)));
 			long uid = Long.parseLong(inpl.get(Data.LoadQResultDates.Details.UID));
 			refreshTimer(uid);
 			User user = db.getUser(um.nameForUID(uid));
 			List<String> dlist = db.loadQuestionResultDates(user.clinic_id);
 
-			ListData dates = new ListData();
+			ListData dates = packetData.getListData();
 			for (String str : dlist) {
 				dates.add(str);
 			}
@@ -364,15 +335,14 @@ public class ClientRequestProcesser
 	private enum LoadQResults implements LoggedInRequestProcesser {
 		instance;
 		
-		public MapData processRequest(MapData in)
-		{
-			MapData out = new MapData();
+		public MapData processRequest(MapData in) {
+			MapData out = packetData.getMapData();
 			out.put(TYPE, Types.LOAD_QR);
 
-			MapData data = new MapData();
-			String result = new ListData().toString();
+			MapData data = packetData.getMapData();
+			String result = packetData.getListData().toString();
 			try {
-				result = retrieveQResults(new MapData(in.get(DATA))).toString();
+				result = retrieveQResults(packetData.getMapData(in.get(DATA))).toString();
 			} catch (Exception e) { }
 			data.put(Data.LoadQResults.RESULTS, result);
 
@@ -380,16 +350,12 @@ public class ClientRequestProcesser
 			return out;
 		}
 		
-		private ListData retrieveQResults(MapData in)
-				throws NullPointerException, NumberFormatException,
-				org.json.simple.parser.ParseException,
-				ClassCastException
-		{
-			MapData inpl = new MapData(Crypto.decrypt(in.get(Data.LoadQResults.DETAILS)));
+		private ListData retrieveQResults(MapData in) throws Exception {
+			MapData inpl = packetData.getMapData(Crypto.decrypt(in.get(Data.LoadQResults.DETAILS)));
 			long uid = Long.parseLong(inpl.get(Data.LoadQResults.Details.UID));
 			refreshTimer(uid);
 			User _user = db.getUser(um.nameForUID(uid));
-			ListData questions = new ListData(in.get(Data.LoadQResults.QUESTIONS));
+			ListData questions = packetData.getListData(in.get(Data.LoadQResults.QUESTIONS));
 			List<Integer> qlist = new ArrayList<Integer>();
 			for (String str : questions.iterable()) {
 				qlist.add(Integer.parseInt(str));
@@ -400,9 +366,9 @@ public class ClientRequestProcesser
 					getDate(in.get(Data.LoadQResults.BEGIN)),
 					getDate(in.get(Data.LoadQResults.END)));
 
-			ListData results = new ListData();
+			ListData results = packetData.getListData();
 			for (Map<Integer, String> m : _results) {
-				MapData answers = new MapData();
+				MapData answers = packetData.getMapData();
 				for (Entry<Integer, String> e : m.entrySet())
 					answers.put(e.getKey(), qdbf.getQFormat(e.getValue()));
 				results.add(answers.toString());
@@ -413,15 +379,14 @@ public class ClientRequestProcesser
 
 	private enum RequestRegistration implements RequestProcesser {
 		instance;
-		public MapData processRequest(MapData in)
-		{
-			MapData out = new MapData();
+		public MapData processRequest(MapData in) {
+			MapData out = packetData.getMapData();
 			out.put(TYPE, Types.REQ_REGISTR);
 
-			MapData data = new MapData();
+			MapData data = packetData.getMapData();
 			Data.RequestRegistration.Response result = Data.RequestRegistration.Response.FAIL;
 			try {
-				if (sendRegistration(new MapData(in.get(DATA)))) { result = Data.RequestRegistration.Response.SUCCESS; }
+				if (sendRegistration(packetData.getMapData(in.get(DATA)))) { result = Data.RequestRegistration.Response.SUCCESS; }
 			} catch (Exception e) { }
 			data.put(Data.RequestRegistration.RESPONSE, result);
 
@@ -429,16 +394,11 @@ public class ClientRequestProcesser
 			return out;
 		}
 		
-		private boolean sendRegistration(MapData in)
-				throws NullPointerException, NumberFormatException,
-				org.json.simple.parser.ParseException,
-				ClassCastException
-		{
-			MapData inpl = new MapData(Crypto.decrypt(in.get(Data.RequestRegistration.DETAILS)));
+		private boolean sendRegistration(MapData in) throws Exception {
+			MapData inpl = packetData.getMapData(Crypto.decrypt(in.get(Data.RequestRegistration.DETAILS)));
 			String name = inpl.get(Data.RequestRegistration.Details.NAME);
 			String email = inpl.get(Data.RequestRegistration.Details.EMAIL);
 			String clinic = inpl.get(Data.RequestRegistration.Details.CLINIC);
-			
 			return MailMan.sendRegReq(name, email, clinic);
 		}
 	}
@@ -446,17 +406,16 @@ public class ClientRequestProcesser
 	private enum RequestLogin implements RequestProcesser {
 		instance;
 		Encryption crypto = SHAEncryption.instance;
-		public MapData processRequest(MapData in)
-		{
-			MapData out = new MapData();
+		public MapData processRequest(MapData in) {
+			MapData out = packetData.getMapData();
 			out.put(TYPE, Types.REQ_LOGIN);
 
-			MapData data = new MapData();
+			MapData data = packetData.getMapData();
 			Data.RequestLogin.Response response = Data.RequestLogin.Response.INVALID_DETAILS;
 			Data.RequestLogin.UpdatePassword update_password = Data.RequestLogin.UpdatePassword.NO;
 			String uid = Long.toString(0L);
 			try {
-				UserLogin ret = login(new MapData(in.get(DATA)));
+				UserLogin ret = login(packetData.getMapData(in.get(DATA)));
 				response = ret.response;
 				if (ret.user.update_password) { update_password = Data.RequestLogin.UpdatePassword.YES; }
 				if (Constants.equal(ret.response, Data.RequestLogin.Response.SUCCESS)) { uid = Long.toString(ret.uid); }
@@ -470,13 +429,9 @@ public class ClientRequestProcesser
 			return out;
 		}
 		
-		private UserLogin login(MapData in)
-				throws NullPointerException, NumberFormatException,
-				org.json.simple.parser.ParseException,
-				ClassCastException
-		{
+		private UserLogin login(MapData in) throws Exception {
 			UserLogin ret = new UserLogin();
-			MapData inpl = new MapData(Crypto.decrypt(in.get(Data.RequestLogin.DETAILS)));
+			MapData inpl = packetData.getMapData(Crypto.decrypt(in.get(Data.RequestLogin.DETAILS)));
 			ret.user = db.getUser(inpl.get(Data.RequestLogin.Details.USERNAME));
 			if (!ret.user.passwordMatches(inpl.get(Data.RequestLogin.Details.PASSWORD))) {
 				throw new NullPointerException("invalid details");
@@ -501,8 +456,7 @@ public class ClientRequestProcesser
 			return ret;
 		}
 		
-		private class UserLogin
-		{
+		private class UserLogin {
 			User user;
 			long uid;
 			Data.RequestLogin.Response response;
@@ -511,15 +465,14 @@ public class ClientRequestProcesser
 
 	private enum RequestLogout implements LoggedInRequestProcesser {
 		instance;
-		public MapData processRequest(MapData in)
-		{
-			MapData out = new MapData();
+		public MapData processRequest(MapData in) {
+			MapData out = packetData.getMapData();
 			out.put(TYPE, Types.REQ_LOGOUT);
 
-			MapData data = new MapData();
+			MapData data = packetData.getMapData();
 			Data.RequestLogout.Response result = Data.RequestLogout.Response.ERROR;
 			try {
-				result = logout(new MapData(in.get(DATA)));
+				result = logout(packetData.getMapData(in.get(DATA)));
 			} catch (Exception e) { }
 			data.put(Data.RequestLogout.RESPONSE, result);
 
@@ -527,12 +480,8 @@ public class ClientRequestProcesser
 			return out;
 		}
 		
-		private Data.RequestLogout.Response logout(MapData in)
-				throws NullPointerException, NumberFormatException,
-				org.json.simple.parser.ParseException,
-				ClassCastException
-		{
-			MapData inpl = new MapData(Crypto.decrypt(in.get(Data.RequestLogout.DETAILS)));
+		private Data.RequestLogout.Response logout(MapData in) throws Exception {
+			MapData inpl = packetData.getMapData(Crypto.decrypt(in.get(Data.RequestLogout.DETAILS)));
 			long uid = Long.parseLong(inpl.get(Data.RequestLogout.Details.UID));
 			refreshTimer(uid);
 			logger.log("User '" + um.nameForUID(uid) + "' with UID '" + uid + "' logged out");
@@ -542,15 +491,14 @@ public class ClientRequestProcesser
 
 	private enum _GetUser implements RequestProcesser {
 		instance;
-		public MapData processRequest(MapData in)
-		{
-			MapData out = new MapData();
+		public MapData processRequest(MapData in) {
+			MapData out = packetData.getMapData();
 			out.put(_TYPE, AdminTypes.GET_USER);
 
-			MapData data = new MapData();
-			String result = new MapData().toString();
+			MapData data = packetData.getMapData();
+			String result = packetData.getMapData().toString();
 			try {
-				result = _retrieveUser(new MapData(in.get(_DATA))).toString();
+				result = _retrieveUser(packetData.getMapData(in.get(_DATA))).toString();
 			} catch (Exception e) { }
 			data.put(AdminData.AdminGetUser.USER, result);
 
@@ -558,11 +506,9 @@ public class ClientRequestProcesser
 			return out;
 		}
 		
-		private MapData _retrieveUser(MapData in)
-				throws NullPointerException, NumberFormatException
-		{
+		private MapData _retrieveUser(MapData in) throws Exception {
 			User _user = db.getUser(in.get(AdminData.AdminGetUser.USERNAME));
-			MapData user = new MapData();
+			MapData user = packetData.getMapData();
 			user.put(AdminData.AdminGetUser.User.CLINIC_ID, Integer.toString(_user.clinic_id));
 			user.put(AdminData.AdminGetUser.User.USERNAME, _user.name);
 			user.put(AdminData.AdminGetUser.User.PASSWORD, _user.password);
@@ -576,13 +522,12 @@ public class ClientRequestProcesser
 
 	private enum _GetClinics implements RequestProcesser {
 		instance;
-		public MapData processRequest(MapData in)
-		{
-			MapData out = new MapData();
+		public MapData processRequest(MapData in) {
+			MapData out = packetData.getMapData();
 			out.put(_TYPE, AdminTypes.GET_CLINICS);
 
-			MapData data = new MapData();
-			String result = new MapData().toString();
+			MapData data = packetData.getMapData();
+			String result = packetData.getMapData().toString();
 			try {
 				result = _retrieveClinics().toString();
 			} catch (Exception e) { }
@@ -592,11 +537,9 @@ public class ClientRequestProcesser
 			return out;
 		}
 		
-		private MapData _retrieveClinics()
-				throws NullPointerException, NumberFormatException
-		{
+		private MapData _retrieveClinics() throws Exception {
 			Map<Integer, String> _clinics = db.getClinics();
-			MapData clinics = new MapData();
+			MapData clinics = packetData.getMapData();
 			for (Entry<Integer, String> e : _clinics.entrySet())
 				clinics.put(e.getKey(), e.getValue());
 			return clinics;
@@ -605,15 +548,14 @@ public class ClientRequestProcesser
 
 	private enum _AddUser implements RequestProcesser {
 		instance;
-		public MapData processRequest(MapData in)
-		{
-			MapData out = new MapData();
+		public MapData processRequest(MapData in) {
+			MapData out = packetData.getMapData();
 			out.put(_TYPE, AdminTypes.ADD_USER);
 
-			MapData data = new MapData();
+			MapData data = packetData.getMapData();
 			AdminData.AdminAddUser.Response result = AdminData.AdminAddUser.Response.FAIL;
 			try {
-				if (_storeUser(new MapData(in.get(_DATA)))) { result = AdminData.AdminAddUser.Response.SUCCESS; }
+				if (_storeUser(packetData.getMapData(in.get(_DATA)))) { result = AdminData.AdminAddUser.Response.SUCCESS; }
 			} catch (Exception e) { }
 			data.put(AdminData.AdminAddUser.RESPONSE, result);
 
@@ -621,11 +563,8 @@ public class ClientRequestProcesser
 			return out;
 		}
 		
-		private boolean _storeUser(MapData in)
-				throws NullPointerException, NumberFormatException,
-				IllegalArgumentException, org.json.simple.parser.ParseException
-		{
-			MapData details = new MapData(in.get(AdminData.AdminAddUser.DETAILS));
+		private boolean _storeUser(MapData in) throws Exception {
+			MapData details = packetData.getMapData(in.get(AdminData.AdminAddUser.DETAILS));
 			int clinic_id = Integer.parseInt(details.get(AdminData.AdminAddUser.Details.CLINIC_ID));
 			String name = details.get(AdminData.AdminAddUser.Details.NAME);
 			String password = details.get(AdminData.AdminAddUser.Details.PASSWORD);
@@ -637,15 +576,14 @@ public class ClientRequestProcesser
 
 	private enum _AddClinic implements RequestProcesser {
 		instance;
-		public MapData processRequest(MapData in)
-		{
-			MapData out = new MapData();
+		public MapData processRequest(MapData in) {
+			MapData out = packetData.getMapData();
 			out.put(_TYPE, AdminTypes.ADD_CLINIC);
 
-			MapData data = new MapData();
+			MapData data = packetData.getMapData();
 			AdminData.AdminAddClinic.Response result = AdminData.AdminAddClinic.Response.FAIL;
 			try {
-				if (_storeClinic(new MapData(in.get(_DATA)))) { result = AdminData.AdminAddClinic.Response.SUCCESS; }
+				if (_storeClinic(packetData.getMapData(in.get(_DATA)))) { result = AdminData.AdminAddClinic.Response.SUCCESS; }
 			} catch (Exception e) { }
 			data.put(AdminData.AdminAddClinic.RESPONSE, result);
 
@@ -653,9 +591,7 @@ public class ClientRequestProcesser
 			return out;
 		}
 		
-		private boolean _storeClinic(MapData in)
-				throws NullPointerException, NumberFormatException
-		{
+		private boolean _storeClinic(MapData in) throws Exception {
 			String name = in.get(AdminData.AdminAddClinic.NAME);
 			return db.addClinic(name);
 		}
@@ -663,15 +599,14 @@ public class ClientRequestProcesser
 
 	private enum _RespondRegistration implements RequestProcesser {
 		instance;
-		public MapData processRequest(MapData in)
-		{
-			MapData out = new MapData();
+		public MapData processRequest(MapData in) {
+			MapData out = packetData.getMapData();
 			out.put(_TYPE, AdminTypes.RSP_REGISTR);
 
-			MapData data = new MapData();
+			MapData data = packetData.getMapData();
 			AdminData.AdminRespondRegistration.Response result = AdminData.AdminRespondRegistration.Response.FAIL;
 			try {
-				if (_sendRegResp(new MapData(in.get(_DATA)))) { result = AdminData.AdminRespondRegistration.Response.SUCCESS; }
+				if (_sendRegResp(packetData.getMapData(in.get(_DATA)))) { result = AdminData.AdminRespondRegistration.Response.SUCCESS; }
 			} catch (Exception e) { }
 			data.put(AdminData.AdminRespondRegistration.RESPONSE, result);
 
@@ -679,12 +614,8 @@ public class ClientRequestProcesser
 			return out;
 		}
 		
-		private boolean _sendRegResp(MapData in)
-				throws NullPointerException, NumberFormatException,
-				org.json.simple.parser.ParseException,
-				ClassCastException
-		{
-			MapData details = new MapData(in.get(AdminData.AdminRespondRegistration.DETAILS));
+		private boolean _sendRegResp(MapData in) throws Exception {
+			MapData details = packetData.getMapData(in.get(AdminData.AdminRespondRegistration.DETAILS));
 			String username = details.get(AdminData.AdminRespondRegistration.Details.USERNAME);
 			String password = details.get(AdminData.AdminRespondRegistration.Details.PASSWORD);
 			String email = details.get(AdminData.AdminRespondRegistration.Details.EMAIL);
@@ -692,105 +623,18 @@ public class ClientRequestProcesser
 		}
 	}
 	
-	private static class MapData
-	{
-		JSONObject jobj;
-		Map<String, String> jmap;
-		
-		MapData()
-		{
-			this((JSONObject) null);
-		}
-		
-		@SuppressWarnings("unchecked")
-		MapData(JSONObject jobj)
-		{
-			this.jobj = jobj != null ? jobj : new JSONObject();
-			this.jmap = (Map<String, String>) this.jobj;
-		}
-		
-		MapData(String jsonString)
-				throws org.json.simple.parser.ParseException,
-				ClassCastException
-		{
-			this((JSONObject) parser.parse(jsonString));
-		}
-		
-		void put(Enum<?> key, Enum<?> value) {
-			jmap.put(Integer.toString(key.ordinal()),
-					Integer.toString(value.ordinal()));
-		}
-		
-		void put(Enum<?> key, String value) {
-			jmap.put(Integer.toString(key.ordinal()), value);
-		}
-		
-		void put(Integer key, String value) {
-			jmap.put(Integer.toString(key), value);
-		}
-		
-		String get(Enum<?> key) {
-			return jmap.get(Integer.toString(key.ordinal()));
-		}
-		
-		@Override
-		public String toString() {
-			return jobj.toString();
-		}
-	}
-	
-	private static class ListData
-	{
-		JSONArray jarr;
-		List<String> jlist;
-		
-		ListData() {
-			this((JSONArray) null);
-		}
-		
-		@SuppressWarnings("unchecked")
-		ListData(JSONArray jarr) {
-			this.jarr = jarr != null ? jarr : new JSONArray();
-			this.jlist = (List<String>) this.jarr;
-		}
-		
-		ListData(String jsonString) throws
-				org.json.simple.parser.ParseException,
-				ClassCastException
-		{
-			this((JSONArray) parser.parse(jsonString));
-		}
-		
-		void add(String value) {
-			jlist.add(value);
-		}
-		
-		Iterable<String> iterable() {
-			return Collections.unmodifiableList(jlist);
-		}
-		
-		@Override
-		public String toString() {
-			return jarr.toString();
-		}
-	}
-
 	private enum QDBFormat {
 		instance;
 
 		Database db = MySQLDatabase.instance;
 		
-		String getDBFormat(MapData fc) throws
-				org.json.simple.parser.ParseException,
-				ClassCastException,
-				NumberFormatException
-		{
+		String getDBFormat(MapData fc) throws Exception {
 			String val = null;
 			if ((val = fc.get(QuestionTypes.SINGLE_OPTION)) != null) {
 				return db.escapeReplace(String.format("option%d", Integer.parseInt(val)));
 			} else if ((val = fc.get(QuestionTypes.MULTIPLE_OPTION)) != null) {
 				List<String> lstr = new ArrayList<>();
-				for (String str : new ListData(val).iterable()) {
+				for (String str : packetData.getListData(val).iterable()) {
 					lstr.add(String.format("option%d", Integer.parseInt(str)));
 				}
 				return db.escapeReplace(lstr);
@@ -803,9 +647,8 @@ public class ClientRequestProcesser
 			}
 		}
 		
-		String getQFormat(String dbEntry)
-		{
-			MapData fmt = new MapData();
+		String getQFormat(String dbEntry) {
+			MapData fmt = packetData.getMapData();
 			if (dbEntry == null || dbEntry.trim().isEmpty()) {
 				return fmt.toString();
 			}
@@ -817,7 +660,7 @@ public class ClientRequestProcesser
 			} else if (db.isSQLList(dbEntry)) {
                 /* multiple answers */
 				List<String> entries = db.SQLListToJavaList(dbEntry);
-				ListData options = new ListData();
+				ListData options = packetData.getListData();
 				if (entries.get(0).startsWith("option")) {
                     /* multiple option */
 					for (String str : entries)
