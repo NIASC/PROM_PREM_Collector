@@ -12,6 +12,7 @@ public class MapData
 	public void put(Enum<?> k, Enum<?> v) { m.put(etos(k), etos(v)); }
 	public void put(Enum<?> k, String v) { m.put(etos(k), v); }
 	public void put(Integer k, String v) { m.put(itos(k), v); }
+	public void put(String k, Integer v) { m.put(k, itos(v)); }
 	public String get(Enum<?> k) { return m.get(etos(k)); }
 	
 	@SuppressWarnings("unchecked")

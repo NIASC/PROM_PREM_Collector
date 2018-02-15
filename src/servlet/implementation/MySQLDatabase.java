@@ -268,9 +268,8 @@ public enum MySQLDatabase implements Database
 	}
 	
 	@Override
-	public List<Map<Integer, String>> loadQuestionResults(int clinic_id,
-			List<Integer> qlist,
-			Date begin, Date end)
+	public List<Map<Integer, String>> loadQuestionResults(
+			int clinic_id, List<Integer> qlist, Date begin, Date end)
 	{
 		List<Map<Integer, String>> _results = new ArrayList<Map<Integer, String>>();
 		try (Connection conn = dataSource.getConnection()) {
@@ -290,8 +289,7 @@ public enum MySQLDatabase implements Database
 			while (rs.next()) {
 				Map<Integer, String> _answers = new HashMap<Integer, String>();
 				for (Integer i : qlist) {
-					String str = String.format("question%d", i);
-					_answers.put(i, rs.getString(str));
+					_answers.put(i, rs.getString(String.format("question%d", i)));
 				}
 				_results.add(_answers);
 			}

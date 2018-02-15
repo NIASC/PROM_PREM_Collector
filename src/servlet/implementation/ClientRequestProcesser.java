@@ -22,6 +22,14 @@ import servlet.core.ServletLogger;
 import servlet.core.interfaces.Database;
 import servlet.core.interfaces.Encryption;
 import servlet.core.interfaces.Implementations;
+import servlet.core.statistics.Question;
+import servlet.core.statistics.StatisticsContainer;
+import servlet.core.statistics.StatisticsData;
+import servlet.core.statistics.containers.Area;
+import servlet.core.statistics.containers.MultipleOption;
+import servlet.core.statistics.containers.SingleOption;
+import servlet.core.statistics.containers.Slider;
+import servlet.core.statistics.containers.Statistics;
 import servlet.core.usermanager.UserManager;
 import servlet.implementation.AdminPacket.Admin;
 import servlet.implementation.AdminPacket.AdminData;
@@ -310,7 +318,9 @@ public class ClientRequestProcesser
 			String result = packetData.getListData().toString();
 			try {
 				result = retrieveQResultDates(packetData.getMapData(in.get(DATA))).toString();
-			} catch (Exception e) { }
+			} catch (Exception e) {
+				logger.log("Error retrieveing questionnaire result dates", e);
+			}
 			data.put(Data.LoadQResultDates.DATES, result);
 
 			out.put(DATA, data.toString());
@@ -340,17 +350,19 @@ public class ClientRequestProcesser
 			out.put(TYPE, Types.LOAD_QR);
 
 			MapData data = packetData.getMapData();
-			String result = packetData.getListData().toString();
+			String result = packetData.getMapData().toString();
 			try {
 				result = retrieveQResults(packetData.getMapData(in.get(DATA))).toString();
-			} catch (Exception e) { }
+			} catch (Exception e) {
+				logger.log("Error retrieveing questionnaire results", e);
+			}
 			data.put(Data.LoadQResults.RESULTS, result);
 
 			out.put(DATA, data.toString());
 			return out;
 		}
 		
-		private ListData retrieveQResults(MapData in) throws Exception {
+		private MapData retrieveQResults(MapData in) throws Exception {
 			MapData inpl = packetData.getMapData(Crypto.decrypt(in.get(Data.LoadQResults.DETAILS)));
 			long uid = Long.parseLong(inpl.get(Data.LoadQResults.Details.UID));
 			refreshTimer(uid);
@@ -365,15 +377,29 @@ public class ClientRequestProcesser
 					_user.clinic_id, qlist,
 					getDate(in.get(Data.LoadQResults.BEGIN)),
 					getDate(in.get(Data.LoadQResults.END)));
+			
+			if (_results.size() < 5) {
+				logger.log(String.format("Attempted to load %d endries which is less than 5 entries from database", _results.size()));
+				return packetData.getMapData();
+			} else {
+				StatisticsContainer container = new StatisticsContainer();
+				for (Map<Integer, String> ansmap : _results) {
+					for (Entry<Integer, String> e : ansmap.entrySet()) {
+						container.addResult(qdbf.getQFormat(e.getKey(), e.getValue()));
+					}
+				}
 
-			ListData results = packetData.getListData();
-			for (Map<Integer, String> m : _results) {
-				MapData answers = packetData.getMapData();
-				for (Entry<Integer, String> e : m.entrySet())
-					answers.put(e.getKey(), qdbf.getQFormat(e.getValue()));
-				results.add(answers.toString());
+				MapData results = packetData.getMapData();
+				for (StatisticsData sd : container.getStatistics()) {
+					MapData identifiersAndCount = packetData.getMapData();
+					for (Entry<Object, Integer> e : sd.getIdentifiersAndCount()) {
+						identifiersAndCount.put(e.getKey().toString(), e.getValue());
+					}
+					results.put(sd.getQuestionID(), identifiersAndCount.toString());
+				}
+
+				return results;
 			}
-			return results;
 		}
 	}
 
@@ -417,9 +443,12 @@ public class ClientRequestProcesser
 			try {
 				UserLogin ret = login(packetData.getMapData(in.get(DATA)));
 				response = ret.response;
-				if (ret.user.update_password) { update_password = Data.RequestLogin.UpdatePassword.YES; }
-				if (Constants.equal(ret.response, Data.RequestLogin.Response.SUCCESS)) { uid = Long.toString(ret.uid); }
-				logger.log("User '" + ret.user.name + "' logged in and was given UID '" + uid + "'");
+				if (ret.user.update_password) {
+					update_password = Data.RequestLogin.UpdatePassword.YES;
+				}
+				if (Constants.equal(ret.response, Data.RequestLogin.Response.SUCCESS)) {
+					uid = Long.toString(ret.uid);
+				}
 			} catch (Exception e) { }
 			data.put(Data.RequestLogin.RESPONSE, response);
 			data.put(Data.RequestLogin.UPDATE_PASSWORD, update_password);
@@ -484,7 +513,6 @@ public class ClientRequestProcesser
 			MapData inpl = packetData.getMapData(Crypto.decrypt(in.get(Data.RequestLogout.DETAILS)));
 			long uid = Long.parseLong(inpl.get(Data.RequestLogout.Details.UID));
 			refreshTimer(uid);
-			logger.log("User '" + um.nameForUID(uid) + "' with UID '" + uid + "' logged out");
 			return um.delUserFromListOfOnline(uid) ? Data.RequestLogout.Response.SUCCESS : Data.RequestLogout.Response.ERROR;
 		}
 	}
@@ -647,31 +675,24 @@ public class ClientRequestProcesser
 			}
 		}
 		
-		String getQFormat(String dbEntry) {
-			MapData fmt = packetData.getMapData();
-			if (dbEntry == null || dbEntry.trim().isEmpty()) {
-				return fmt.toString();
-			}
-			
+		Statistics getQFormat(int questionID, String dbEntry)
+		{
 			if (dbEntry.startsWith("option")) {
-				fmt.put(QuestionTypes.SINGLE_OPTION, dbEntry.substring("option".length()));
+				return new SingleOption(questionID, Integer.valueOf(dbEntry.substring("option".length())));
 			} else if (dbEntry.startsWith("slider")) {
-				fmt.put(QuestionTypes.SLIDER, dbEntry.substring("slider".length()));
+				return new Slider(questionID, Integer.valueOf(dbEntry.substring("slider".length())));
 			} else if (db.isSQLList(dbEntry)) {
-                /* multiple answers */
 				List<String> entries = db.SQLListToJavaList(dbEntry);
-				ListData options = packetData.getListData();
+                List<Integer> lint = new ArrayList<>();
 				if (entries.get(0).startsWith("option")) {
-                    /* multiple option */
 					for (String str : entries)
-						options.add(str.substring("option".length()));
-					fmt.put(QuestionTypes.MULTIPLE_OPTION, options.toString());
+	                    lint.add(Integer.valueOf(str.substring("option".length())));
+	                return new MultipleOption(questionID, lint);
 				}
 			} else {
-                /* must be plain text entry */
-				fmt.put(QuestionTypes.AREA, dbEntry);
+				return new Area(questionID, dbEntry);
 			}
-			return fmt.toString();
+			return null;
 		}
 	}
 }
