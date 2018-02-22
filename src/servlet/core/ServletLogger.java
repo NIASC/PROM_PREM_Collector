@@ -65,7 +65,7 @@ public enum ServletLogger
 		try {
 			String outputFilePattern = String.format("%s/%s.log", ServletConst.LOG_DIR, generateLogfileName(today));
 			todayHandler = new FileHandler(outputFilePattern, ServletConst.LOG_SIZE, ServletConst.LOG_COUNT);
-		} catch (SecurityException | IOException e) { }
+		} catch (IOException e) { } catch (SecurityException e) { }
 
 		if (todayHandler != null) {
 			setNewHandler(today, todayHandler);

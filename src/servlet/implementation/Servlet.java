@@ -23,7 +23,9 @@ public class Servlet extends HttpServlet
 	public void init() throws ServletException {
 		try {
 			message = Util.fileToString(res.Resources.MAIN_PAGE, "UTF-8");
-		} catch (IOException | UnsupportedCharsetException e) {
+		} catch (IOException e) {
+			message = "<html><head>404 - Page not found</head><body>The requested page was not found.</body></html>";
+		} catch (UnsupportedCharsetException e) {
 			message = "<html><head>404 - Page not found</head><body>The requested page was not found.</body></html>";
 		}
 		ppc = new ClientRequestProcesser();
@@ -47,11 +49,17 @@ public class Servlet extends HttpServlet
 	}
 
 	private void writeResponse(HttpServletResponse response, String out) {
-		try (PrintWriter pw = response.getWriter()) {
+		PrintWriter pw = null;
+		try {
+			pw = response.getWriter();
 			writeResponse(pw, out);
 		} catch (IOException e) {
 			String msg = e.getMessage();
 			logger.log(msg != null ? msg : "Error writing HttpServletResponse", e);
+		} finally {
+			if (pw != null) {
+				pw.close();
+			}
 		}
 	}
 
@@ -68,11 +76,17 @@ public class Servlet extends HttpServlet
 
 	private String readRequest(HttpServletRequest request) {
 		String in = null;
-		try (BufferedReader br = request.getReader()) {
+		BufferedReader br = null;
+		try {
+			br = request.getReader();
 			in = readRequest(br);
 		} catch (IOException e) {
 			String msg = e.getMessage();
 			logger.log(msg != null ? msg : "Error reading HttpServletRequest", e);
+		} finally {
+			if (br != null) {
+				try { br.close(); } catch (IOException e) { }
+			}
 		}
 		return in;
 	}

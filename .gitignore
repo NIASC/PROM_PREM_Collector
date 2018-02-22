@@ -10,3 +10,4 @@ web/ppc.jsp
 web/prom_prem_collector.jnlp
 *~
 PROM_PREM_Collector*.jar
+.settings

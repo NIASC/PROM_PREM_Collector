@@ -33,7 +33,10 @@ public abstract class ServletConst
 			logcount = Integer.parseInt(props.getProperty("logcount"));
 			url = new URL(props.getProperty("localurl"));
 			props.clear();
-		} catch (IOException | IllegalArgumentException _e) {
+		} catch (IOException _e) {
+			ServletLogger.LOGGER.log(Level.SEVERE, "FATAL: Could not load servlet settings file!", _e);
+			System.exit(1);
+		} catch (IllegalArgumentException _e) {
 			ServletLogger.LOGGER.log(Level.SEVERE, "FATAL: Could not load servlet settings file!", _e);
 			System.exit(1);
 		}

@@ -12,7 +12,7 @@ public abstract class Statistics  {
 
     Statistics(int questionID) {
         this.question = questionID;
-        answerIdentifiersWithText = new ArrayList<>();
+        answerIdentifiersWithText = new ArrayList<Object>();
     }
 
     void put(Object key) {

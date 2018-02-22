@@ -11,7 +11,7 @@ import servlet.core.statistics.containers.Statistics;
 public class StatisticsContainer
 {
 	public StatisticsContainer() {
-	    answers = new TreeMap<>();
+	    answers = new TreeMap<Integer, StatementOccurrence>();
 	}
 
 	public void addResult(Statistics answer) {
@@ -21,7 +21,7 @@ public class StatisticsContainer
 	}
 
 	public List<StatisticsData> getStatistics() {
-        List<StatisticsData> out = new ArrayList<>();
+        List<StatisticsData> out = new ArrayList<StatisticsData>();
         for (StatementOccurrence occurrence : answers.values()) {
             out.add(new StatisticsData(occurrence.getQuestionID(), occurrence.getStatementCount()));
         }
@@ -48,7 +48,7 @@ public class StatisticsContainer
 
         StatementOccurrence(int question) {
             this.question = question;
-            sortedStatementCount = new TreeMap<>();
+            sortedStatementCount = new TreeMap<Object, Occurrence>();
         }
 
         int getQuestionID() {
@@ -56,7 +56,7 @@ public class StatisticsContainer
         }
 
         Map<Object, Integer> getStatementCount() {
-            Map<Object, Integer> statementCount = new TreeMap<>();
+            Map<Object, Integer> statementCount = new TreeMap<Object, Integer>();
             for (Entry<Object, Occurrence> e : sortedStatementCount.entrySet()) {
                 statementCount.put(e.getKey(), e.getValue().count);
             }

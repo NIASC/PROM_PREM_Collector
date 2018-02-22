@@ -107,16 +107,29 @@ public class ClientRequestProcesser
 		MapData processRequest(MapData in) throws Exception;
 	}
 	
+	private static abstract class LoggedInMethods {
+		public abstract boolean refreshTimer(long uid);
+	}
+	
 	private interface LoggedInRequestProcesser extends RequestProcesser {
-		default boolean refreshTimer(long uid) {
-			return um.refreshInactivityTimer(uid);
+		DefaultLoggedInRequestProcesser defimpl = new DefaultLoggedInRequestProcesser();
+		
+		class DefaultLoggedInRequestProcesser extends ClientRequestProcesser.LoggedInMethods {
+			@Override
+			public boolean refreshTimer(long uid) {
+				return um.refreshInactivityTimer(uid);
+			}
 		}
 	}
 	
-	private interface IdleRequestProcesser extends LoggedInRequestProcesser {
-		@Override
-		default boolean refreshTimer(long uid) {
-			return um.refreshIdleTimer(uid);
+	private interface IdleRequestProcesser extends RequestProcesser {
+		DefaultLoggedInRequestProcesser defimpl = new DefaultLoggedInRequestProcesser();
+		
+		class DefaultLoggedInRequestProcesser extends ClientRequestProcesser.LoggedInMethods {
+			@Override
+			public boolean refreshTimer(long uid) {
+				return um.refreshInactivityTimer(uid);
+			}
 		}
 	}
 	
@@ -143,7 +156,7 @@ public class ClientRequestProcesser
 			MapData inpl = packetData.getMapData(Crypto.decrypt(in.get(Data.Ping.DETAILS)));
 			long uid = Long.parseLong(inpl.get(Data.Ping.Details.UID));
 			if (um.isOnline(uid)) {
-				return refreshTimer(uid) ? Data.Ping.Response.SUCCESS : Data.Ping.Response.FAIL;
+				return defimpl.refreshTimer(uid) ? Data.Ping.Response.SUCCESS : Data.Ping.Response.FAIL;
 			}
 			return Data.Ping.Response.NOT_ONLINE;
 		}
@@ -172,7 +185,7 @@ public class ClientRequestProcesser
 			MapData patient = packetData.getMapData(Crypto.decrypt(in.get(Data.ValidatePatientID.PATIENT)));
 			
 			long uid = Long.parseLong(inpl.get(Data.ValidatePatientID.Details.UID));
-			refreshTimer(uid);
+			defimpl.refreshTimer(uid);
 			String personalID = patient.get(Data.ValidatePatientID.Patient.PERSONAL_ID);
 			servlet.core.interfaces.Locale loc = Implementations.Locale();
 			
@@ -204,7 +217,7 @@ public class ClientRequestProcesser
 			MapData patient = packetData.getMapData(Crypto.decrypt(in.get(Data.AddQuestionnaireAnswers.PATIENT)));
 			
 			long uid = Long.parseLong(inpl.get(Data.AddQuestionnaireAnswers.Details.UID));
-			refreshTimer(uid);
+			defimpl.refreshTimer(uid);
 			int clinic_id = db.getUser(um.nameForUID(uid)).clinic_id;
 
 			servlet.core.interfaces.Locale loc = Implementations.Locale();
@@ -246,7 +259,7 @@ public class ClientRequestProcesser
 		private Data.SetPassword.Response storePassword(MapData in) throws Exception {
 			MapData inpl = packetData.getMapData(Crypto.decrypt(in.get(Data.SetPassword.DETAILS)));
 			long uid = Long.parseLong(inpl.get(Data.SetPassword.Details.UID));
-			refreshTimer(uid);
+			defimpl.refreshTimer(uid);
 			String name = um.nameForUID(uid);
 			String oldPass = inpl.get(Data.SetPassword.Details.OLD_PASSWORD);
 			String newPass1 = inpl.get(Data.SetPassword.Details.NEW_PASSWORD1);
@@ -330,7 +343,7 @@ public class ClientRequestProcesser
 		private ListData retrieveQResultDates(MapData in) throws Exception {
 			MapData inpl = packetData.getMapData(Crypto.decrypt(in.get(Data.LoadQResultDates.DETAILS)));
 			long uid = Long.parseLong(inpl.get(Data.LoadQResultDates.Details.UID));
-			refreshTimer(uid);
+			defimpl.refreshTimer(uid);
 			User user = db.getUser(um.nameForUID(uid));
 			List<String> dlist = db.loadQuestionResultDates(user.clinic_id);
 
@@ -365,7 +378,7 @@ public class ClientRequestProcesser
 		private MapData retrieveQResults(MapData in) throws Exception {
 			MapData inpl = packetData.getMapData(Crypto.decrypt(in.get(Data.LoadQResults.DETAILS)));
 			long uid = Long.parseLong(inpl.get(Data.LoadQResults.Details.UID));
-			refreshTimer(uid);
+			defimpl.refreshTimer(uid);
 			User _user = db.getUser(um.nameForUID(uid));
 			ListData questions = packetData.getListData(in.get(Data.LoadQResults.QUESTIONS));
 			List<Integer> qlist = new ArrayList<Integer>();
@@ -512,7 +525,7 @@ public class ClientRequestProcesser
 		private Data.RequestLogout.Response logout(MapData in) throws Exception {
 			MapData inpl = packetData.getMapData(Crypto.decrypt(in.get(Data.RequestLogout.DETAILS)));
 			long uid = Long.parseLong(inpl.get(Data.RequestLogout.Details.UID));
-			refreshTimer(uid);
+			defimpl.refreshTimer(uid);
 			return um.delUserFromListOfOnline(uid) ? Data.RequestLogout.Response.SUCCESS : Data.RequestLogout.Response.ERROR;
 		}
 	}
@@ -661,7 +674,7 @@ public class ClientRequestProcesser
 			if ((val = fc.get(QuestionTypes.SINGLE_OPTION)) != null) {
 				return db.escapeReplace(String.format("option%d", Integer.parseInt(val)));
 			} else if ((val = fc.get(QuestionTypes.MULTIPLE_OPTION)) != null) {
-				List<String> lstr = new ArrayList<>();
+				List<String> lstr = new ArrayList<String>();
 				for (String str : packetData.getListData(val).iterable()) {
 					lstr.add(String.format("option%d", Integer.parseInt(str)));
 				}
@@ -683,7 +696,7 @@ public class ClientRequestProcesser
 				return new Slider(questionID, Integer.valueOf(dbEntry.substring("slider".length())));
 			} else if (db.isSQLList(dbEntry)) {
 				List<String> entries = db.SQLListToJavaList(dbEntry);
-                List<Integer> lint = new ArrayList<>();
+                List<Integer> lint = new ArrayList<Integer>();
 				if (entries.get(0).startsWith("option")) {
 					for (String str : entries)
 	                    lint.add(Integer.valueOf(str.substring("option".length())));

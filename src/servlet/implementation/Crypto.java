@@ -28,10 +28,7 @@ public class Crypto
 			mod = new BigInteger(props.getProperty("mod"), 16);
 			pow = new BigInteger(props.getProperty("exp"), 16);
 			props.clear();
-		}
-		catch (IOException | IllegalArgumentException _e) {
-			
-		}
+		} catch (IOException _e) { } catch (IllegalArgumentException _e) { }
 		n = mod;
 		d = pow;
 	}

@@ -121,9 +121,7 @@ public enum ServletCommunication
 					_user.get(AdminData.AdminGetUser.User.UPDATE_PASSWORD));
 			_usr.update_password = Constants.equal(AdminData.AdminGetUser.User.UpdatePassword.YES, up);
 			return _usr;
-		} catch (NullPointerException | NumberFormatException _e) {
-			return null;
-		}
+		} catch (NullPointerException _e) { return null; } catch (NumberFormatException _e) { return null; }
 	}
 	
 	public boolean respondRegistration(String username, String password, String email)

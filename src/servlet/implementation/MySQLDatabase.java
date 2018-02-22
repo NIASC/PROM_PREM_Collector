@@ -34,7 +34,7 @@ public enum MySQLDatabase implements Database
 
 	@Override
 	public String escapeReplace(List<String> lstr) {
-		List<String> out = new ArrayList<>();
+		List<String> out = new ArrayList<String>();
 		for (String str : lstr) {
 			out.add(escapeReplace(str));
 		}
@@ -140,7 +140,9 @@ public enum MySQLDatabase implements Database
 	public Map<Integer, String> getClinics()
 	{
 		Map<Integer, String> cmap = new TreeMap<Integer, String>();
-		try (Connection conn = dataSource.getConnection()) {
+		Connection conn = null;
+		try {
+			conn = dataSource.getConnection();
 			ResultSet rs = readFromDatabase(conn, "SELECT `id`, `name` FROM `clinics`");
 			while (rs.next()) {
 				cmap.put(rs.getInt("id"), rs.getString("name"));
@@ -150,6 +152,10 @@ public enum MySQLDatabase implements Database
 		} catch (SQLException e) {
 			logger.log("Error opening connection to database "
 					+ "or while parsing SQL ResultSet", e);
+		} finally {
+			if (conn != null) {
+				try { conn.close(); } catch (SQLException e) { }
+			}
 		}
 		return cmap;
 	}
@@ -159,7 +165,9 @@ public enum MySQLDatabase implements Database
 	{
 		String q = String.format("SELECT `clinic_id`, `name`, `password`, `email`, `salt`, `update_password` FROM `users` WHERE `users`.`name`='%s'",
 				_escapeReplace(username));
-		try (Connection conn = dataSource.getConnection()) {
+		Connection conn = null;
+		try {
+			conn = dataSource.getConnection();
 			ResultSet rs = readFromDatabase(conn, q);
 
 			User _user = null;
@@ -178,6 +186,10 @@ public enum MySQLDatabase implements Database
 		} catch (SQLException se) {
 			logger.log("Error opening connection to database "
 					+ "or while parsing SQL ResultSet", se);
+		} finally {
+			if (conn != null) {
+				try { conn.close(); } catch (SQLException e) { }
+			}
 		}
 		return null;
 	}
@@ -210,7 +222,9 @@ public enum MySQLDatabase implements Database
 	public Map<Integer, QuestionData> loadQuestions()
 	{
 		Map<Integer, QuestionData> _questions = new HashMap<Integer, QuestionData>();
-		try (Connection conn = dataSource.getConnection()) {
+		Connection conn = null;
+		try {
+			conn = dataSource.getConnection();
 			ResultSet rs = readFromDatabase(conn,
 					"SELECT * FROM `questionnaire`");
 			
@@ -242,6 +256,10 @@ public enum MySQLDatabase implements Database
 			logger.log("Database read error", dbr);
 		} catch (SQLException e) {
 			logger.log("Error opening connection to database or while parsing SQL ResultSet", e);
+		} finally {
+			if (conn != null) {
+				try { conn.close(); } catch (SQLException e) { }
+			}
 		}
 		return _questions;
 	}
@@ -253,7 +271,9 @@ public enum MySQLDatabase implements Database
 				"SELECT `date` FROM `questionnaire_answers` WHERE `clinic_id`='%d'",
 				clinic_id);
 		List<String> dlist = new ArrayList<String>();
-		try (Connection conn = dataSource.getConnection()) {
+		Connection conn = null;
+		try {
+			conn = dataSource.getConnection();
 			ResultSet rs = readFromDatabase(conn, q);
 			
 			while (rs.next()) {
@@ -263,6 +283,10 @@ public enum MySQLDatabase implements Database
 			logger.log("Database read error", dbr);
 		} catch (SQLException e) {
 			logger.log("Error opening connection to database or while parsing SQL ResultSet", e);
+		} finally {
+			if (conn != null) {
+				try { conn.close(); } catch (SQLException e) { }
+			}
 		}
 		return dlist;
 	}
@@ -272,7 +296,9 @@ public enum MySQLDatabase implements Database
 			int clinic_id, List<Integer> qlist, Date begin, Date end)
 	{
 		List<Map<Integer, String>> _results = new ArrayList<Map<Integer, String>>();
-		try (Connection conn = dataSource.getConnection()) {
+		Connection conn = null;
+		try {
+			conn = dataSource.getConnection();
 			List<String> lstr = new ArrayList<String>();
 			for (Integer i : qlist)
 				lstr.add(String.format("`question%d`", i));
@@ -297,6 +323,10 @@ public enum MySQLDatabase implements Database
 			logger.log("Database read error", dbr);
 		} catch (SQLException e) {
 			logger.log("Error opening connection to database or while parsing SQL ResultSet", e);
+		} finally {
+			if (conn != null) {
+				try { conn.close(); } catch (SQLException e) { }
+			}
 		}
 		return _results;
 	}
@@ -323,25 +353,36 @@ public enum MySQLDatabase implements Database
 	
 	private boolean patientInDatabase(String identifier) throws SQLException, DBReadException
 	{
-		Connection conn = dataSource.getConnection();
-		String q = String.format(
-				"SELECT `identifier` FROM `patients` where `patients`.`identifier`='%s'",
-				_escapeReplace(identifier));
-		ResultSet rs = readFromDatabase(conn, q);
-		boolean exsist = rs.next();
-		conn.close();
-		
-		return exsist;
+		Connection conn = null;
+		try {
+			conn = dataSource.getConnection();
+			String q = String.format(
+					"SELECT `identifier` FROM `patients` where `patients`.`identifier`='%s'",
+					_escapeReplace(identifier));
+			ResultSet rs = readFromDatabase(conn, q);
+			boolean exsist = rs.next();
+			return exsist;
+		} finally {
+			if (conn != null) {
+				try { conn.close(); } catch (SQLException e) { }
+			}
+		}
 	}
 	
 	private void writeToDatabase(String query) throws DBWriteException
 	{
-		try (Connection c = dataSource.getConnection()) {
-			c.createStatement().executeUpdate(query);
+		Connection conn = null;
+		try {
+			conn = dataSource.getConnection();
+			conn.createStatement().executeUpdate(query);
 		} catch (SQLException se) {
 			throw new DBWriteException(String.format(
 					"Database could not process request: '%s'. Check your arguments.",
 					query));
+		} finally {
+			if (conn != null) {
+				try { conn.close(); } catch (SQLException e) { }
+			}
 		}
 	}
 	
