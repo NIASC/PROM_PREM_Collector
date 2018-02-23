@@ -30,9 +30,9 @@ user_exec() {
 ppc_create_database() {
     db_name="prom_prem_db";
     db_template="sql/prom_prem_db.sql";
-    printf "creating database $db_name and importing tables from $db_template. Please enter the superuser password.\n";
+    printf "creating database $db_name and importing tables from $db_template.\n";
 
-    su_exec "mysql -u $1 -p$2 -e '\
+    user_exec "mysql -u $1 -p$2 -e '\
 drop database if exists $db_name;\
 create database $db_name;\
 use $db_name;\
@@ -102,7 +102,7 @@ ppc_rsa_key_setup() {
 	ppc_public_exponent=${vararr[3]};
 	ppc_private_exponent=${vararr[4]};
 	printf "Storing keys...\n";
-	user_exec 'cat '$template_dir'/keys.ini.template | sed -e "s,PPC_MODULUS,"'$ppc_modulus'",g" | sed -e "s,PPC_PRIVATE_EXPONENT,"'$ppc_public_exponent'",g" | sed -e "s,PPC_PUBLIC_EXPONENT,"'$ppc_private_exponent'",g" > '$key_settings_file'; chmod 400 private_key.pem '$key_settings_file'';
+	user_exec 'cat '$template_dir'/keys.ini.template | sed -e "s,PPC_MODULUS,"'$ppc_modulus'",g" | sed -e "s,PPC_PRIVATE_EXPONENT,"'$ppc_private_exponent'",g" | sed -e "s,PPC_PUBLIC_EXPONENT,"'$ppc_public_exponent'",g" > '$key_settings_file'; chmod 400 private_key.pem '$key_settings_file'';
 	printf "Operation completed.\n";
 	printf "The generated keys have been stored in $private_key_file. Keep it Secret, Keep it Safe.\n";
 	printf "The keys can be viewed by executing the command 'openssl rsa -text -in $private_key_file'\n";
@@ -121,36 +121,40 @@ printf "Also make sure that MariaDB and Tomcat have been\nconfigured and that yo
 current_var=0
 while [ $database_configured -eq 0 -o $build_props_configured -eq 0 -o $email_configured -eq 0 -o $encryption_configured -eq 0 ]; do
     query_user "Do you wish to proceed? Press return to continue. Type anything to exit" user_decision;
-    if [ -n $user_decision ]; then
+    if [ ! -z $user_decision ]; then
 	break;
     fi
     case $current_var in
 	0)
+	    if [ $database_configured -eq 0 ]; then
+		ppc_database_setup;
+	    fi
 	    if [ $database_configured -ne 0 ]; then
 		current_var=1;
-	    else
-		ppc_database_setup;
 	    fi
 	    ;;
 	1)
+	    if [ $build_props_configured -eq 0 ]; then
+		ppc_build_props_setup;
+	    fi
 	    if [ $build_props_configured -ne 0 ]; then
 		current_var=2;
-	    else
-		ppc_build_props_setup;
 	    fi
 	    ;;
 	2)
+	    if [ $email_configured -eq 0 ]; then
+		ppc_email_setup;
+	    fi
 	    if [ $email_configured -ne 0 ]; then
 		current_var=3;
-	    else
-		ppc_email_setup;
 	    fi
 	    ;;
 	3)
-	    if [ $email_configured -ne 0 ]; then
-		current_var=0;
-	    else
+	    if [ $encryption_configured -eq 0 ]; then
 		ppc_rsa_key_setup;
+	    fi
+	    if [ $encryption_configured -ne 0 ]; then
+		current_var=0;
 	    fi
 	    ;;
 	*)
@@ -162,11 +166,11 @@ done
 if [ $database_configured -ne 0 -a $build_props_configured -ne 0 -a $email_configured -ne 0 -a $encryption_configured -ne 0 ]; then
     printf "\nThe setup is now complete and the servlet is ready for install.\n";
     query_user "Press return to compile ant install the servlet" user_choice;
-    if [ -z $user_choice ]; then
+    if [ ! -z $user_choice ]; then
 	user_exec "ant clean >/dev/null 2>&1";
-	user_exec "ant compile >/dev/null";
+	user_exec "ant compile";
 	user_exec "ant remove >/dev/null 2>&1";
-	user_exec "ant install >/dev/null";
+	user_exec "ant install";
     fi
 else
     printf "\nThe setup is incomplete. You many rerun this script to complete the setup.\n";

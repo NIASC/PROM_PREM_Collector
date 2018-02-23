@@ -11,3 +11,4 @@ web/prom_prem_collector.jnlp
 *~
 PROM_PREM_Collector*.jar
 .settings
+private_key.pem
