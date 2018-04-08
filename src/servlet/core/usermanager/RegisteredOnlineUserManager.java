@@ -4,39 +4,42 @@ import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
 
-class RegisteredOnlineUserManager {
-	RegisteredOnlineUserManager() {
+public class RegisteredOnlineUserManager {
+	public RegisteredOnlineUserManager() {
 		users = new HashMap<String, UserData>();
 		uids = new HashMap<Long, String>();
 	}
 	
-	synchronized void registerOnlineUser(UserData user) {
+	public synchronized void registerOnlineUser(UserData user) {
+		if (user == null || user.Name() == null || user.UID() == 0L ||
+				users.containsKey(user.Name()) || uids.containsKey(user.UID())) {
+			return;
+		}
 		users.put(user.Name(), user);
 		uids.put(user.UID(), user.Name());
 	}
 	
-	synchronized void deregisterOnlineUser(UserData user) {
+	public synchronized void deregisterOnlineUser(UserData user) {
 		users.remove(uids.remove(user.UID()));
 	}
 	
-	synchronized void deregisterOnlineUser(long uid) {
+	public synchronized void deregisterOnlineUser(long uid) {
 		users.remove(uids.remove(uid));
 	}
 
-	synchronized void deregisterAllOnlineUsers() {
-		for (UserData user : iterable()) {
-			deregisterOnlineUser(user);
-		}
+	public synchronized void deregisterAllOnlineUsers() {
+		users.clear();
+		uids.clear();
 	}
 
-	Collection<UserData> iterable() { return users.values(); }
-	int registeredUsersOnline() { return users.size(); }
-	boolean isOnline(String name) { return users.containsKey(name); }
-	boolean isOnline(long uid) { return uids.containsKey(uid); }
-	UserData getUser(String name) { return users.get(name); }
-	UserData getUser(long uid) { return getUser(uids.get(uid)); }
+	public Collection<UserData> iterable() { return users.values(); }
+	public int registeredUsersOnline() { return users.size(); }
+	public boolean isOnline(String name) { return users.containsKey(name); }
+	public boolean isOnline(long uid) { return uids.containsKey(uid); }
+	public UserData getUser(String name) { return users.get(name); }
+	public UserData getUser(long uid) { return getUser(uids.get(uid)); }
 	
-	synchronized String nameForUID(long uid) {
+	public synchronized String nameForUID(long uid) {
 		for (UserData user : iterable()) {
 			if (user.UID() == uid) {
 				return user.Name();
@@ -45,7 +48,7 @@ class RegisteredOnlineUserManager {
 		return null;
 	}
 	
-	synchronized boolean refreshInactivityTimer(long uid) {
+	public synchronized boolean refreshInactivityTimer(long uid) {
 		UserData user = getUser(uid);
 		if (user == null) {
 			return false;
@@ -54,7 +57,7 @@ class RegisteredOnlineUserManager {
 		return true;
 	}
 	
-	synchronized boolean refreshIdleTimer(long uid) {
+	public synchronized boolean refreshIdleTimer(long uid) {
 		UserData user = getUser(uid);
 		if (user == null) {
 			return false;

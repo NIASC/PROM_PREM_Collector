@@ -1,25 +1,30 @@
 package servlet.core.usermanager;
 
-class ActivityMonitor implements Runnable
+public class ActivityMonitor implements Runnable
 {
 	@Override
 	public void run() {
-		while (running) {
+		for (; running; sleepFor(millisPerCycle)) {
 			tickActivityTimer();
-			
-			sleepFor(millisPerCycle);
 		}
 	}
 	
-	void stop() {
+	public void stop() {
 		running = false;
 		if (monitor.isAlive()) {
 			try { monitor.join(0); } catch (InterruptedException e) { }
 		}
 	}
 	
-	ActivityMonitor(RegisteredOnlineUserManager monitorTarget) {
+	public ActivityMonitor(RegisteredOnlineUserManager monitorTarget) {
+		this(monitorTarget, 1000, 20, 600);
+	}
+	
+	public ActivityMonitor(RegisteredOnlineUserManager monitorTarget, long millisPerCycle, int cyclesBeforeIdle, int cyclesBeforeInactive) {
 		this.usr = monitorTarget;
+		this.cyclesBeforeIdle = cyclesBeforeIdle;
+		this.cyclesBeforeInactive = cyclesBeforeInactive;
+		this.millisPerCycle = millisPerCycle;
 		running = true;
 		(monitor = new Thread(this)).start();
 	}
@@ -27,9 +32,9 @@ class ActivityMonitor implements Runnable
 	private Thread monitor;
 	private volatile boolean running;
 	private final RegisteredOnlineUserManager usr;
-	private final int cyclesBeforeIdle = 20;
-	private final int cyclesBeforeInactive = 600;
-	private final long millisPerCycle = 1000;
+	private final int cyclesBeforeIdle;
+	private final int cyclesBeforeInactive;
+	private final long millisPerCycle;
 
 	private void tickActivityTimer() {
 		synchronized(usr) {
@@ -47,10 +52,10 @@ class ActivityMonitor implements Runnable
 	}
 
 	private boolean isInactive(UserData user) {
-		return user.inactiveGreaterThan(cyclesBeforeInactive);
+		return user.inactiveGreaterThan(cyclesBeforeInactive-1);
 	}
 
 	private boolean isIdle(UserData user) {
-		return user.idleGreaterThan(cyclesBeforeIdle);
+		return user.idleGreaterThan(cyclesBeforeIdle-1);
 	}
 }

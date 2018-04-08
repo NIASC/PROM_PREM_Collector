@@ -1,13 +1,12 @@
-package niasc;
-
+package niasc.servlet;
 
 import org.junit.runner.RunWith;
 import org.junit.runners.Suite;
 import org.junit.runners.Suite.SuiteClasses;
 
-import niasc.servlet.AllServletTests;
+import niasc.servlet.core.AllCoreTests;
 
 @RunWith(Suite.class)
-@SuiteClasses({ AllServletTests.class })
-public class RunAllPPCTests {
+@SuiteClasses({ AllCoreTests.class })
+public class AllServletTests {
 }
