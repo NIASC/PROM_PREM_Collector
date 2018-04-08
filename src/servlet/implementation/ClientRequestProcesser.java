@@ -22,7 +22,6 @@ import servlet.core.ServletLogger;
 import servlet.core.interfaces.Database;
 import servlet.core.interfaces.Encryption;
 import servlet.core.interfaces.Implementations;
-import servlet.core.statistics.Question;
 import servlet.core.statistics.StatisticsContainer;
 import servlet.core.statistics.StatisticsData;
 import servlet.core.statistics.containers.Area;

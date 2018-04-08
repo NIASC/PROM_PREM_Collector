@@ -3,7 +3,6 @@ package servlet.core.statistics;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
-import java.util.Map.Entry;
 import java.util.TreeMap;
 
 import servlet.core.statistics.containers.Statistics;
@@ -36,44 +35,4 @@ public class StatisticsContainer
     }
 
     private Map<Integer, StatementOccurrence> answers;
-
-    private class StatementOccurrence {
-        int question;
-        Map<Object, Occurrence> sortedStatementCount;
-
-        class Occurrence {
-            int count;
-            Occurrence() { count = 0; }
-        }
-
-        StatementOccurrence(int question) {
-            this.question = question;
-            sortedStatementCount = new TreeMap<Object, Occurrence>();
-        }
-
-        int getQuestionID() {
-            return question;
-        }
-
-        Map<Object, Integer> getStatementCount() {
-            Map<Object, Integer> statementCount = new TreeMap<Object, Integer>();
-            for (Entry<Object, Occurrence> e : sortedStatementCount.entrySet()) {
-                statementCount.put(e.getKey(), e.getValue().count);
-            }
-            return statementCount;
-        }
-
-        void addAnswer(Statistics statistics) {
-            for (Object o : statistics.answerIdentifierAndText()) {
-            	if (o == null) {
-            		continue;
-            	}
-            	
-                if (!sortedStatementCount.containsKey(o)) {
-                    sortedStatementCount.put(o, new Occurrence());
-                }
-                sortedStatementCount.get(o).count++;
-            }
-        }
-    }
 }

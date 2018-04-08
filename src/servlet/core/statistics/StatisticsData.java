@@ -13,10 +13,10 @@ public class StatisticsData  {
     	return Collections.unmodifiableSet(identifiersAndCount.entrySet());
     }
     
-    final int questionID;
-    final Map<Object, Integer> identifiersAndCount;
+    private final int questionID;
+    private final Map<Object, Integer> identifiersAndCount;
 
-    StatisticsData(int questionID, Map<Object, Integer> identifierAndCount)  {
+    public StatisticsData(int questionID, Map<Object, Integer> identifierAndCount)  {
         this.questionID = questionID;
         this.identifiersAndCount = identifierAndCount;
     }
