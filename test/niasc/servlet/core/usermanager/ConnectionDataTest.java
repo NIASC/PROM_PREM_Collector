@@ -6,16 +6,16 @@ import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 
-import servlet.core.usermanager.UserData;
+import servlet.core.usermanager.ConnectionData;
 
-public class UserDataTest {
-	UserData ud;
+public class ConnectionDataTest {
+	ConnectionData ud;
 	long uid = 999L;
 	String name = "newuser";
 
 	@Before
 	public void setUp() throws Exception {
-		ud = new UserData(name, uid);
+		ud = new ConnectionData(name, uid);
 	}
 
 	@Test
@@ -25,7 +25,7 @@ public class UserDataTest {
 
 	@Test
 	public void testName() {
-		Assert.assertEquals(name, ud.Name());
+		Assert.assertEquals(name, ud.identifier());
 	}
 
 	@Test

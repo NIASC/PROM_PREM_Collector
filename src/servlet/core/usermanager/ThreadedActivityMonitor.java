@@ -30,7 +30,7 @@ public class ThreadedActivityMonitor implements Runnable, ActivityMonitor {
 		this(monitorTarget, 1000, 20, 600);
 	}
 	
-	public ThreadedActivityMonitor(RegisteredOnlineUserManager monitorTarget, long millisPerCycle, int cyclesBeforeIdle, int cyclesBeforeInactive) {
+	public ThreadedActivityMonitor(ConnectionManager monitorTarget, long millisPerCycle, int cyclesBeforeIdle, int cyclesBeforeInactive) {
 		this.usr = monitorTarget;
 		this.cyclesBeforeIdle = cyclesBeforeIdle;
 		this.cyclesBeforeInactive = cyclesBeforeInactive;
@@ -39,7 +39,7 @@ public class ThreadedActivityMonitor implements Runnable, ActivityMonitor {
 
 	private Thread monitor;
 	private volatile boolean running;
-	private final RegisteredOnlineUserManager usr;
+	private final ConnectionManager usr;
 	private final int cyclesBeforeIdle;
 	private final int cyclesBeforeInactive;
 	private final long millisPerCycle;

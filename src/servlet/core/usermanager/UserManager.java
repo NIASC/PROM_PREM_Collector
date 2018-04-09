@@ -4,15 +4,23 @@ import common.implementation.Packet.Data.RequestLogin.Response;
 
 public class UserManager {
 
+	/**
+	 * @deprecated Use {@link #UserManager(ConnectionManager,ActivityMonitor,int)} instead
+	 */
 	public UserManager(ConnectionManager usr, ActivityMonitor acmon) {
+		this(usr, acmon, 10);
+	}
+
+	public UserManager(ConnectionManager usr, ActivityMonitor acmon, int maxConnections) {
 		this.usr = usr;
 		this.acmon = acmon;
+		this.maxConnections = maxConnections;
 	}
 	
 	public synchronized Response addUserToListOfOnline(String username, long uid) {
 		if (username == null || username.isEmpty() || !isAvailable(uid)) {
 			return Response.ERROR;
-		} else if (usr.registeredConnections() >= MAX_USERS) {
+		} else if (usr.registeredConnections() >= maxConnections) {
 			return Response.SERVER_FULL;
 		} else if (usr.isConnected(username)) {
 			return Response.ALREADY_ONLINE;
@@ -60,7 +68,7 @@ public class UserManager {
 		usr.deregisterAllConnections();
 	}
 	
-	private static final int MAX_USERS = 10;
+	private final int maxConnections;
 	private ConnectionManager usr;
 	private ActivityMonitor acmon;
 }

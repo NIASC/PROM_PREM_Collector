@@ -5,90 +5,90 @@ import org.junit.Before;
 import org.junit.Test;
 
 import servlet.core.usermanager.RegisteredOnlineUserManager;
-import servlet.core.usermanager.UserData;
+import servlet.core.usermanager.ConnectionData;
 
 public class RegisteredOnlineUserManagerTest {
 	RegisteredOnlineUserManager roum;
-	UserData ud1, ud2;
+	ConnectionData ud1, ud2;
 	long uid1 = 999L, uid2 = 555L;
 	String name1 = "newuser1", name2 = "newuser2";
 
 	@Before
 	public void setUp() throws Exception {
 		roum = new RegisteredOnlineUserManager();
-		ud1 = new UserData(name1, uid1);
-		ud2 = new UserData(name2, uid2);
+		ud1 = new ConnectionData(name1, uid1);
+		ud2 = new ConnectionData(name2, uid2);
 	}
 	
 	@Test
 	public void testRegisterOnlineUser() {
-		roum.registerOnlineUser(ud1);
-		Assert.assertEquals(true, roum.isOnline(ud1.Name()));
-		Assert.assertEquals(1, roum.registeredUsersOnline());
+		roum.registerConnection(ud1);
+		Assert.assertEquals(true, roum.isConnected(ud1.identifier()));
+		Assert.assertEquals(1, roum.registeredConnections());
 	}
 	
 	@Test
 	public void testRegisterNullUIDUser() {
-		UserData zeroUIDUser = new UserData("zeroUIDUser", 0L);
-		roum.registerOnlineUser(zeroUIDUser);
-		Assert.assertEquals(false, roum.isOnline(zeroUIDUser.Name()));
-		Assert.assertEquals(0, roum.registeredUsersOnline());
+		ConnectionData zeroUIDUser = new ConnectionData("zeroUIDUser", 0L);
+		roum.registerConnection(zeroUIDUser);
+		Assert.assertEquals(false, roum.isConnected(zeroUIDUser.identifier()));
+		Assert.assertEquals(0, roum.registeredConnections());
 	}
 	
 	@Test
 	public void testRegisterNullNameUser() {
-		UserData nullNameUser = new UserData(null, 444L);
-		roum.registerOnlineUser(nullNameUser);
-		Assert.assertEquals(false, roum.isOnline(nullNameUser.UID()));
-		Assert.assertEquals(0, roum.registeredUsersOnline());
+		ConnectionData nullNameUser = new ConnectionData(null, 444L);
+		roum.registerConnection(nullNameUser);
+		Assert.assertEquals(false, roum.isConnected(nullNameUser.UID()));
+		Assert.assertEquals(0, roum.registeredConnections());
 	}
 
 	@Test
 	public void testRegisterNullUser() {
-		roum.registerOnlineUser(null);
-		Assert.assertEquals(0, roum.registeredUsersOnline());
+		roum.registerConnection(null);
+		Assert.assertEquals(0, roum.registeredConnections());
 		
 	}
 
 	@Test
 	public void testDeregisterOnlineUserUserData() {
-		roum.registerOnlineUser(ud1);
-		roum.registerOnlineUser(ud2);
-		Assert.assertEquals(2, roum.registeredUsersOnline());
-		roum.deregisterOnlineUser(ud1);
-		Assert.assertEquals(false, roum.isOnline(ud1.UID()));
-		Assert.assertEquals(true, roum.isOnline(ud2.UID()));
-		Assert.assertEquals(1, roum.registeredUsersOnline());
+		roum.registerConnection(ud1);
+		roum.registerConnection(ud2);
+		Assert.assertEquals(2, roum.registeredConnections());
+		roum.deregisterConnection(ud1);
+		Assert.assertEquals(false, roum.isConnected(ud1.UID()));
+		Assert.assertEquals(true, roum.isConnected(ud2.UID()));
+		Assert.assertEquals(1, roum.registeredConnections());
 	}
 
 	@Test
 	public void testDeregisterOnlineUserLong() {
-		roum.registerOnlineUser(ud1);
-		roum.registerOnlineUser(ud2);
-		Assert.assertEquals(2, roum.registeredUsersOnline());
-		roum.deregisterOnlineUser(ud1.UID());
-		Assert.assertEquals(false, roum.isOnline(ud1.UID()));
-		Assert.assertEquals(true, roum.isOnline(ud2.UID()));
-		Assert.assertEquals(1, roum.registeredUsersOnline());
+		roum.registerConnection(ud1);
+		roum.registerConnection(ud2);
+		Assert.assertEquals(2, roum.registeredConnections());
+		roum.deregisterConnection(ud1.UID());
+		Assert.assertEquals(false, roum.isConnected(ud1.UID()));
+		Assert.assertEquals(true, roum.isConnected(ud2.UID()));
+		Assert.assertEquals(1, roum.registeredConnections());
 	}
 
 	@Test
 	public void testDeregisterAllOnlineUsers() {
-		roum.registerOnlineUser(ud1);
-		roum.registerOnlineUser(ud2);
-		Assert.assertEquals(2, roum.registeredUsersOnline());
-		roum.deregisterAllOnlineUsers();
-		Assert.assertEquals(false, roum.isOnline(ud1.UID()));
-		Assert.assertEquals(false, roum.isOnline(ud2.UID()));
-		Assert.assertEquals(0, roum.registeredUsersOnline());
+		roum.registerConnection(ud1);
+		roum.registerConnection(ud2);
+		Assert.assertEquals(2, roum.registeredConnections());
+		roum.deregisterAllConnections();
+		Assert.assertEquals(false, roum.isConnected(ud1.UID()));
+		Assert.assertEquals(false, roum.isConnected(ud2.UID()));
+		Assert.assertEquals(0, roum.registeredConnections());
 	}
 
 	@Test
 	public void testIterable() {
-		roum.registerOnlineUser(ud1);
-		roum.registerOnlineUser(ud2);
+		roum.registerConnection(ud1);
+		roum.registerConnection(ud2);
 		int users = 0;
-		for (UserData _ : roum.iterable()) {
+		for (ConnectionData _ : roum.iterable()) {
 			users++;
 		}
 		Assert.assertEquals(2, users);
@@ -96,63 +96,63 @@ public class RegisteredOnlineUserManagerTest {
 
 	@Test
 	public void testRegisteredUsersOnline() {
-		Assert.assertEquals(0, roum.registeredUsersOnline());
-		roum.registerOnlineUser(ud1);
-		Assert.assertEquals(1, roum.registeredUsersOnline());
-		roum.registerOnlineUser(ud2);
-		Assert.assertEquals(2, roum.registeredUsersOnline());
-		roum.registerOnlineUser(null);
-		Assert.assertEquals(2, roum.registeredUsersOnline());
-		roum.registerOnlineUser(ud1);
-		Assert.assertEquals(2, roum.registeredUsersOnline());
+		Assert.assertEquals(0, roum.registeredConnections());
+		roum.registerConnection(ud1);
+		Assert.assertEquals(1, roum.registeredConnections());
+		roum.registerConnection(ud2);
+		Assert.assertEquals(2, roum.registeredConnections());
+		roum.registerConnection(null);
+		Assert.assertEquals(2, roum.registeredConnections());
+		roum.registerConnection(ud1);
+		Assert.assertEquals(2, roum.registeredConnections());
 	}
 
 	@Test
 	public void testIsOnlineString() {
-		roum.registerOnlineUser(ud1);
-		Assert.assertEquals(true, roum.isOnline(ud1.Name()));
-		Assert.assertEquals(false, roum.isOnline(ud2.Name()));
-		Assert.assertEquals(false, roum.isOnline(null));
+		roum.registerConnection(ud1);
+		Assert.assertEquals(true, roum.isConnected(ud1.identifier()));
+		Assert.assertEquals(false, roum.isConnected(ud2.identifier()));
+		Assert.assertEquals(false, roum.isConnected(null));
 	}
 
 	@Test
 	public void testIsOnlineLong() {
-		roum.registerOnlineUser(ud1);
-		Assert.assertEquals(true, roum.isOnline(ud1.UID()));
-		Assert.assertEquals(false, roum.isOnline(ud2.UID()));
-		Assert.assertEquals(false, roum.isOnline(0L));
+		roum.registerConnection(ud1);
+		Assert.assertEquals(true, roum.isConnected(ud1.UID()));
+		Assert.assertEquals(false, roum.isConnected(ud2.UID()));
+		Assert.assertEquals(false, roum.isConnected(0L));
 	}
 
 	@Test
 	public void testGetUserString() {
-		roum.registerOnlineUser(ud1);
-		roum.registerOnlineUser(ud2);
-		Assert.assertEquals(ud1.Name(), roum.getUser(ud1.Name()).Name());
-		Assert.assertNotEquals(ud1.Name(), roum.getUser(ud2.Name()).Name());
-		Assert.assertNull(roum.getUser(null));
+		roum.registerConnection(ud1);
+		roum.registerConnection(ud2);
+		Assert.assertEquals(ud1.identifier(), roum.getConnection(ud1.identifier()).identifier());
+		Assert.assertNotEquals(ud1.identifier(), roum.getConnection(ud2.identifier()).identifier());
+		Assert.assertNull(roum.getConnection(null));
 	}
 
 	@Test
 	public void testGetUserLong() {
-		roum.registerOnlineUser(ud1);
-		roum.registerOnlineUser(ud2);
-		Assert.assertEquals(ud1.UID(), roum.getUser(ud1.UID()).UID());
-		Assert.assertNotEquals(ud1.UID(), roum.getUser(ud2.UID()).UID());
-		Assert.assertNull(roum.getUser(0L));
+		roum.registerConnection(ud1);
+		roum.registerConnection(ud2);
+		Assert.assertEquals(ud1.UID(), roum.getConnection(ud1.UID()).UID());
+		Assert.assertNotEquals(ud1.UID(), roum.getConnection(ud2.UID()).UID());
+		Assert.assertNull(roum.getConnection(0L));
 	}
 
 	@Test
 	public void testNameForUID() {
-		roum.registerOnlineUser(ud1);
-		Assert.assertEquals(ud1.Name(), roum.nameForUID(ud1.UID()));
-		Assert.assertNull(roum.nameForUID(ud2.UID()));
-		Assert.assertNull(roum.nameForUID(0L));
+		roum.registerConnection(ud1);
+		Assert.assertEquals(ud1.identifier(), roum.identifierForUID(ud1.UID()));
+		Assert.assertNull(roum.identifierForUID(ud2.UID()));
+		Assert.assertNull(roum.identifierForUID(0L));
 	}
 
 	@Test
 	public void testRefreshInactivityTimer() {
-		roum.registerOnlineUser(ud1);
-		roum.registerOnlineUser(ud2);
+		roum.registerConnection(ud1);
+		roum.registerConnection(ud2);
 		Assert.assertEquals(false, ud1.inactiveGreaterThan(0));
 		Assert.assertEquals(false, ud2.inactiveGreaterThan(0));
 		ud1.tickInactive();
@@ -165,8 +165,8 @@ public class RegisteredOnlineUserManagerTest {
 
 	@Test
 	public void testRefreshIdleTimer() {
-		roum.registerOnlineUser(ud1);
-		roum.registerOnlineUser(ud2);
+		roum.registerConnection(ud1);
+		roum.registerConnection(ud2);
 		Assert.assertEquals(false, ud1.idleGreaterThan(0));
 		Assert.assertEquals(false, ud2.idleGreaterThan(0));
 		ud1.tickIdle();
