@@ -1,13 +1,13 @@
 package servlet.core.usermanager;
 
-public class UserData {
-	private String name;
+public class ConnectionData {
+	private String identifier;
 	private int idleCycles = 0, inactiveCycles = 0;
 	private long uid;
 	
-	public UserData(String name, long uid) { this.name = name; this.uid = uid; }
+	public ConnectionData(String identifier, long uid) { this.identifier = identifier; this.uid = uid; }
 	public long UID() { return uid; }
-	public String Name() { return name; }
+	public String identifier() { return identifier; }
 	public void tickAll() { tickIdle(); tickInactive(); }
 	public void refreshAll() { refreshIdle(); refreshInactive(); }
 	public void refreshIdle() { idleCycles = 0; }

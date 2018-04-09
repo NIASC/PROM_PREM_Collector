@@ -2,30 +2,33 @@ package servlet.core.usermanager;
 
 import common.implementation.Packet.Data.RequestLogin.Response;
 
-public enum UserManager {
-	instance;
+public class UserManager {
+
+	public UserManager(ConnectionManager usr, ActivityMonitor acmon) {
+		this.usr = usr;
+		this.acmon = acmon;
+	}
 	
-	public synchronized Response addUserToListOfOnline(String username, long uid)
-	{
+	public synchronized Response addUserToListOfOnline(String username, long uid) {
 		if (username == null || username.isEmpty() || !isAvailable(uid)) {
 			return Response.ERROR;
-		}
-		if (usr.registeredUsersOnline() >= MAX_USERS) {
+		} else if (usr.registeredConnections() >= MAX_USERS) {
 			return Response.SERVER_FULL;
-		}
-		if (usr.isOnline(username)) {
+		} else if (usr.isConnected(username)) {
 			return Response.ALREADY_ONLINE;
+		} else {
+			usr.registerConnection(new ConnectionData(username, uid));
+			return Response.SUCCESS;
 		}
-		usr.registerOnlineUser(new UserData(username, uid));
-		return Response.SUCCESS;
 	}
 	
 	public synchronized boolean delUserFromListOfOnline(long uid) {
-		if (!usr.isOnline(uid)) {
+		if (usr.isConnected(uid)) {
+			usr.deregisterConnection(uid);
+			return true;
+		} else {
 			return false;
 		}
-		usr.deregisterOnlineUser(uid);
-		return true;
 	}
 	
 	public boolean refreshInactivityTimer(long uid) {
@@ -37,28 +40,27 @@ public enum UserManager {
 	}
 	
 	public String nameForUID(long uid) {
-		return usr.nameForUID(uid);
+		return usr.identifierForUID(uid);
 	}
 	
 	public boolean isOnline(long uid) {
-		return usr.isOnline(uid);
+		return usr.isConnected(uid);
 	}
 	
 	public boolean isAvailable(long uid) {
-		return !usr.isOnline(uid);
+		return !usr.isConnected(uid);
 	}
 	
-	public void terminate() {
+	public void startManagement() {
+		acmon.start();
+	}
+	
+	public void stopManagement() {
 		acmon.stop();
-		usr.deregisterAllOnlineUsers();
+		usr.deregisterAllConnections();
 	}
 	
 	private static final int MAX_USERS = 10;
-	private RegisteredOnlineUserManager usr;
+	private ConnectionManager usr;
 	private ActivityMonitor acmon;
-
-	private UserManager() {
-		usr = new RegisteredOnlineUserManager();
-		acmon = new ActivityMonitor(usr);
-	}
 }
