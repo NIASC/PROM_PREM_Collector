@@ -77,10 +77,10 @@ public class UserManagerTest {
 	public void testRefreshIdleKeepsUser() {
 		um.addUserToListOfOnline(identifier1, uid1);
 		Assert.assertEquals(true, um.isOnline(uid1));
-		try { Thread.sleep(millisPerCycle*cyclesBeforeIdle); } catch (Exception e) { }
+		try { Thread.sleep(millisPerCycle*(cyclesBeforeIdle-1)); } catch (Exception e) { }
 		Assert.assertEquals(true, um.isOnline(uid1));
 		um.refreshIdleTimer(uid1);
-		try { Thread.sleep(millisPerCycle); } catch (Exception e) { }
+		try { Thread.sleep(millisPerCycle*2); } catch (Exception e) { }
 		Assert.assertEquals(true, um.isOnline(uid1));
 	}
 

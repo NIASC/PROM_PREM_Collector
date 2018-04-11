@@ -5,7 +5,7 @@ import static common.implementation.Packet.TYPE;
 
 import common.implementation.Packet.Data;
 import common.implementation.Packet.Types;
-import servlet.core.ServletLogger;
+import servlet.core._Logger;
 import servlet.core.interfaces.Database;
 import servlet.core.usermanager.UserManager;
 import servlet.implementation.Crypto;
@@ -16,7 +16,7 @@ import servlet.implementation.requestprocessing.LoggedInRequestProcesser;
 
 public class RequestLogout extends LoggedInRequestProcesser {
 	
-	public RequestLogout(UserManager um, Database db, PacketData packetData, QDBFormat qdbf, ServletLogger logger) {
+	public RequestLogout(UserManager um, Database db, PacketData packetData, QDBFormat qdbf, _Logger logger) {
 		super(um, db, packetData, qdbf, logger);
 	}
 

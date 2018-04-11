@@ -8,7 +8,7 @@ import java.util.List;
 
 import common.implementation.Packet.Data;
 import common.implementation.Packet.Types;
-import servlet.core.ServletLogger;
+import servlet.core._Logger;
 import servlet.core.interfaces.Database;
 import servlet.core.interfaces.Implementations;
 import servlet.core.usermanager.UserManager;
@@ -21,7 +21,7 @@ import servlet.implementation.requestprocessing.LoggedInRequestProcesser;
 
 public class AddQuestionnaireAnswers extends LoggedInRequestProcesser {
 
-	public AddQuestionnaireAnswers(UserManager um, Database db, PacketData packetData, QDBFormat qdbf, ServletLogger logger) {
+	public AddQuestionnaireAnswers(UserManager um, Database db, PacketData packetData, QDBFormat qdbf, _Logger logger) {
 		super(um, db, packetData, qdbf, logger);
 	}
 

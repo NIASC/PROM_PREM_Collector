@@ -7,10 +7,9 @@ import java.util.List;
 
 import common.implementation.Packet.Data;
 import common.implementation.Packet.Types;
-import servlet.core.ServletLogger;
+import servlet.core._Logger;
 import servlet.core.interfaces.Database;
 import servlet.core.usermanager.UserManager;
-import servlet.implementation.ClientRequestProcesser;
 import servlet.implementation.Crypto;
 import servlet.implementation.User;
 import servlet.implementation.io.ListData;
@@ -21,7 +20,7 @@ import servlet.implementation.requestprocessing.LoggedInRequestProcesser;
 
 public class LoadQResultDates extends LoggedInRequestProcesser {
 	
-	public LoadQResultDates(UserManager um, Database db, PacketData packetData, QDBFormat qdbf, ServletLogger logger) {
+	public LoadQResultDates(UserManager um, Database db, PacketData packetData, QDBFormat qdbf, _Logger logger) {
 		super(um, db, packetData, qdbf, logger);
 	}
 

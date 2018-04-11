@@ -5,16 +5,12 @@ import java.io.IOException;
 import java.io.PrintWriter;
 import java.io.UnsupportedEncodingException;
 import java.nio.charset.UnsupportedCharsetException;
-import java.util.Arrays;
-import java.util.logging.Level;
-
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import common.Util;
-import res.Resources;
 import servlet.core.ServletLogger;
 
 public class Servlet extends HttpServlet

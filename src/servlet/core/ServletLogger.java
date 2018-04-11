@@ -10,23 +10,37 @@ import java.util.logging.Level;
 import java.util.logging.LogRecord;
 import java.util.logging.Logger;
 
-public enum ServletLogger
-{
+public enum ServletLogger implements _Logger {
 	LOGGER;
 
+	@Override
 	public void log(String msg) {
 		log(logger.getLevel(), msg);
 	}
-	
+
+	@Override
 	public void log(Level level, String msg) {
 		updateHandlerIfNewDay();
 		logger.log(level, msg);
 	}
 	
+	/**
+	 * Error was fatal and program can not continue executing.
+	 * Log and exit.
+	 * @param msg
+	 */
+	@Override
+	public void fatalLogAndAction(String msg) {
+		log(Level.SEVERE, "!!FATAL!! " + msg);
+		System.exit(1);
+	}
+
+	@Override
 	public void log(String msg, Exception e) {
 		log(logger.getLevel(), msg, e);
 	}
-	
+
+	@Override
 	public void log(Level level, String msg, Exception e) {
 		StringBuilder sb = new StringBuilder();
 		if (msg != null && !msg.trim().isEmpty()) {

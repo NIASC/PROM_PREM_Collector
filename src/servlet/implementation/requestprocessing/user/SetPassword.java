@@ -6,7 +6,7 @@ import static common.implementation.Packet.TYPE;
 import common.implementation.Constants;
 import common.implementation.Packet.Data;
 import common.implementation.Packet.Types;
-import servlet.core.ServletLogger;
+import servlet.core._Logger;
 import servlet.core.interfaces.Database;
 import servlet.core.interfaces.Encryption;
 import servlet.core.interfaces.Implementations;
@@ -21,7 +21,7 @@ import servlet.implementation.requestprocessing.LoggedInRequestProcesser;
 
 public class SetPassword extends LoggedInRequestProcesser {
 	
-	public SetPassword(UserManager um, Database db, PacketData packetData, QDBFormat qdbf, ServletLogger logger) {
+	public SetPassword(UserManager um, Database db, PacketData packetData, QDBFormat qdbf, _Logger logger) {
 		super(um, db, packetData, qdbf, logger);
 	}
 

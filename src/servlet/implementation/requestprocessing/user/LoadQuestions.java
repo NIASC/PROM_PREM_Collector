@@ -8,7 +8,7 @@ import java.util.Map.Entry;
 
 import common.implementation.Packet.Data;
 import common.implementation.Packet.Types;
-import servlet.core.ServletLogger;
+import servlet.core._Logger;
 import servlet.core.interfaces.Database;
 import servlet.core.usermanager.UserManager;
 import servlet.implementation.QuestionData;
@@ -20,7 +20,7 @@ import servlet.implementation.requestprocessing.RequestProcesser;
 
 public class LoadQuestions extends RequestProcesser {
 	
-	public LoadQuestions(UserManager um, Database db, PacketData packetData, QDBFormat qdbf, ServletLogger logger) {
+	public LoadQuestions(UserManager um, Database db, PacketData packetData, QDBFormat qdbf, _Logger logger) {
 		super(um, db, packetData, qdbf, logger);
 	}
 

@@ -4,6 +4,8 @@ import java.io.BufferedInputStream;
 import java.io.IOException;
 import java.nio.charset.Charset;
 import java.nio.charset.UnsupportedCharsetException;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.logging.Level;
 
 import res.Resources;
@@ -47,5 +49,12 @@ public class Util {
 			offset += size;
 		}
 		return offset;
+	}
+
+	public static <T extends Object> List<T> joinLists(List<T> l1, List<T> l2) {
+		List<T> out = new ArrayList<T>(l1.size() + l2.size());
+		out.addAll(l1);
+		out.addAll(l2);
+		return out;
 	}
 }

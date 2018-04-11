@@ -3,7 +3,6 @@ package servlet.implementation;
 import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.sql.Statement;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -18,14 +17,24 @@ import javax.naming.InitialContext;
 import javax.naming.NamingException;
 import javax.sql.DataSource;
 
-import servlet.core.ServletLogger;
+import servlet.core._Logger;
 import servlet.core.interfaces.Database;
 import servlet.implementation.exceptions.DBReadException;
 import servlet.implementation.exceptions.DBWriteException;
 
-public enum MySQLDatabase implements Database
-{
-	instance;
+public class MySQLDatabase implements Database {
+	
+	public MySQLDatabase(_Logger logger) {
+		this.logger = logger;
+		try {
+			Context initContext = new InitialContext();
+			Context envContext = (Context) initContext.lookup("java:comp/env");
+			dataSource = (DataSource) envContext.lookup("jdbc/prom_prem_db");
+		} catch (NamingException e) {
+			logger.log("FATAL: Could not load database configuration", e);
+			System.exit(1);
+		}
+	}
 
 	@Override
 	public String escapeReplace(String str) {
@@ -331,25 +340,9 @@ public enum MySQLDatabase implements Database
 		return _results;
 	}
 
-	private static ServletLogger logger;
-	
-	static {
-		logger = ServletLogger.LOGGER;
-	}
+	private _Logger logger;
 	
 	private DataSource dataSource;
-	
-	private MySQLDatabase()
-	{
-		try {
-			Context initContext = new InitialContext();
-			Context envContext = (Context) initContext.lookup("java:comp/env");
-			dataSource = (DataSource) envContext.lookup("jdbc/prom_prem_db");
-		} catch (NamingException e) {
-			ServletLogger.LOGGER.log("FATAL: Could not load database configuration", e);
-			System.exit(1);
-		}
-	}
 	
 	private boolean patientInDatabase(String identifier) throws SQLException, DBReadException
 	{
@@ -369,16 +362,13 @@ public enum MySQLDatabase implements Database
 		}
 	}
 	
-	private void writeToDatabase(String query) throws DBWriteException
-	{
+	private void writeToDatabase(String query) throws DBWriteException {
 		Connection conn = null;
 		try {
 			conn = dataSource.getConnection();
 			conn.createStatement().executeUpdate(query);
 		} catch (SQLException se) {
-			throw new DBWriteException(String.format(
-					"Database could not process request: '%s'. Check your arguments.",
-					query));
+			throw new DBWriteException(String.format("Database could not process request: '%s'. Check your arguments.", query));
 		} finally {
 			if (conn != null) {
 				try { conn.close(); } catch (SQLException e) { }
@@ -386,14 +376,11 @@ public enum MySQLDatabase implements Database
 		}
 	}
 	
-	private ResultSet readFromDatabase(Connection conn, String query) throws DBReadException
-	{
+	private ResultSet readFromDatabase(Connection conn, String query) throws DBReadException {
 		try {
 			return conn.createStatement().executeQuery(query);
 		} catch (SQLException se) {
-			throw new DBReadException(String.format(
-					"Database could not process request: '%s'. Check your arguments.",
-					query));
+			throw new DBReadException(String.format("Database could not process request: '%s'. Check your arguments.", query));
 		}
 	}
 	

@@ -3,7 +3,7 @@ package servlet.implementation.requestprocessing.admin;
 import static servlet.implementation.AdminPacket._DATA;
 import static servlet.implementation.AdminPacket._TYPE;
 
-import servlet.core.ServletLogger;
+import servlet.core._Logger;
 import servlet.core.interfaces.Database;
 import servlet.core.usermanager.UserManager;
 import servlet.implementation.AdminPacket.AdminData;
@@ -15,7 +15,7 @@ import servlet.implementation.requestprocessing.RequestProcesser;
 
 public class _AddClinic extends RequestProcesser {
 	
-	public _AddClinic(UserManager um, Database db, PacketData packetData, QDBFormat qdbf, ServletLogger logger) {
+	public _AddClinic(UserManager um, Database db, PacketData packetData, QDBFormat qdbf, _Logger logger) {
 		super(um, db, packetData, qdbf, logger);
 	}
 
