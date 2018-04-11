@@ -10,13 +10,13 @@ import servlet.implementation.User;
 import servlet.implementation.AdminPacket.AdminData;
 import servlet.implementation.AdminPacket.AdminTypes;
 import servlet.implementation.io.MapData;
-import servlet.implementation.io.PacketData;
+import servlet.implementation.io._PacketData;
 import servlet.implementation.requestprocessing.QDBFormat;
 import servlet.implementation.requestprocessing.RequestProcesser;
 
 public class _GetUser extends RequestProcesser {
 	
-	public _GetUser(UserManager um, Database db, PacketData packetData, QDBFormat qdbf, _Logger logger) {
+	public _GetUser(UserManager um, Database db, _PacketData packetData, QDBFormat qdbf, _Logger logger) {
 		super(um, db, packetData, qdbf, logger);
 	}
 

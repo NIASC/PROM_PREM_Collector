@@ -3,6 +3,9 @@ package servlet.implementation;
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
+
+import org.json.simple.parser.JSONParser;
+
 import common.Util;
 import common.implementation.Constants;
 import static common.implementation.Packet.TYPE;
@@ -21,6 +24,7 @@ import servlet.implementation.AdminPacket.Admin;
 import servlet.implementation.AdminPacket.AdminTypes;
 import servlet.implementation.io.MapData;
 import servlet.implementation.io.PacketData;
+import servlet.implementation.io._PacketData;
 import servlet.implementation.mail.MailMan;
 import servlet.implementation.mail.MailManFactory;
 import servlet.implementation.mail.MessageGenerator;
@@ -65,7 +69,7 @@ public class ClientRequestProcesser
 	
 	public ClientRequestProcesser() {
 		logger = ServletLogger.LOGGER;
-		packetData = PacketData.instance;
+		packetData = new PacketData(new JSONParser());
 
 		RegisteredOnlineUserManager usr = new RegisteredOnlineUserManager();
 		um = new UserManager(usr, new ThreadedActivityMonitor(usr));
@@ -124,7 +128,7 @@ public class ClientRequestProcesser
 	}
 	
 	private _Logger logger;
-	private PacketData packetData;
+	private _PacketData packetData;
 	private UserManager um;
 	private Map<Types, RequestProcesser> userMethods = new HashMap<Types, RequestProcesser>();
 	private Map<AdminTypes, RequestProcesser> adminMethods = new HashMap<AdminTypes, RequestProcesser>();

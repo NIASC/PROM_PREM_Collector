@@ -10,7 +10,7 @@ import servlet.core.interfaces.Database;
 import servlet.core.usermanager.UserManager;
 import servlet.implementation.Crypto;
 import servlet.implementation.io.MapData;
-import servlet.implementation.io.PacketData;
+import servlet.implementation.io._PacketData;
 import servlet.implementation.mail.MailMan;
 import servlet.implementation.mail.emails.RegistrationRequest;
 import servlet.implementation.requestprocessing.QDBFormat;
@@ -18,7 +18,7 @@ import servlet.implementation.requestprocessing.RequestProcesser;
 
 public class RequestRegistration extends RequestProcesser {
 	
-	public RequestRegistration(UserManager um, Database db, PacketData packetData, QDBFormat qdbf, _Logger logger, MailMan emailer, RegistrationRequest req) {
+	public RequestRegistration(UserManager um, Database db, _PacketData packetData, QDBFormat qdbf, _Logger logger, MailMan emailer, RegistrationRequest req) {
 		super(um, db, packetData, qdbf, logger);
 		this.emailer = emailer;
 		this.req = req;

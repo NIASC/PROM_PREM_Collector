@@ -21,13 +21,13 @@ import servlet.implementation.Crypto;
 import servlet.implementation.User;
 import servlet.implementation.io.ListData;
 import servlet.implementation.io.MapData;
-import servlet.implementation.io.PacketData;
+import servlet.implementation.io._PacketData;
 import servlet.implementation.requestprocessing.QDBFormat;
 import servlet.implementation.requestprocessing.LoggedInRequestProcesser;
 
 public class LoadQResults extends LoggedInRequestProcesser {
 	
-	public LoadQResults(UserManager um, Database db, PacketData packetData, QDBFormat qdbf, _Logger logger) {
+	public LoadQResults(UserManager um, Database db, _PacketData packetData, QDBFormat qdbf, _Logger logger) {
 		super(um, db, packetData, qdbf, logger);
 	}
 

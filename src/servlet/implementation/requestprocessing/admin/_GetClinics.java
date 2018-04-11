@@ -12,13 +12,13 @@ import servlet.core.usermanager.UserManager;
 import servlet.implementation.AdminPacket.AdminData;
 import servlet.implementation.AdminPacket.AdminTypes;
 import servlet.implementation.io.MapData;
-import servlet.implementation.io.PacketData;
+import servlet.implementation.io._PacketData;
 import servlet.implementation.requestprocessing.QDBFormat;
 import servlet.implementation.requestprocessing.RequestProcesser;
 
 public class _GetClinics extends RequestProcesser {
 	
-	public _GetClinics(UserManager um, Database db, PacketData packetData, QDBFormat qdbf, _Logger logger) {
+	public _GetClinics(UserManager um, Database db, _PacketData packetData, QDBFormat qdbf, _Logger logger) {
 		super(um, db, packetData, qdbf, logger);
 	}
 

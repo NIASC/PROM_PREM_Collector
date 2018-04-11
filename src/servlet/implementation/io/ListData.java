@@ -14,7 +14,7 @@ public class ListData
 	
 	
 	@SuppressWarnings("unchecked")
-	ListData(JSONArray a) {
+	public ListData(JSONArray a) {
 		this.a = a != null ? a : new JSONArray();
 		this.l = (List<String>) this.a;
 	}

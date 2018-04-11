@@ -11,12 +11,12 @@ import servlet.core.statistics.containers.SingleOption;
 import servlet.core.statistics.containers.Slider;
 import servlet.core.statistics.containers.Statistics;
 import servlet.implementation.io.MapData;
-import servlet.implementation.io.PacketData;
+import servlet.implementation.io._PacketData;
 
 public class QDBFormat {
 	Database db;
-	PacketData packetData;
-	public QDBFormat(Database db, PacketData packetData) {
+	_PacketData packetData;
+	public QDBFormat(Database db, _PacketData packetData) {
 		this.db = db;
 		this.packetData = packetData;
 	}

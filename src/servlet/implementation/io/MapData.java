@@ -1,6 +1,7 @@
 package servlet.implementation.io;
 
 import java.util.Map;
+import java.util.Map.Entry;
 
 import org.json.simple.JSONObject;
 
@@ -14,9 +15,13 @@ public class MapData
 	public void put(Integer k, String v) { m.put(itos(k), v); }
 	public void put(String k, Integer v) { m.put(k, itos(v)); }
 	public String get(Enum<?> k) { return m.get(etos(k)); }
+
+    public Iterable<Entry<String, String>> iterable() {
+        return m.entrySet();
+    }
 	
 	@SuppressWarnings("unchecked")
-	MapData(JSONObject o)
+	public MapData(JSONObject o)
 	{
 		this.o = o != null ? o : new JSONObject();
 		this.m = (Map<String, String>) this.o;

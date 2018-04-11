@@ -4,14 +4,19 @@ import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
 
-public enum PacketData {
-	instance;
+public class PacketData implements _PacketData {
+	
+    public PacketData(JSONParser parser) {
+        parser = new JSONParser();
+    }
 
-    public MapData getMapData() {
+    @Override
+	public MapData getMapData() {
 		return new MapData(new JSONObject());
 	}
 
-    public MapData getMapData(String str) {
+    @Override
+	public MapData getMapData(String str) {
 		try {
 			return new MapData((JSONObject) parser.parse(str));
 		} catch (Exception e) {
@@ -19,11 +24,13 @@ public enum PacketData {
 		}
 	}
 
-    public ListData getListData() {
+    @Override
+	public ListData getListData() {
         return new ListData(new JSONArray());
 	}
 
-    public ListData getListData(String str) {
+    @Override
+	public ListData getListData(String str) {
 		try {
 	        return new ListData((JSONArray) parser.parse(str));
 		} catch (Exception e) {
@@ -32,8 +39,4 @@ public enum PacketData {
 	}
 
     private JSONParser parser;
-	
-    private PacketData() {
-        parser = new JSONParser();
-    }
 }

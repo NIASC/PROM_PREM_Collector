@@ -14,13 +14,13 @@ import servlet.core.usermanager.UserManager;
 import servlet.implementation.QuestionData;
 import servlet.implementation.io.ListData;
 import servlet.implementation.io.MapData;
-import servlet.implementation.io.PacketData;
+import servlet.implementation.io._PacketData;
 import servlet.implementation.requestprocessing.QDBFormat;
 import servlet.implementation.requestprocessing.RequestProcesser;
 
 public class LoadQuestions extends RequestProcesser {
 	
-	public LoadQuestions(UserManager um, Database db, PacketData packetData, QDBFormat qdbf, _Logger logger) {
+	public LoadQuestions(UserManager um, Database db, _PacketData packetData, QDBFormat qdbf, _Logger logger) {
 		super(um, db, packetData, qdbf, logger);
 	}
 

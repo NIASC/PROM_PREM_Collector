@@ -5,19 +5,18 @@ import static common.implementation.Packet.TYPE;
 
 import common.implementation.Packet.Data;
 import common.implementation.Packet.Types;
-import servlet.core.ServletLogger;
 import servlet.core._Logger;
 import servlet.core.interfaces.Database;
 import servlet.core.usermanager.UserManager;
 import servlet.implementation.Crypto;
 import servlet.implementation.io.MapData;
-import servlet.implementation.io.PacketData;
+import servlet.implementation.io._PacketData;
 import servlet.implementation.requestprocessing.QDBFormat;
 import servlet.implementation.requestprocessing.IdleRequestProcesser;
 
 public class Ping extends IdleRequestProcesser {
 	
-	public Ping(UserManager um, Database db, PacketData packetData, QDBFormat qdbf, _Logger logger) {
+	public Ping(UserManager um, Database db, _PacketData packetData, QDBFormat qdbf, _Logger logger) {
 		super(um, db, packetData, qdbf, logger);
 	}
 
