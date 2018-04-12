@@ -62,7 +62,7 @@ public class ClientRequestProcesserTest {
 		adminPacket.put(AdminPacket._DATA, adminData.toString());
 		adminUserPacket = pd.getMapData();
 		adminUserPacket.put(AdminPacket._TYPE, AdminPacket.AdminTypes.GET_USER);
-		adminUserPacket.put(AdminPacket._ADMIN, AdminPacket.Admin.YES);
+		adminUserPacket.put(AdminPacket._ADMIN, AdminPacket.Admin.NO);
 		adminUserData = pd.getMapData();
 		adminUserData.put(AdminPacket.AdminData.AdminGetUser.__NULL__, "adminUserData");
 		adminUserPacket.put(AdminPacket._DATA, adminUserData.toString());
@@ -122,6 +122,26 @@ public class ClientRequestProcesserTest {
 		String in = adminPacket.toString();
 		String out = crp.handleRequest(in, "127.0.0.1", "127.0.0.2");
 		Assert.assertEquals(pd.getMapData().toString(), out);
+	}
+
+	@Test
+	public void testHandleAdminUserRequestSameIP() {
+		String in = adminUserPacket.toString();
+		String out = crp.handleRequest(in, "127.0.0.1", "127.0.0.1");
+		Assert.assertEquals(in, out);
+	}
+
+	@Test
+	public void testHandleAdminUserRequestDifferentIP() {
+		String in = adminUserPacket.toString();
+		String out = crp.handleRequest(in, "127.0.0.1", "127.0.0.2");
+		Assert.assertEquals(in, out);
+	}
+	
+	@Test
+	public void testHandleMalformedPacket() {
+		Assert.assertEquals(pd.getMapData().toString(), crp.handleRequest("a non-json string", "127.0.0.1", "127.0.0.2"));
+		Assert.assertEquals(pd.getMapData().toString(), crp.handleRequest(null, "127.0.0.1", "127.0.0.2"));
 	}
 
 }
