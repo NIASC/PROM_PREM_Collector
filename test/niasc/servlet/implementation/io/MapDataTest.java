@@ -1,11 +1,6 @@
 package niasc.servlet.implementation.io;
 
-import static common.implementation.Packet.TYPE;
-import static org.junit.Assert.*;
-
-import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 

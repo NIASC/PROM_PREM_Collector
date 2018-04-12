@@ -4,7 +4,6 @@ import servlet.core._Logger;
 import servlet.core.interfaces.Database;
 import servlet.core.usermanager.UserManager;
 import servlet.implementation.io.MapData;
-import servlet.implementation.io.PacketData;
 import servlet.implementation.io._PacketData;
 
 public abstract class RequestProcesser {

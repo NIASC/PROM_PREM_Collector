@@ -36,7 +36,7 @@ public class ThreadedActivityMonitorTest {
 	public void testKickOnIdle() {
 		cmgr.registerConnection(ud1);
 		Assert.assertEquals(true, cmgr.isConnected(ud1.identifier()));
-		try { Thread.sleep(millisPerCycle*(cyclesBeforeIdle+1)); } catch (Exception e) { }
+		try { Thread.sleep(millisPerCycle*(cyclesBeforeIdle+2)); } catch (Exception e) { }
 		Assert.assertEquals(true, ud1.idleGreaterThan(cyclesBeforeIdle-1));
 		Assert.assertEquals(false, cmgr.isConnected(ud1.identifier()));
 	}

@@ -3,55 +3,47 @@ package servlet.implementation;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.PrintWriter;
-import java.io.UnsupportedEncodingException;
-import java.nio.charset.UnsupportedCharsetException;
+import java.util.logging.Level;
+
 import javax.servlet.ServletException;
-import javax.servlet.http.HttpServlet;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
+import javax.servlet.ServletRequest;
+import javax.servlet.ServletResponse;
 
-import common.Util;
-import servlet.core.ServletLogger;
+import servlet.core._Logger;
 
-public class Servlet extends HttpServlet
-{
-	@Override
-	public void init() throws ServletException {
-		try {
-			message = Util.fileToString(res.Resources.MAIN_PAGE, "UTF-8");
-		} catch (IOException e) {
-			message = "<html><head>404 - Page not found</head><body>The requested page was not found.</body></html>";
-		} catch (UnsupportedCharsetException e) {
-			message = "<html><head>404 - Page not found</head><body>The requested page was not found.</body></html>";
-		}
-		ppc = new ClientRequestProcesser();
+public class Servlet {
+
+	public Servlet(String mainPage, ClientRequestProcesser ppc, _Logger logger) {
+		this.message = mainPage;
+		this.ppc = ppc;
+		this.logger = logger;
 	}
-
-	@Override
-	public void destroy() {
+	
+	public void terminate() {
 		ppc.terminate();
 	}
 
-	@Override
-	public void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
-		response.setContentType("text/html; charset=utf-8");
-		response.getWriter().printf(message);
+	public void presentMainPage(ServletRequest req, ServletResponse resp) throws ServletException, IOException {
+		resp.setContentType("text/html; charset=utf-8");
+		
+		writeResponse(resp, message);
 	}
 
-	@Override
-	protected void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
-		setHttpAttributes(request, response);
-		writeResponse(response, processRequest(request, readRequest(request)));
+	public void handleRequest(ServletRequest req, ServletResponse resp) throws ServletException, IOException {
+		resp.setCharacterEncoding("UTF-8");
+		req.setCharacterEncoding("UTF-8");
+		
+		writeResponse(resp, processRequest(req.getRemoteAddr(), req.getLocalAddr(), readRequest(req)));
 	}
 
-	private void writeResponse(HttpServletResponse response, String out) {
+	private void writeResponse(ServletResponse resp, String out) {
 		PrintWriter pw = null;
 		try {
-			pw = response.getWriter();
-			writeResponse(pw, out);
+			pw = resp.getWriter();
+			pw.print(out);
+			pw.flush();
 		} catch (IOException e) {
-			String msg = e.getMessage();
-			logger.log(msg != null ? msg : "Error writing HttpServletResponse", e);
+			logger.log(Level.INFO, "Could not get writer from ServletResponse", e);
 		} finally {
 			if (pw != null) {
 				pw.close();
@@ -59,53 +51,35 @@ public class Servlet extends HttpServlet
 		}
 	}
 
-	private String processRequest(HttpServletRequest request, String in) {
-		String out = null;
+	private String processRequest(String remoteAddr, String hostAddr, String request) {
 		try {
-			out = ppc.handleRequest(in, request.getRemoteAddr(), request.getLocalAddr());
+			return ppc.handleRequest(request, remoteAddr, hostAddr);
 		} catch (Exception e) {
-			String msg = e.getMessage();
-			logger.log(msg != null ? msg : "Could not process request", e);
+			logger.log(e.getMessage() != null ? e.getMessage() : "Could not process request", e);
+			return "";
 		}
-		return out;
 	}
 
-	private String readRequest(HttpServletRequest request) {
-		String in = null;
+	private String readRequest(ServletRequest req) {
 		BufferedReader br = null;
 		try {
-			br = request.getReader();
-			in = readRequest(br);
+			br = req.getReader();
+			StringBuilder sb = new StringBuilder();
+			for (String str; (str = br.readLine()) != null; sb.append(str))
+				;
+			return sb.toString();
 		} catch (IOException e) {
-			String msg = e.getMessage();
-			logger.log(msg != null ? msg : "Error reading HttpServletRequest", e);
+			logger.log(e.getMessage() != null ? e.getMessage() : "Error reading ServletRequest", e);
+			return "";
 		} finally {
 			if (br != null) {
 				try { br.close(); } catch (IOException e) { }
 			}
 		}
-		return in;
 	}
 
-	private void setHttpAttributes(HttpServletRequest request, HttpServletResponse response) throws UnsupportedEncodingException
-	{
-		response.setCharacterEncoding("UTF-8");
-		request.setCharacterEncoding("UTF-8");
-	}
-	
-	private String readRequest(BufferedReader br) throws IOException {
-		StringBuilder sb = new StringBuilder();
-		for (String str; (str = br.readLine()) != null; sb.append(str));
-		return sb.toString();
-	}
-	
-	private void writeResponse(PrintWriter out, String response) throws IOException {
-		out.print(response);
-		out.flush();
-	}
-
-	private static final long serialVersionUID = -2340346250534805168L;
-	private ServletLogger logger = ServletLogger.LOGGER;
+	private _Logger logger;
 	private String message;
 	private ClientRequestProcesser ppc;
+
 }
