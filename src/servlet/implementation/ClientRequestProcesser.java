@@ -29,7 +29,7 @@ public class ClientRequestProcesser {
 					admin = Constants.equal(Admin.YES, Constants.getEnum(Admin.values(), obj.get(_ADMIN)));
 				} catch (NumberFormatException ignored) { }
 			}
-			RequestProcesser rp = extractRequestType(obj, validAdminRequest(admin, remoteAddr, hostAddr));
+			RequestProcesser rp = extractRequestType(obj, admin, remoteAddr, hostAddr);
 			return rp.processRequest(obj).toString();
 		} catch (Exception e) {
 			logger.log(Level.INFO, "Unknown request", e);
@@ -37,16 +37,15 @@ public class ClientRequestProcesser {
 		}
 	}
 
-	private RequestProcesser extractRequestType(MapData obj, boolean adminRequest) {
+	private RequestProcesser extractRequestType(MapData obj, boolean adminRequest, String remoteAddr, String hostAddr) throws SecurityException {
 		if (adminRequest) {
+			if (!remoteAddr.equals(hostAddr)) {
+				throw new SecurityException("Request was of type admin but host and remote adress did not match");
+			}
 			return adminMethods.get(Constants.getEnum(AdminTypes.values(), obj.get(_TYPE)));
 		} else {
 			return userMethods.get(Constants.getEnum(Types.values(), obj.get(TYPE)));
 		}
-	}
-
-	private boolean validAdminRequest(boolean adminRequest, String remoteAddr, String hostAddr) {
-		return adminRequest && remoteAddr.equals(hostAddr);
 	}
 	
 	public ClientRequestProcesser(_Logger logger, _PacketData packetData, UserManager um,
