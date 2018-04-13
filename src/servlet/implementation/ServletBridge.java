@@ -1,9 +1,11 @@
 package servlet.implementation;
 
 import java.io.IOException;
+import java.math.BigInteger;
 import java.nio.charset.UnsupportedCharsetException;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Properties;
 
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServlet;
@@ -18,6 +20,7 @@ import res.Resources;
 import servlet.core.ServletLogger;
 import servlet.core._Logger;
 import servlet.core.interfaces.Database;
+import servlet.core.interfaces.Encryption;
 import servlet.core.usermanager.RegisteredOnlineUserManager;
 import servlet.core.usermanager.ThreadedActivityMonitor;
 import servlet.core.usermanager.UserManager;
@@ -71,24 +74,39 @@ public class ServletBridge extends HttpServlet {
 		RegistrationResponse resp = loadRegRespEmail(Resources.REGRESP_EMAIL_BODY);
 		Database db = new MySQLDatabase(logger);
 		QDBFormat qdbf = new QDBFormat(db, packetData);
+		Encryption encryption = SHAEncryption.instance;
+		servlet.core.interfaces._Locale locale = new LocaleSE();
+
+		BigInteger powPrivate = null, mod = null, powPublic = null;
+		try {
+			Properties props = new Properties();
+			props.load(Resources.getStream(Resources.KEY_PATH));
+			mod = new BigInteger(props.getProperty("mod"), 16);
+			powPrivate = new BigInteger(props.getProperty("exp"), 16);
+			powPrivate = new BigInteger(props.getProperty("public"), 16);
+			props.clear();
+		} catch (IOException _e) { } catch (IllegalArgumentException _e) { }
+		Crypto crypto = new Crypto(powPrivate, mod, powPublic);
+		
+		PasswordHandle passHandle = new PasswordHandle();
 		Map<Types, RequestProcesser> userMethods = new HashMap<Types, RequestProcesser>();
 		Map<AdminTypes, RequestProcesser> adminMethods = new HashMap<AdminTypes, RequestProcesser>();
-		userMethods.put(Types.PING, new Ping(um, db, packetData, qdbf, logger));
-		userMethods.put(Types.VALIDATE_PID, new ValidatePatientID(um, db, packetData, qdbf, logger));
-		userMethods.put(Types.ADD_QANS, new AddQuestionnaireAnswers(um, db, packetData, qdbf, logger));
-		userMethods.put(Types.SET_PASSWORD, new SetPassword(um, db, packetData, qdbf, logger));
-		userMethods.put(Types.LOAD_Q, new LoadQuestions(um, db, packetData, qdbf, logger));
-		userMethods.put(Types.LOAD_QR_DATE, new LoadQResultDates(um, db, packetData, qdbf, logger));
-		userMethods.put(Types.LOAD_QR, new LoadQResults(um, db, packetData, qdbf, logger));
-		userMethods.put(Types.REQ_REGISTR, new RequestRegistration(um, db, packetData, qdbf, logger, amm, req));
-		userMethods.put(Types.REQ_LOGIN, new RequestLogin(um, db, packetData, qdbf, logger));
-		userMethods.put(Types.REQ_LOGOUT, new RequestLogout(um, db, packetData, qdbf, logger));
+		userMethods.put(Types.PING, new Ping(packetData, logger, um, crypto));
+		userMethods.put(Types.VALIDATE_PID, new ValidatePatientID(um, db, packetData, logger, crypto, locale));
+		userMethods.put(Types.ADD_QANS, new AddQuestionnaireAnswers(packetData, logger, um, db, qdbf, encryption, locale, crypto));
+		userMethods.put(Types.SET_PASSWORD, new SetPassword(um, db, packetData, logger, encryption, crypto, passHandle));
+		userMethods.put(Types.LOAD_Q, new LoadQuestions(packetData, logger, db));
+		userMethods.put(Types.LOAD_QR_DATE, new LoadQResultDates(packetData, logger, um, db, crypto));
+		userMethods.put(Types.LOAD_QR, new LoadQResults(packetData, logger, um, db, qdbf, crypto));
+		userMethods.put(Types.REQ_REGISTR, new RequestRegistration(db, packetData, logger, amm, req, crypto));
+		userMethods.put(Types.REQ_LOGIN, new RequestLogin(packetData, logger, um, db, encryption, crypto));
+		userMethods.put(Types.REQ_LOGOUT, new RequestLogout(um, db, packetData, logger, crypto));
 		
-		adminMethods.put(AdminTypes.GET_USER, new _GetUser(um, db, packetData, qdbf, logger));
-		adminMethods.put(AdminTypes.GET_CLINICS, new _GetClinics(um, db, packetData, qdbf, logger));
-		adminMethods.put(AdminTypes.ADD_USER, new _AddUser(um, db, packetData, qdbf, logger));
-		adminMethods.put(AdminTypes.ADD_CLINIC, new _AddClinic(um, db, packetData, qdbf, logger));
-		adminMethods.put(AdminTypes.RSP_REGISTR, new _RespondRegistration(um, db, packetData, qdbf, logger, mm, resp));
+		adminMethods.put(AdminTypes.GET_USER, new _GetUser(packetData, logger, db));
+		adminMethods.put(AdminTypes.GET_CLINICS, new _GetClinics(packetData, logger, db));
+		adminMethods.put(AdminTypes.ADD_USER, new _AddUser(packetData, logger, db));
+		adminMethods.put(AdminTypes.ADD_CLINIC, new _AddClinic(packetData, logger, db));
+		adminMethods.put(AdminTypes.RSP_REGISTR, new _RespondRegistration(packetData, logger, mm, resp));
 		
 		
 		servlet = new Servlet(message, new ClientRequestProcesser(logger, packetData, um, userMethods, adminMethods), logger);

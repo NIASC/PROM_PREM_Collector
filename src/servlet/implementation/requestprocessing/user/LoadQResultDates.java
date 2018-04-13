@@ -15,13 +15,16 @@ import servlet.implementation.User;
 import servlet.implementation.io.ListData;
 import servlet.implementation.io.MapData;
 import servlet.implementation.io._PacketData;
-import servlet.implementation.requestprocessing.QDBFormat;
 import servlet.implementation.requestprocessing.LoggedInRequestProcesser;
 
 public class LoadQResultDates extends LoggedInRequestProcesser {
+	private Database db;
+	private Crypto crypto;
 	
-	public LoadQResultDates(UserManager um, Database db, _PacketData packetData, QDBFormat qdbf, _Logger logger) {
-		super(um, db, packetData, qdbf, logger);
+	public LoadQResultDates(_PacketData packetData, _Logger logger, UserManager um, Database db, Crypto crypto) {
+		super(packetData, logger, um);
+		this.db = db;
+		this.crypto = crypto;
 	}
 
 	public MapData processRequest(MapData in) {
@@ -42,7 +45,7 @@ public class LoadQResultDates extends LoggedInRequestProcesser {
 	}
 	
 	private ListData retrieveQResultDates(MapData in) throws Exception {
-		MapData inpl = packetData.getMapData(Crypto.decrypt(in.get(Data.LoadQResultDates.DETAILS)));
+		MapData inpl = packetData.getMapData(crypto.decrypt(in.get(Data.LoadQResultDates.DETAILS)));
 		long uid = Long.parseLong(inpl.get(Data.LoadQResultDates.Details.UID));
 		refreshTimer(uid);
 		User user = db.getUser(um.nameForUID(uid));

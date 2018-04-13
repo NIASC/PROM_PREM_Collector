@@ -25,7 +25,6 @@ import servlet.implementation.ClientRequestProcesser;
 import servlet.implementation.io.MapData;
 import servlet.implementation.io.PacketData;
 import servlet.implementation.io._PacketData;
-import servlet.implementation.requestprocessing.QDBFormat;
 import servlet.implementation.requestprocessing.RequestProcesser;
 
 public class ClientRequestProcesserTest {
@@ -36,8 +35,8 @@ public class ClientRequestProcesserTest {
 	MapData userData, adminData, adminUserData;
 	
 	private class DummyRequestProcesser extends RequestProcesser {
-		public DummyRequestProcesser(UserManager um, Database db, _PacketData packetData, QDBFormat qdbf, _Logger logger) {
-			super(um, db, packetData, qdbf, logger);
+		public DummyRequestProcesser(Database db, _PacketData packetData, _Logger logger) {
+			super(packetData, logger);
 		}
 		@Override
 		public MapData processRequest(MapData in) throws Exception {
@@ -89,7 +88,7 @@ public class ClientRequestProcesserTest {
 		};
 		UserManager um = new UserManager(cmgr, acmon);
 		Map<Types, RequestProcesser> userMethods = new HashMap<Types, RequestProcesser>();
-		RequestProcesser urp = new DummyRequestProcesser(um, db, pd, new QDBFormat(db, pd), logger);
+		RequestProcesser urp = new DummyRequestProcesser(db, pd, logger);
 		userMethods.put(Packet.Types.PING, urp);
 		Map<AdminTypes, RequestProcesser> adminMethods = new HashMap<AdminTypes, RequestProcesser>();
 		adminMethods.put(AdminPacket.AdminTypes.GET_USER, urp);

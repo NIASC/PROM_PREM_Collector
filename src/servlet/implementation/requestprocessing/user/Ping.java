@@ -6,18 +6,18 @@ import static common.implementation.Packet.TYPE;
 import common.implementation.Packet.Data;
 import common.implementation.Packet.Types;
 import servlet.core._Logger;
-import servlet.core.interfaces.Database;
 import servlet.core.usermanager.UserManager;
 import servlet.implementation.Crypto;
 import servlet.implementation.io.MapData;
 import servlet.implementation.io._PacketData;
-import servlet.implementation.requestprocessing.QDBFormat;
 import servlet.implementation.requestprocessing.IdleRequestProcesser;
 
 public class Ping extends IdleRequestProcesser {
+	private Crypto crypto;
 	
-	public Ping(UserManager um, Database db, _PacketData packetData, QDBFormat qdbf, _Logger logger) {
-		super(um, db, packetData, qdbf, logger);
+	public Ping(_PacketData packetData, _Logger logger, UserManager um, Crypto crypto) {
+		super(packetData, logger, um);
+		this.crypto = crypto;
 	}
 
 	@Override
@@ -37,7 +37,7 @@ public class Ping extends IdleRequestProcesser {
 	}
 	
 	private Data.Ping.Response processPing(MapData in) throws Exception {
-		MapData inpl = packetData.getMapData(Crypto.decrypt(in.get(Data.Ping.DETAILS)));
+		MapData inpl = packetData.getMapData(crypto.decrypt(in.get(Data.Ping.DETAILS)));
 		long uid = Long.parseLong(inpl.get(Data.Ping.Details.UID));
 		if (um.isOnline(uid)) {
 			return refreshTimer(uid) ? Data.Ping.Response.SUCCESS : Data.Ping.Response.FAIL;

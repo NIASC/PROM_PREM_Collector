@@ -11,20 +11,25 @@ import servlet.core.interfaces.Database;
 import servlet.core.interfaces.Encryption;
 import servlet.core.usermanager.UserManager;
 import servlet.implementation.Crypto;
-import servlet.implementation.SHAEncryption;
 import servlet.implementation.User;
 import servlet.implementation.io.MapData;
 import servlet.implementation.io._PacketData;
-import servlet.implementation.requestprocessing.QDBFormat;
 import servlet.implementation.requestprocessing.RequestProcesser;
 
 public class RequestLogin extends RequestProcesser {
+	private UserManager um;
+	private Database db;
+	private Encryption encryption;
+	private Crypto crypto;
 	
-	public RequestLogin(UserManager um, Database db, _PacketData packetData, QDBFormat qdbf, _Logger logger) {
-		super(um, db, packetData, qdbf, logger);
+	public RequestLogin(_PacketData packetData, _Logger logger, UserManager um, Database db, Encryption encryption, Crypto crypto) {
+		super(packetData, logger);
+		this.um = um;
+		this.db = db;
+		this.encryption = encryption;
+		this.crypto = crypto;
 	}
 
-	Encryption crypto = SHAEncryption.instance;
 	public MapData processRequest(MapData in) {
 		MapData out = packetData.getMapData();
 		out.put(TYPE, Types.REQ_LOGIN);
@@ -53,7 +58,7 @@ public class RequestLogin extends RequestProcesser {
 	
 	private UserLogin login(MapData in) throws Exception {
 		UserLogin ret = new UserLogin();
-		MapData inpl = packetData.getMapData(Crypto.decrypt(in.get(Data.RequestLogin.DETAILS)));
+		MapData inpl = packetData.getMapData(crypto.decrypt(in.get(Data.RequestLogin.DETAILS)));
 		ret.user = db.getUser(inpl.get(Data.RequestLogin.Details.USERNAME));
 		if (!ret.user.passwordMatches(inpl.get(Data.RequestLogin.Details.PASSWORD))) {
 			throw new NullPointerException("invalid details");
@@ -62,9 +67,9 @@ public class RequestLogin extends RequestProcesser {
 		ret.uid = 0L;
 		final int MAX_ATTEMPTS = 10;
 		for (int i = 0; ret.uid == 0L && i < MAX_ATTEMPTS; ++i) {
-			String hash = crypto.hashMessage(
+			String hash = encryption.hashMessage(
 					Long.toHexString(System.currentTimeMillis()),
-					ret.user.name, crypto.generateNewSalt());
+					ret.user.name, encryption.generateNewSalt());
 			long uid = Long.parseUnsignedLong(hash.substring(0, 2*Long.BYTES), 16);
 			if (um.isAvailable(uid)) {
 				ret.uid = uid;

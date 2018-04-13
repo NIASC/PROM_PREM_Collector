@@ -11,13 +11,14 @@ import servlet.core.usermanager.UserManager;
 import servlet.implementation.Crypto;
 import servlet.implementation.io.MapData;
 import servlet.implementation.io._PacketData;
-import servlet.implementation.requestprocessing.QDBFormat;
 import servlet.implementation.requestprocessing.LoggedInRequestProcesser;
 
 public class RequestLogout extends LoggedInRequestProcesser {
+	private Crypto crypto;
 	
-	public RequestLogout(UserManager um, Database db, _PacketData packetData, QDBFormat qdbf, _Logger logger) {
-		super(um, db, packetData, qdbf, logger);
+	public RequestLogout(UserManager um, Database db, _PacketData packetData, _Logger logger, Crypto crypto) {
+		super(packetData, logger, um);
+		this.crypto = crypto;
 	}
 
 	public MapData processRequest(MapData in) {
@@ -36,7 +37,7 @@ public class RequestLogout extends LoggedInRequestProcesser {
 	}
 	
 	private Data.RequestLogout.Response logout(MapData in) throws Exception {
-		MapData inpl = packetData.getMapData(Crypto.decrypt(in.get(Data.RequestLogout.DETAILS)));
+		MapData inpl = packetData.getMapData(crypto.decrypt(in.get(Data.RequestLogout.DETAILS)));
 		long uid = Long.parseLong(inpl.get(Data.RequestLogout.Details.UID));
 		refreshTimer(uid);
 		return um.delUserFromListOfOnline(uid) ? Data.RequestLogout.Response.SUCCESS : Data.RequestLogout.Response.ERROR;

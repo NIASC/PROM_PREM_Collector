@@ -26,9 +26,15 @@ import servlet.implementation.requestprocessing.QDBFormat;
 import servlet.implementation.requestprocessing.LoggedInRequestProcesser;
 
 public class LoadQResults extends LoggedInRequestProcesser {
+	private Database db;
+	private QDBFormat qdbf;
+	private Crypto crypto;
 	
-	public LoadQResults(UserManager um, Database db, _PacketData packetData, QDBFormat qdbf, _Logger logger) {
-		super(um, db, packetData, qdbf, logger);
+	public LoadQResults(_PacketData packetData, _Logger logger, UserManager um, Database db, QDBFormat qdbf, Crypto crypto) {
+		super(packetData, logger, um);
+		this.db = db;
+		this.qdbf = qdbf;
+		this.crypto = crypto;
 	}
 
 	public MapData processRequest(MapData in) {
@@ -49,7 +55,7 @@ public class LoadQResults extends LoggedInRequestProcesser {
 	}
 	
 	private MapData retrieveQResults(MapData in) throws Exception {
-		MapData inpl = packetData.getMapData(Crypto.decrypt(in.get(Data.LoadQResults.DETAILS)));
+		MapData inpl = packetData.getMapData(crypto.decrypt(in.get(Data.LoadQResults.DETAILS)));
 		long uid = Long.parseLong(inpl.get(Data.LoadQResults.Details.UID));
 		refreshTimer(uid);
 		User _user = db.getUser(um.nameForUID(uid));

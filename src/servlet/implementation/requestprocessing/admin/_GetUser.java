@@ -5,19 +5,19 @@ import static servlet.implementation.AdminPacket._TYPE;
 
 import servlet.core._Logger;
 import servlet.core.interfaces.Database;
-import servlet.core.usermanager.UserManager;
 import servlet.implementation.User;
 import servlet.implementation.AdminPacket.AdminData;
 import servlet.implementation.AdminPacket.AdminTypes;
 import servlet.implementation.io.MapData;
 import servlet.implementation.io._PacketData;
-import servlet.implementation.requestprocessing.QDBFormat;
 import servlet.implementation.requestprocessing.RequestProcesser;
 
 public class _GetUser extends RequestProcesser {
+	private Database db;
 	
-	public _GetUser(UserManager um, Database db, _PacketData packetData, QDBFormat qdbf, _Logger logger) {
-		super(um, db, packetData, qdbf, logger);
+	public _GetUser(_PacketData packetData, _Logger logger, Database db) {
+		super(packetData, logger);
+		this.db = db;
 	}
 
 	public MapData processRequest(MapData in) {

@@ -8,7 +8,7 @@ import common.implementation.Packet.Data;
 
 public class PasswordHandle
 {
-	public static Data.SetPassword.Response newPassError(User user,
+	public Data.SetPassword.Response newPassError(User user,
 			String oldPass, String newPass1, String newPass2)
 	{
 		if (user == null || !user.passwordMatches(oldPass)) {
@@ -27,10 +27,11 @@ public class PasswordHandle
 		}
 	}
 	
-	private static int validatePassword(String password)
+	private int validatePassword(String password)
 	{
-		if (password.length() < 6 || password.length() > 32)
+		if (password.length() < 6 || password.length() > 32) {
 			return -1;
+		}
 		List<Pattern> pattern = Arrays.asList(
 				Pattern.compile("\\p{Lower}"), /* lowercase */
 				Pattern.compile("\\p{Upper}"), /* uppercase */

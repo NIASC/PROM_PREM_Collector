@@ -18,7 +18,7 @@ public class UserManagerTest {
 	
 	private final int cyclesBeforeIdle = 10;
 	private final int cyclesBeforeInactive = (5*cyclesBeforeIdle)/2;
-	private final long millisPerCycle = 5;
+	private final long millisPerCycle = 10;
 
 	@Before
 	public void setUp() throws Exception {
@@ -58,7 +58,7 @@ public class UserManagerTest {
 	public void testIdleKicksUser() {
 		um.addUserToListOfOnline(identifier1, uid1);
 		Assert.assertEquals(true, um.isOnline(uid1));
-		try { Thread.sleep(millisPerCycle*(cyclesBeforeIdle+2)); } catch (Exception e) { }
+		try { Thread.sleep(millisPerCycle*(cyclesBeforeIdle+1)); } catch (Exception e) { }
 		Assert.assertEquals(false, um.isOnline(uid1));
 	}
 

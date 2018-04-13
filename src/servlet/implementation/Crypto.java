@@ -1,15 +1,19 @@
 package servlet.implementation;
 
-import java.io.IOException;
 import java.math.BigInteger;
-import java.util.Properties;
+import java.util.Locale;
 
-import res.Resources;
-
-public class Crypto
+public class Crypto implements _Crypto
 {
-	public static String decrypt(String messageEncrypted) throws NumberFormatException
-	{
+	private final BigInteger powPrivate, mod, powPublic;
+	public Crypto(BigInteger powPrivate, BigInteger mod, BigInteger powPublic) {
+		this.mod = mod;
+		this.powPrivate = powPrivate;
+		this.powPublic = powPublic;
+	}
+	
+	@Override
+	public String decrypt(String messageEncrypted) throws NumberFormatException {
 		String msg[] = messageEncrypted.split(":");
 		byte b[] = new byte[msg.length];
 		for (int i = 0; i < msg.length; ++i) {
@@ -17,23 +21,22 @@ public class Crypto
 		}
 		return new String(decryptRSA(b));
 	}
-
-	private static final BigInteger d, n;
 	
-	static {
-		BigInteger pow = null, mod = null;
-		try {
-			Properties props = new Properties();
-			props.load(Resources.getStream(Resources.KEY_PATH));
-			mod = new BigInteger(props.getProperty("mod"), 16);
-			pow = new BigInteger(props.getProperty("exp"), 16);
-			props.clear();
-		} catch (IOException _e) { } catch (IllegalArgumentException _e) { }
-		n = mod;
-		d = pow;
+	@Override
+	public String encrypt(String messagePlain) {
+		byte b[] = encryptRSA(messagePlain.getBytes());
+		StringBuilder sb = new StringBuilder();
+		for (int i = 0; i < b.length; sb.append(i < b.length ? ":" : "")) {
+			sb.append(String.format(Locale.US, "%02x", b[i++]));
+		}
+		return sb.toString();
 	}
 	
-	private static byte[] decryptRSA(byte msgBytes[]) {
-		return new BigInteger(msgBytes).modPow(d, n).toByteArray();
+	private byte[] decryptRSA(byte msgBytes[]) {
+		return new BigInteger(msgBytes).modPow(powPrivate, mod).toByteArray();
+	}
+	
+	private byte[] encryptRSA(byte msgBytes[]) {
+		return new BigInteger(msgBytes).modPow(powPublic, mod).toByteArray();
 	}
 }

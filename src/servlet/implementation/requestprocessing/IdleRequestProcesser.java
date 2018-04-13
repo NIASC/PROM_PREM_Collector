@@ -1,14 +1,15 @@
 package servlet.implementation.requestprocessing;
 
 import servlet.core._Logger;
-import servlet.core.interfaces.Database;
 import servlet.core.usermanager.UserManager;
 import servlet.implementation.io._PacketData;
 
 public abstract class IdleRequestProcesser extends RequestProcesser {
+	protected UserManager um;
 
-	public IdleRequestProcesser(UserManager um, Database db, _PacketData packetData, QDBFormat qdbf, _Logger logger) {
-		super(um, db, packetData, qdbf, logger);
+	public IdleRequestProcesser(_PacketData packetData, _Logger logger, UserManager um) {
+		super(packetData, logger);
+		this.um = um;
 	}
 
 	public boolean refreshTimer(long uid) {

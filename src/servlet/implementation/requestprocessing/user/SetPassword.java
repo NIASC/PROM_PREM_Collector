@@ -9,20 +9,26 @@ import common.implementation.Packet.Types;
 import servlet.core._Logger;
 import servlet.core.interfaces.Database;
 import servlet.core.interfaces.Encryption;
-import servlet.core.interfaces.Implementations;
 import servlet.core.usermanager.UserManager;
 import servlet.implementation.Crypto;
 import servlet.implementation.PasswordHandle;
 import servlet.implementation.User;
 import servlet.implementation.io.MapData;
 import servlet.implementation.io._PacketData;
-import servlet.implementation.requestprocessing.QDBFormat;
 import servlet.implementation.requestprocessing.LoggedInRequestProcesser;
 
 public class SetPassword extends LoggedInRequestProcesser {
+	private Database db;
+	private Crypto crypto;
+	private Encryption encryption;
+	private PasswordHandle pwdHandle;
 	
-	public SetPassword(UserManager um, Database db, _PacketData packetData, QDBFormat qdbf, _Logger logger) {
-		super(um, db, packetData, qdbf, logger);
+	public SetPassword(UserManager um, Database db, _PacketData packetData, _Logger logger, Encryption hash, Crypto crypto, PasswordHandle pwdHandle) {
+		super(packetData, logger, um);
+		this.db = db;
+		this.encryption = hash;
+		this.crypto = crypto;
+		this.pwdHandle = pwdHandle;
 	}
 
 	public MapData processRequest(MapData in) {
@@ -41,7 +47,7 @@ public class SetPassword extends LoggedInRequestProcesser {
 	}
 	
 	private Data.SetPassword.Response storePassword(MapData in) throws Exception {
-		MapData inpl = packetData.getMapData(Crypto.decrypt(in.get(Data.SetPassword.DETAILS)));
+		MapData inpl = packetData.getMapData(crypto.decrypt(in.get(Data.SetPassword.DETAILS)));
 		long uid = Long.parseLong(inpl.get(Data.SetPassword.Details.UID));
 		refreshTimer(uid);
 		String name = um.nameForUID(uid);
@@ -49,14 +55,13 @@ public class SetPassword extends LoggedInRequestProcesser {
 		String newPass1 = inpl.get(Data.SetPassword.Details.NEW_PASSWORD1);
 		String newPass2 = inpl.get(Data.SetPassword.Details.NEW_PASSWORD2);
 
-		Encryption hash = Implementations.Encryption();
-		String newSalt = hash.generateNewSalt();
+		String newSalt = encryption.generateNewSalt();
 		
 		User user = db.getUser(name);
-		Data.SetPassword.Response status = PasswordHandle.newPassError(user, oldPass, newPass1, newPass2);
+		Data.SetPassword.Response status = pwdHandle.newPassError(user, oldPass, newPass1, newPass2);
 		if (Constants.equal(status, Data.SetPassword.Response.SUCCESS)) {
 			db.setPassword(name, user.hashWithSalt(oldPass),
-					hash.hashMessage(newPass1, newSalt), newSalt);
+					encryption.hashMessage(newPass1, newSalt), newSalt);
 		}
 		return status;
 	}
