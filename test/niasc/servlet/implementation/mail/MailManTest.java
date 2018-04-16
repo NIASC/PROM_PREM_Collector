@@ -16,7 +16,7 @@ import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 
-import servlet.core.NullLogger;
+import servlet.core.PhonyLogger;
 import servlet.implementation.mail.Credentials;
 import servlet.implementation.mail.MailMan;
 import servlet.implementation.mail._MailConfig;
@@ -35,7 +35,7 @@ public class MailManTest {
 				return new NullTransport(Session.getDefaultInstance(new Properties(), null), null);
 			}
 		};
-		mm = new MailMan(_mc, new Credentials("", ""), new ArrayList<String>(0), new NullLogger());
+		mm = new MailMan(_mc, new Credentials("", ""), new ArrayList<String>(0), new PhonyLogger());
 	}
 
 	@Test

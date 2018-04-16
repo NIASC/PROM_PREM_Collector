@@ -7,10 +7,14 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Properties;
 
+import javax.naming.Context;
+import javax.naming.InitialContext;
+import javax.naming.NamingException;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import javax.sql.DataSource;
 
 import org.json.simple.parser.JSONParser;
 
@@ -72,7 +76,18 @@ public class ServletBridge extends HttpServlet {
 		}
 		RegistrationRequest req = loadRegReqEmail(Resources.REGREQ_EMAIL_BODY);
 		RegistrationResponse resp = loadRegRespEmail(Resources.REGRESP_EMAIL_BODY);
-		Database db = new MySQLDatabase(logger);
+
+		DataSource dataSource = null;
+		try {
+			Context initContext = new InitialContext();
+			Context envContext = (Context) initContext.lookup("java:comp/env");
+			dataSource = (DataSource) envContext.lookup("jdbc/prom_prem_db");
+		} catch (NamingException e) {
+			logger.log("FATAL: Could not load database configuration", e);
+			System.exit(1);
+		}
+		Database db = new MySQLDatabase(dataSource, logger);
+		
 		QDBFormat qdbf = new QDBFormat(db, packetData);
 		Encryption encryption = SHAEncryption.instance;
 		servlet.core.interfaces._Locale locale = new LocaleSE();

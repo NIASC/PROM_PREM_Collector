@@ -12,9 +12,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
 
-import javax.naming.Context;
-import javax.naming.InitialContext;
-import javax.naming.NamingException;
 import javax.sql.DataSource;
 
 import servlet.core._Logger;
@@ -24,16 +21,9 @@ import servlet.implementation.exceptions.DBWriteException;
 
 public class MySQLDatabase implements Database {
 	
-	public MySQLDatabase(_Logger logger) {
+	public MySQLDatabase(DataSource dataSource, _Logger logger) {
 		this.logger = logger;
-		try {
-			Context initContext = new InitialContext();
-			Context envContext = (Context) initContext.lookup("java:comp/env");
-			dataSource = (DataSource) envContext.lookup("jdbc/prom_prem_db");
-		} catch (NamingException e) {
-			logger.log("FATAL: Could not load database configuration", e);
-			System.exit(1);
-		}
+		this.dataSource = dataSource;
 	}
 
 	@Override
@@ -91,8 +81,9 @@ public class MySQLDatabase implements Database {
 				clinic_id,
 				_escapeReplace(identifier));
 		try {
-			if (!patientInDatabase(identifier))
+			if (!patientInDatabase(identifier)) {
 				writeToDatabase(patientInsert);
+			}
 			return true;
 		} catch (DBReadException dbr) {
 			logger.log("Database read error", dbr);
@@ -107,12 +98,15 @@ public class MySQLDatabase implements Database {
 	@Override
 	public boolean addQuestionnaireAnswers(
 			int clinic_id, String identifier,
-			List<String> question_answers)
+			List<String> _question_answers)
 	{
 		List<String> question_ids = new ArrayList<String>();
+		List<String> question_answers = new ArrayList<String>();
 		
-		for (int i = 0; i < question_answers.size(); ++i)
+		for (int i = 0; i < _question_answers.size(); ++i) {
 			question_ids.add(String.format("`question%d`", i));
+			question_answers.add(escapeReplace(_question_answers.get(i)));
+		}
 
 		SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd");
 		String resultInsert = String.format("INSERT INTO `questionnaire_answers` (`clinic_id`, `patient_identifier`, `date`, %s) VALUES ('%d', '%s', '%s', %s)",
