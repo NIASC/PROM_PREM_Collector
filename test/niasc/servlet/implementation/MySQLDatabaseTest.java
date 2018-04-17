@@ -1,6 +1,7 @@
 package niasc.servlet.implementation;
 
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Date;
 import java.util.HashMap;
@@ -14,6 +15,7 @@ import org.junit.Test;
 import servlet.core.PhonyLogger;
 import servlet.core._Logger;
 import servlet.implementation.MySQLDatabase;
+import servlet.implementation.QuestionData;
 import servlet.implementation.User;
 
 public class MySQLDatabaseTest {
@@ -36,19 +38,22 @@ public class MySQLDatabaseTest {
 	}
 
 	@Test
-	public void testEscapeReplaceString() {
-		Assert.assertEquals("'test'", db.escapeReplace("test"));
-		Assert.assertEquals("'\"test\"'", db.escapeReplace("'test'"));
-		Assert.assertEquals("'\"test\"'", db.escapeReplace("\"test\""));
-		Assert.assertEquals("'drop database phony_db;'", db.escapeReplace("drop database phony_db;"));
-		Assert.assertEquals("'\"; drop database phony_db; \"'", db.escapeReplace("'; drop database phony_db; '"));
+	public void testEscapeReplaceAndConvertToSQLEntry() {
+		Assert.assertEquals("'test'", db.escapeReplaceAndConvertToSQLEntry("test"));
+		Assert.assertEquals("'\"test\"'", db.escapeReplaceAndConvertToSQLEntry("'test'"));
+		Assert.assertEquals("'\"test\"'", db.escapeReplaceAndConvertToSQLEntry("\"test\""));
+		Assert.assertEquals("'drop database phony_db;'", db.escapeReplaceAndConvertToSQLEntry("drop database phony_db;"));
+		Assert.assertEquals("'\"; drop database phony_db; \"'", db.escapeReplaceAndConvertToSQLEntry("'; drop database phony_db; '"));
+		Assert.assertEquals(null, db.escapeReplaceAndConvertToSQLEntry((String)null));
 	}
 
 	@Test
-	public void testEscapeReplaceListOfString() {
-		Assert.assertEquals("['test0','test1']", db.escapeReplace(Arrays.asList("test0", "test1")));
-		Assert.assertEquals("['\"test0\"','test1']", db.escapeReplace(Arrays.asList("'test0'", "test1")));
-		Assert.assertEquals("['test0','\"; drop database phony_db; \"','test2']", db.escapeReplace(Arrays.asList("test0", "'; drop database phony_db; '", "test2")));
+	public void testEscapeReplaceAndConvertToSQLListOfEntries() {
+		Assert.assertEquals("[\"test0\",\"test1\"]", db.escapeReplaceAndConvertToSQLListOfEntries(Arrays.asList("test0", "test1")));
+		Assert.assertEquals("[\"\"test0\"\",\"test1\"]", db.escapeReplaceAndConvertToSQLListOfEntries(Arrays.asList("'test0'", "test1")));
+		Assert.assertEquals("[\"test0\",\"\"; drop database phony_db; \"\",\"test2\"]", db.escapeReplaceAndConvertToSQLListOfEntries(Arrays.asList("test0", "'; drop database phony_db; '", "test2")));
+		Assert.assertEquals("[]", db.escapeReplaceAndConvertToSQLListOfEntries(new ArrayList<String>()));
+		Assert.assertEquals(null, db.escapeReplaceAndConvertToSQLListOfEntries((List<String>)null));
 	}
 
 	@Test
@@ -109,12 +114,12 @@ public class MySQLDatabaseTest {
 
 	@Test
 	public void testGetClinics() {
-		Map<String, Integer> id = new HashMap<String, Integer>();
-		id.put("id", 0);
-		rs.setNextInts(id);
-		Map<String, String> name = new HashMap<String, String>();
-		name.put("name", "phony");
-		rs.setNextStrings(name);
+		Map<String, Integer> ints = new HashMap<String, Integer>();
+		ints.put("id", 0);
+		rs.setNextInts(ints);
+		Map<String, String> strings = new HashMap<String, String>();
+		strings.put("name", "phony");
+		rs.setNextStrings(strings);
 		rs.setNumberOfAvailableNextCalls(1);
 		Map<Integer, String> clinics = db.getClinics();
 		Assert.assertEquals("SELECT `id`, `name` FROM `clinics`", s.getLastSQLQuery());
@@ -129,12 +134,12 @@ public class MySQLDatabaseTest {
 		ints.put("clinic_id", 0);
 		ints.put("update_password", 1);
 		rs.setNextInts(ints);
-		Map<String, String> name = new HashMap<String, String>();
-		name.put("name", "phony");
-		name.put("password", "s3cr3t");
-		name.put("email", "phony@phony.com");
-		name.put("salt", "s4lt");
-		rs.setNextStrings(name);
+		Map<String, String> strings = new HashMap<String, String>();
+		strings.put("name", "phony");
+		strings.put("password", "s3cr3t");
+		strings.put("email", "phony@phony.com");
+		strings.put("salt", "s4lt");
+		rs.setNextStrings(strings);
 		User user = db.getUser("phony");
 		Assert.assertEquals("SELECT `clinic_id`, `name`, `password`, `email`, `salt`, `update_password` FROM `users` WHERE `users`.`name`='phony'", s.getLastSQLQuery());
 		Assert.assertNull(user);
@@ -152,22 +157,100 @@ public class MySQLDatabaseTest {
 
 	@Test
 	public void testSetPassword() {
-		Assert.fail("Not yet implemented");
+		/* set up user data */
+		Map<String, Integer> ints = new HashMap<String, Integer>();
+		ints.put("clinic_id", 0);
+		ints.put("update_password", 1);
+		rs.setNextInts(ints);
+		Map<String, String> strings = new HashMap<String, String>();
+		strings.put("name", "phony");
+		strings.put("password", "s3cr3t");
+		strings.put("email", "phony@phony.com");
+		strings.put("salt", "s4lt");
+		rs.setNextStrings(strings);
+		rs.setNumberOfAvailableNextCalls(1);
+		
+		Assert.assertTrue(db.setPassword("phony", "s3cr3t", "p4ssw0rd", "s4lt"));
+		Assert.assertEquals("UPDATE `users` SET `password`='p4ssw0rd',`salt`='s4lt',`update_password`='0' WHERE `users`.`name`='phony'",
+				s.getLastSQLUpdate());
+
+		/* set up user data */
+		rs.setNextInts(ints);
+		rs.setNextStrings(strings);
+		rs.setNumberOfAvailableNextCalls(1);
+		Assert.assertTrue(db.setPassword("phony", "s3cr3t", "'; drop database phony_db; '", "s4lt"));
+		Assert.assertEquals("UPDATE `users` SET `password`='\"; drop database phony_db; \"',`salt`='s4lt',`update_password`='0' WHERE `users`.`name`='phony'",
+				s.getLastSQLUpdate());
 	}
 
 	@Test
 	public void testLoadQuestions() {
-		Assert.fail("Not yet implemented");
+		Map<String, Integer> ints = new HashMap<String, Integer>();
+		ints.put("id", 999);
+		ints.put("optional", 0);
+		ints.put("max_val", 5);
+		ints.put("min_val", 1);
+		rs.setNextInts(ints);
+		Map<String, String> strings = new HashMap<String, String>();
+		strings.put("option0", "Hello");
+		strings.put("option1", "Hi");
+		strings.put("option2", "Greetings");
+		strings.put("type", "SingleOption");
+		strings.put("question", "Say hi");
+		strings.put("description", "Choose how to say hi");
+		rs.setNextStrings(strings);
+		rs.setNumberOfAvailableNextCalls(1);
+				
+		Map<Integer, QuestionData> q = db.loadQuestions();
+		Assert.assertEquals("SELECT * FROM `questionnaire`", s.getLastSQLQuery());
+		Assert.assertFalse(q.isEmpty());
+		Assert.assertTrue(q.containsKey(999));
+		QuestionData qd = q.get(999);
+		Assert.assertEquals(999, qd.id);
+		Assert.assertFalse(qd.optional);
+		Assert.assertEquals(5, qd.max_val);
+		Assert.assertEquals(1, qd.min_val);
+		Assert.assertEquals(Arrays.asList("Hello", "Hi", "Greetings"), qd.options);
+		Assert.assertEquals("SingleOption", qd.type);
+		Assert.assertEquals("Say hi", qd.question);
+		Assert.assertEquals("Choose how to say hi", qd.description);
 	}
 
 	@Test
 	public void testLoadQuestionResultDates() {
-		Assert.fail("Not yet implemented");
+		Map<String, String> name = new HashMap<String, String>();
+		name.put("date", "1970-01-01");
+		rs.setNextStrings(name);
+		rs.setNumberOfAvailableNextCalls(1);
+		
+		List<String> dates = db.loadQuestionResultDates(0);
+		Assert.assertEquals("SELECT `date` FROM `questionnaire_answers` WHERE `clinic_id`='0'", s.getLastSQLQuery());
+		Assert.assertFalse(dates.isEmpty());
+		Assert.assertEquals(Arrays.asList("1970-01-01"), dates);
 	}
 
 	@Test
-	public void testLoadQuestionResults() {
-		Assert.fail("Not yet implemented");
+	public void testLoadQuestionResults() throws Exception {
+		Map<String, String> strings = new HashMap<String, String>();
+		strings.put("question0", "2");
+		strings.put("question1", "option0");
+		strings.put("question2", "\"; drop database phony_db; \"");
+		strings.put("question3", "[\"option0\",\"option1\"]");
+		rs.setNextStrings(strings);
+		rs.setNumberOfAvailableNextCalls(1);
+		
+		SimpleDateFormat parser = new SimpleDateFormat("yyyy-MM-dd");
+		List<Map<Integer, String>> result = db.loadQuestionResults(999, Arrays.asList(2, 3), parser.parse("1970-01-01"), parser.parse("1999-12-31"));
+		Assert.assertEquals("SELECT `question2`, `question3` FROM `questionnaire_answers` WHERE `clinic_id`='999' AND `date` BETWEEN '1970-01-01' AND '1999-12-31'",
+				s.getLastSQLQuery());
+		Assert.assertFalse(result.isEmpty());
+		Map<Integer, String> answers = result.get(0);
+		Assert.assertNotNull(answers);
+		Assert.assertEquals(2, answers.size());
+		Assert.assertNull(answers.get(1));
+		Assert.assertEquals("\"; drop database phony_db; \"", answers.get(2));
+		Assert.assertEquals("[\"option0\",\"option1\"]", answers.get(3));
+		Assert.assertNull(answers.get(4));
 	}
 
 }

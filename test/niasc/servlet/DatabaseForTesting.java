@@ -10,9 +10,9 @@ import servlet.implementation.User;
 
 public class DatabaseForTesting implements Database {
 	@Override
-	public String escapeReplace(String str) { return null; }
+	public String escapeReplaceAndConvertToSQLEntry(String str) { return null; }
 	@Override
-	public String escapeReplace(List<String> str) { return null; }
+	public String escapeReplaceAndConvertToSQLListOfEntries(List<String> str) { return null; }
 	@Override
 	public boolean isSQLList(String s) { return false; }
 	@Override

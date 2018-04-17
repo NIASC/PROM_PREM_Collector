@@ -27,15 +27,25 @@ public class MySQLDatabase implements Database {
 	}
 
 	@Override
-	public String escapeReplace(String str) {
-		return String.format("'%s'", str.replace("\'", "\""));
+	public String escapeReplaceAndConvertToSQLEntry(String str) {
+		if (str == null) { return null; }
+		
+		return String.format("'%s'", escapeReplace(str));
+	}
+	
+	private String escapeReplace(String str) {
+		if (str == null) { return null; }
+		
+		return String.format("%s", str.replace("\'", "\""));
 	}
 
 	@Override
-	public String escapeReplace(List<String> lstr) {
+	public String escapeReplaceAndConvertToSQLListOfEntries(List<String> lstr) {
+		if (lstr == null) { return null; }
+		
 		List<String> out = new ArrayList<String>();
 		for (String str : lstr) {
-			out.add(escapeReplace(str));
+			out.add(String.format("\"%s\"", escapeReplace(str)));
 		}
 		return String.format("[%s]", String.join(",", out));
 	}
@@ -55,15 +65,14 @@ public class MySQLDatabase implements Database {
 	public boolean addUser(int clinic_id, String name,
 			String password, String email, String salt)
 	{
-		SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd");
 		String qInsert = String.format(
 				"INSERT INTO `users` (`clinic_id`, `name`, `password`, `email`, `registered`, `salt`, `update_password`) VALUES ('%d', '%s', '%s', '%s', '%s', '%s', '%d')",
 				clinic_id,
-				_escapeReplace(name),
-				_escapeReplace(password),
-				_escapeReplace(email),
-				sdf.format(new Date()),
-				_escapeReplace(salt), 1);
+				escapeReplace(name),
+				escapeReplace(password),
+				escapeReplace(email),
+				new SimpleDateFormat("yyyy-MM-dd").format(new Date()),
+				escapeReplace(salt), 1);
 		try {
 			writeToDatabase(qInsert);
 			return true;
@@ -79,7 +88,7 @@ public class MySQLDatabase implements Database {
 		String patientInsert = String.format(
 				"INSERT INTO `patients` (`clinic_id`, `identifier`, `id`) VALUES ('%d', '%s', NULL)",
 				clinic_id,
-				_escapeReplace(identifier));
+				escapeReplace(identifier));
 		try {
 			if (!patientInDatabase(identifier)) {
 				writeToDatabase(patientInsert);
@@ -105,15 +114,14 @@ public class MySQLDatabase implements Database {
 		
 		for (int i = 0; i < _question_answers.size(); ++i) {
 			question_ids.add(String.format("`question%d`", i));
-			question_answers.add(escapeReplace(_question_answers.get(i)));
+			question_answers.add(escapeReplaceAndConvertToSQLEntry(_question_answers.get(i)));
 		}
 
-		SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd");
 		String resultInsert = String.format("INSERT INTO `questionnaire_answers` (`clinic_id`, `patient_identifier`, `date`, %s) VALUES ('%d', '%s', '%s', %s)",
 				String.join(", ", question_ids),
 				clinic_id,
-				_escapeReplace(identifier),
-				sdf.format(new Date()),
+				escapeReplace(identifier),
+				new SimpleDateFormat("yyyy-MM-dd").format(new Date()),
 				String.join(", ", question_answers));
 		try {
 			writeToDatabase(resultInsert);
@@ -129,7 +137,7 @@ public class MySQLDatabase implements Database {
 	{
 		String qInsert = String.format(
 				"INSERT INTO `clinics` (`id`, `name`) VALUES (NULL, '%s')",
-				_escapeReplace(name));
+				escapeReplace(name));
 		try {
 			writeToDatabase(qInsert);
 			return true;
@@ -167,7 +175,7 @@ public class MySQLDatabase implements Database {
 	public User getUser(String username)
 	{
 		String q = String.format("SELECT `clinic_id`, `name`, `password`, `email`, `salt`, `update_password` FROM `users` WHERE `users`.`name`='%s'",
-				_escapeReplace(username));
+				escapeReplace(username));
 		Connection conn = null;
 		try {
 			conn = dataSource.getConnection();
@@ -202,16 +210,16 @@ public class MySQLDatabase implements Database {
 			String newPass, String newSalt)
 	{
 		User _user = getUser(name);
-		if (!_user.password.equals(_escapeReplace(oldPass))) {
+		if (_user == null || !_user.password.equals(escapeReplace(oldPass))) {
 			return false;
 		}
 		
 		String qInsert = String.format(
 				"UPDATE `users` SET `password`='%s',`salt`='%s',`update_password`='%d' WHERE `users`.`name`='%s'",
-				_escapeReplace(newPass),
-				_escapeReplace(newSalt),
+				escapeReplace(newPass),
+				escapeReplace(newSalt),
 				0,
-				_escapeReplace(name));
+				escapeReplace(name));
 		try {
 			writeToDatabase(qInsert);
 			return true;
@@ -345,7 +353,7 @@ public class MySQLDatabase implements Database {
 			conn = dataSource.getConnection();
 			String q = String.format(
 					"SELECT `identifier` FROM `patients` where `patients`.`identifier`='%s'",
-					_escapeReplace(identifier));
+					escapeReplace(identifier));
 			ResultSet rs = readFromDatabase(conn, q);
 			boolean exsist = rs.next();
 			return exsist;
@@ -376,9 +384,5 @@ public class MySQLDatabase implements Database {
 		} catch (SQLException se) {
 			throw new DBReadException(String.format("Database could not process request: '%s'. Check your arguments.", query));
 		}
-	}
-	
-	private String _escapeReplace(String str) {
-		return String.format("%s", str.replace("\'", "\""));
 	}
 }

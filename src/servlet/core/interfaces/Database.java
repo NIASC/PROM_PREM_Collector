@@ -9,8 +9,8 @@ import servlet.implementation.QuestionData;
 
 public interface Database
 {
-	String escapeReplace(String str);
-	String escapeReplace(List<String> str);
+	String escapeReplaceAndConvertToSQLEntry(String str);
+	String escapeReplaceAndConvertToSQLListOfEntries(List<String> str);
 	boolean isSQLList(String s);
 	List<String> SQLListToJavaList(String sqlList) throws IllegalArgumentException;
 	

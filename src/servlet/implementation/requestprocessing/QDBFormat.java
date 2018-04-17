@@ -24,19 +24,19 @@ public class QDBFormat {
 	public String getDBFormat(MapData fc) throws Exception {
 		String val = null;
 		if ((val = fc.get(QuestionTypes.SINGLE_OPTION)) != null) {
-			return db.escapeReplace(String.format("option%d", Integer.parseInt(val)));
+			return db.escapeReplaceAndConvertToSQLEntry(String.format("option%d", Integer.parseInt(val)));
 		} else if ((val = fc.get(QuestionTypes.MULTIPLE_OPTION)) != null) {
 			List<String> lstr = new ArrayList<String>();
 			for (String str : packetData.getListData(val).iterable()) {
 				lstr.add(String.format("option%d", Integer.parseInt(str)));
 			}
-			return db.escapeReplace(lstr);
+			return db.escapeReplaceAndConvertToSQLListOfEntries(lstr);
 		} else if ((val = fc.get(QuestionTypes.SLIDER)) != null) {
-			return db.escapeReplace(String.format("slider%d", Integer.parseInt(val)));
+			return db.escapeReplaceAndConvertToSQLEntry(String.format("slider%d", Integer.parseInt(val)));
 		} else if ((val = fc.get(QuestionTypes.AREA)) != null) {
-			return db.escapeReplace(val);
+			return db.escapeReplaceAndConvertToSQLEntry(val);
 		} else {
-			return db.escapeReplace("");
+			return db.escapeReplaceAndConvertToSQLEntry("");
 		}
 	}
 	
