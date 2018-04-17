@@ -1,4 +1,4 @@
-package niasc.servlet;
+package niasc.phony;
 
 import java.util.Date;
 import java.util.List;
@@ -8,7 +8,7 @@ import servlet.core.interfaces.Database;
 import servlet.implementation.QuestionData;
 import servlet.implementation.User;
 
-public class DatabaseForTesting implements Database {
+public class PhonyDatabase implements Database {
 	@Override
 	public String escapeReplaceAndConvertToSQLEntry(String str) { return null; }
 	@Override

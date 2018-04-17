@@ -18,8 +18,20 @@ import servlet.implementation.io.MapData;
 import servlet.implementation.io._PacketData;
 import servlet.implementation.requestprocessing.RequestProcesser;
 
-public class ClientRequestProcesser {
+public class ClientRequestProcesser implements _ClientRequestProcesser {
 	
+	public ClientRequestProcesser(_Logger logger, _PacketData packetData, UserManager um,
+			Map<Types, RequestProcesser> userMethods, Map<AdminTypes, RequestProcesser> adminMethods) {
+		this.logger = logger;
+		this.packetData = packetData;
+		this.um = um;
+		this.userMethods = userMethods;
+		this.adminMethods = adminMethods;
+		
+		um.startManagement();
+	}
+	
+	@Override
 	public String handleRequest(String message, String remoteAddr, String hostAddr) {
 		try {
 			MapData obj = packetData.getMapData(message);
@@ -36,6 +48,11 @@ public class ClientRequestProcesser {
 			return packetData.getMapData().toString();
 		}
 	}
+	
+	@Override
+	public void terminate() {
+		um.stopManagement();
+	}
 
 	private RequestProcesser extractRequestType(MapData obj, boolean adminRequest, String remoteAddr, String hostAddr) throws SecurityException {
 		if (adminRequest) {
@@ -46,21 +63,6 @@ public class ClientRequestProcesser {
 		} else {
 			return userMethods.get(Constants.getEnum(Types.values(), obj.get(TYPE)));
 		}
-	}
-	
-	public ClientRequestProcesser(_Logger logger, _PacketData packetData, UserManager um,
-			Map<Types, RequestProcesser> userMethods, Map<AdminTypes, RequestProcesser> adminMethods) {
-		this.logger = logger;
-		this.packetData = packetData;
-		this.um = um;
-		this.userMethods = userMethods;
-		this.adminMethods = adminMethods;
-		
-		um.startManagement();
-	}
-	
-	public void terminate() {
-		um.stopManagement();
 	}
 	
 	private _Logger logger;

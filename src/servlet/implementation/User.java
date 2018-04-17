@@ -12,12 +12,13 @@ public class User
 	public String salt;
 	public boolean update_password;
 	
-	public User() {
-		crypto = Implementations.Encryption();
+	public User(Encryption crypto) {
+		this.crypto = crypto;
 	}
 	
-	public User(int clinicID, String username, String password, String email, String salt, boolean updatePass) {
-		this();
+	public User(Encryption crypto, int clinicID, String username, String password, String email, String salt, boolean updatePass) {
+		this(crypto);
+		
 		this.clinic_id = clinicID;
 		this.name = username;
 		this.password = password;
@@ -28,7 +29,7 @@ public class User
 	
 	@Override
 	public Object clone() {
-		return new User(clinic_id, name, password, email, salt, update_password);
+		return new User(crypto, clinic_id, name, password, email, salt, update_password);
 	}
 	
 	public boolean passwordMatches(String unhashedPass) {

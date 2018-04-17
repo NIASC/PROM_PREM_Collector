@@ -1,4 +1,4 @@
-package niasc.servlet.implementation.mail;
+package niasc.phony.email;
 
 import javax.mail.Address;
 import javax.mail.Message;
@@ -7,9 +7,9 @@ import javax.mail.Session;
 import javax.mail.Transport;
 import javax.mail.URLName;
 
-public class NullTransport extends Transport {
+public class PhonyTransport extends Transport {
 
-	public NullTransport(Session session, URLName url) {
+	public PhonyTransport(Session session, URLName url) {
 		super(session, url);
 	}
 

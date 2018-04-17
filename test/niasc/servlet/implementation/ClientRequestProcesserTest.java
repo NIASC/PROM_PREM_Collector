@@ -11,7 +11,7 @@ import org.junit.Test;
 
 import common.implementation.Packet;
 import common.implementation.Packet.Types;
-import niasc.servlet.DatabaseForTesting;
+import niasc.phony.PhonyDatabase;
 import niasc.servlet.LoggerForTesting;
 import servlet.core._Logger;
 import servlet.core.interfaces.Database;
@@ -66,7 +66,7 @@ public class ClientRequestProcesserTest {
 		adminUserData.put(AdminPacket.AdminData.AdminGetUser.__NULL__, "adminUserData");
 		adminUserPacket.put(AdminPacket._DATA, adminUserData.toString());
 		
-		Database db = new DatabaseForTesting();
+		Database db = new PhonyDatabase();
 		ConnectionManager cmgr = new ConnectionManager() {
 			@Override public void registerConnection(ConnectionData connection) { }
 			@Override public void deregisterConnection(ConnectionData connection) { }

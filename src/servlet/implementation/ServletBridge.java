@@ -86,10 +86,10 @@ public class ServletBridge extends HttpServlet {
 			logger.log("FATAL: Could not load database configuration", e);
 			System.exit(1);
 		}
-		Database db = new MySQLDatabase(dataSource, logger);
+		Encryption encryption = SHAEncryption.instance;
+		Database db = new MySQLDatabase(dataSource, encryption, logger);
 		
 		QDBFormat qdbf = new QDBFormat(db, packetData);
-		Encryption encryption = SHAEncryption.instance;
 		servlet.core.interfaces._Locale locale = new LocaleSE();
 
 		BigInteger powPrivate = null, mod = null, powPublic = null;

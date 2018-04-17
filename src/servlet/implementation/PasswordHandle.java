@@ -19,7 +19,7 @@ public class PasswordHandle
 		}
 		int ret = validatePassword(newPass1);
 		if (ret < 0) {
-			return Data.SetPassword.Response.PASSWORD_SHORT;
+			return Data.SetPassword.Response.PASSWORD_INVALID_LENGTH;
 		} else if (ret == 0) {
 			return Data.SetPassword.Response.PASSWORD_SIMPLE;
 		} else {

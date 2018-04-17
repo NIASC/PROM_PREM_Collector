@@ -16,14 +16,16 @@ import javax.sql.DataSource;
 
 import servlet.core._Logger;
 import servlet.core.interfaces.Database;
+import servlet.core.interfaces.Encryption;
 import servlet.implementation.exceptions.DBReadException;
 import servlet.implementation.exceptions.DBWriteException;
 
 public class MySQLDatabase implements Database {
 	
-	public MySQLDatabase(DataSource dataSource, _Logger logger) {
+	public MySQLDatabase(DataSource dataSource, Encryption crypto, _Logger logger) {
 		this.logger = logger;
 		this.dataSource = dataSource;
+		this.crypto = crypto;
 	}
 
 	@Override
@@ -183,7 +185,7 @@ public class MySQLDatabase implements Database {
 
 			User _user = null;
 			if (rs.next()) {
-				_user = new User();
+				_user = new User(crypto);
 				_user.clinic_id = rs.getInt("clinic_id");
 				_user.name = rs.getString("name");
 				_user.password = rs.getString("password");
@@ -343,8 +345,8 @@ public class MySQLDatabase implements Database {
 	}
 
 	private _Logger logger;
-	
 	private DataSource dataSource;
+	private Encryption crypto;
 	
 	private boolean patientInDatabase(String identifier) throws SQLException, DBReadException
 	{

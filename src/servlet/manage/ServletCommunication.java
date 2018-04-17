@@ -20,6 +20,8 @@ import org.json.simple.parser.JSONParser;
 
 import common.implementation.Constants;
 import servlet.core.ServletConst;
+import servlet.core.interfaces.Implementations;
+import servlet.implementation.SHAEncryption;
 import servlet.implementation.User;
 import servlet.implementation.AdminPacket.Admin;
 import servlet.implementation.AdminPacket.AdminData;
@@ -111,7 +113,7 @@ public enum ServletCommunication
 		
 		JSONMapData _user = new JSONMapData(inData.get(AdminData.AdminGetUser.USER));
 		try {
-			User _usr = new User();
+			User _usr = new User(SHAEncryption.instance);
 			_usr.clinic_id = Integer.parseInt(_user.get(AdminData.AdminGetUser.User.CLINIC_ID));
 			_usr.name = _user.get(AdminData.AdminGetUser.User.USERNAME);
 			_usr.password = _user.get(AdminData.AdminGetUser.User.PASSWORD);

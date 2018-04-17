@@ -108,7 +108,7 @@ public enum Packet {
 				SUCCESS,
 				INVALID_DETAILS,
 				MISMATCH_NEW,
-				PASSWORD_SHORT,
+				PASSWORD_INVALID_LENGTH,
 				PASSWORD_SIMPLE
 			}
 		} // SetPassword

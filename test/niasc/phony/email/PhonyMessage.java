@@ -1,4 +1,4 @@
-package niasc.servlet.implementation.mail;
+package niasc.phony.email;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -15,18 +15,18 @@ import javax.mail.MessagingException;
 import javax.mail.Multipart;
 import javax.mail.Session;
 
-public class NullMessage extends Message {
+public class PhonyMessage extends Message {
 
-	public NullMessage() {
+	public PhonyMessage() {
 		// TODO Auto-generated constructor stub
 	}
 
-	public NullMessage(Session session) {
+	public PhonyMessage(Session session) {
 		super(session);
 		// TODO Auto-generated constructor stub
 	}
 
-	public NullMessage(Folder folder, int msgnum) {
+	public PhonyMessage(Folder folder, int msgnum) {
 		super(folder, msgnum);
 		// TODO Auto-generated constructor stub
 	}

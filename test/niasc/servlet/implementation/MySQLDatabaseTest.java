@@ -12,6 +12,10 @@ import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 
+import niasc.phony.database.PhonyConnection;
+import niasc.phony.database.PhonyDataSource;
+import niasc.phony.database.PhonyResultSet;
+import niasc.phony.database.PhonyStatement;
 import servlet.core.PhonyLogger;
 import servlet.core._Logger;
 import servlet.implementation.MySQLDatabase;
@@ -23,7 +27,6 @@ public class MySQLDatabaseTest {
 	_Logger logger;
 	
 	PhonyDataSource ds;
-	PhonyConnection c;
 	PhonyStatement s;
 	PhonyResultSet rs;
 
@@ -32,9 +35,8 @@ public class MySQLDatabaseTest {
 		logger = new PhonyLogger();
 		rs = new PhonyResultSet();
 		s = new PhonyStatement(rs);
-		c = new PhonyConnection(s);
-		ds = new PhonyDataSource(c);
-		db = new MySQLDatabase(ds, logger);
+		ds = new PhonyDataSource(new PhonyConnection(s));
+		db = new MySQLDatabase(ds, null, logger);
 	}
 
 	@Test

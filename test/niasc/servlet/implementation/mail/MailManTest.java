@@ -16,6 +16,8 @@ import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 
+import niasc.phony.email.PhonyMessage;
+import niasc.phony.email.PhonyTransport;
 import servlet.core.PhonyLogger;
 import servlet.implementation.mail.Credentials;
 import servlet.implementation.mail.MailMan;
@@ -29,10 +31,10 @@ public class MailManTest {
 	public void setUp() throws Exception {
 		_MailConfig _mc = new _MailConfig() {
 			@Override
-			public Message createEmptyMessage() { return new NullMessage(); }
+			public Message createEmptyMessage() { return new PhonyMessage(); }
 			@Override
 			public Transport getTransport() throws NoSuchProviderException {
-				return new NullTransport(Session.getDefaultInstance(new Properties(), null), null);
+				return new PhonyTransport(Session.getDefaultInstance(new Properties(), null), null);
 			}
 		};
 		mm = new MailMan(_mc, new Credentials("", ""), new ArrayList<String>(0), new PhonyLogger());

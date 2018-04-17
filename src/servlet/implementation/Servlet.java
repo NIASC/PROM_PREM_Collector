@@ -13,7 +13,7 @@ import servlet.core._Logger;
 
 public class Servlet {
 
-	public Servlet(String mainPage, ClientRequestProcesser ppc, _Logger logger) {
+	public Servlet(String mainPage, _ClientRequestProcesser ppc, _Logger logger) {
 		this.message = mainPage;
 		this.ppc = ppc;
 		this.logger = logger;
@@ -78,8 +78,8 @@ public class Servlet {
 		}
 	}
 
-	private _Logger logger;
 	private String message;
-	private ClientRequestProcesser ppc;
+	private _ClientRequestProcesser ppc;
+	private _Logger logger;
 
 }
