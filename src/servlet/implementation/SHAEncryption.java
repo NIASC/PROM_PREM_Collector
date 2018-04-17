@@ -2,14 +2,16 @@ package servlet.implementation;
 
 import java.math.BigInteger;
 import java.security.MessageDigest;
-import java.security.NoSuchAlgorithmException;
 import java.security.SecureRandom;
 
 import servlet.core.interfaces.Encryption;
 
-public enum SHAEncryption implements Encryption
-{
-	instance;
+public class SHAEncryption implements Encryption {
+	
+	public SHAEncryption(SecureRandom sr, MessageDigest md) throws NullPointerException {
+		this.sr = sr;
+		this.md = md;
+	}
 
 	@Override
 	public String hashMessage(String s, String salt) {
@@ -32,16 +34,4 @@ public enum SHAEncryption implements Encryption
 	
 	private SecureRandom sr;
 	private MessageDigest md;
-	
-	private SHAEncryption() throws NullPointerException {
-		try {
-			sr = SecureRandom.getInstance("SHA1PRNG");
-			md = MessageDigest.getInstance("SHA-256");
-		} catch (NoSuchAlgorithmException e) {
-			throw new NullPointerException(String.format(
-					"WARNING: Hashing algorithms %s and/or %s is not "
-					+ "available. You should not add sensitive information "
-					+ "to the database.", "SHA1PRNG", "SHA-256"));
-		}
-	}
 }

@@ -1,23 +1,39 @@
 package servlet.manage;
 
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
+import java.security.SecureRandom;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.regex.Pattern;
 
 import servlet.core.interfaces.Encryption;
-import servlet.core.interfaces.Implementations;
+import servlet.implementation.SHAEncryption;
 
 import java.util.Scanner;
 
 public class Manage
 {
 	public static void main(String[] args) {
-		new Manage().runManager();
+		SecureRandom sr = null;
+		MessageDigest md = null;
+		try {
+			sr = SecureRandom.getInstance("SHA1PRNG");
+			md = MessageDigest.getInstance("SHA-256");
+		} catch (NoSuchAlgorithmException e) {
+			System.err.printf("FATAL: Hashing algorithms %s and/or %s is not available.\n", "SHA1PRNG", "SHA-256");
+			System.exit(1);
+		}
+		Encryption crypto = new SHAEncryption(sr, md);
+		ServletCommunication scom = new ServletCommunication(crypto);
+		Scanner in = new Scanner(System.in);
+		new Manage(scom, crypto, in).runManager();
 	}
 	
-	public Manage() {
-		db = ServletCommunication.SCOM;
-		in = new Scanner(System.in);
+	public Manage(ServletCommunication scom, Encryption crypto, Scanner in) {
+		this.db = scom;
+		this.in = in;
+		this.crypto = crypto;
 	}
 	
 	public void runManager()
@@ -282,7 +298,6 @@ public class Manage
 				+ "%d: Yes\n%d: No\n", email, user, password, 1, 0);
 		if (in.hasNextInt()) {
 			if (in.nextInt() == 1) {
-				Encryption crypto = Implementations.Encryption();
 				String salt = crypto.generateNewSalt();
 				if (db.addUser(user, crypto.hashMessage(password, salt),
 						salt, clinic, email)) {
@@ -301,6 +316,7 @@ public class Manage
 	
 	private Scanner in;
 	private ServletCommunication db;
+	private Encryption crypto;
 	
 	private String option(int key, String description) {
 		return String.format("%s: %s",

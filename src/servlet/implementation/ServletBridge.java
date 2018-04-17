@@ -3,6 +3,9 @@ package servlet.implementation;
 import java.io.IOException;
 import java.math.BigInteger;
 import java.nio.charset.UnsupportedCharsetException;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
+import java.security.SecureRandom;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Properties;
@@ -86,7 +89,17 @@ public class ServletBridge extends HttpServlet {
 			logger.log("FATAL: Could not load database configuration", e);
 			System.exit(1);
 		}
-		Encryption encryption = SHAEncryption.instance;
+
+		SecureRandom sr = null;
+		MessageDigest md = null;
+		try {
+			sr = SecureRandom.getInstance("SHA1PRNG");
+			md = MessageDigest.getInstance("SHA-256");
+		} catch (NoSuchAlgorithmException e) {
+			logger.log(String.format("FATAL: Hashing algorithms %s and/or %s is not available.", "SHA1PRNG", "SHA-256"));
+			System.exit(1);
+		}
+		Encryption encryption = new SHAEncryption(sr, md);
 		Database db = new MySQLDatabase(dataSource, encryption, logger);
 		
 		QDBFormat qdbf = new QDBFormat(db, packetData);

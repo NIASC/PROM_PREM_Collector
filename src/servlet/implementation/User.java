@@ -1,7 +1,6 @@
 package servlet.implementation;
 
 import servlet.core.interfaces.Encryption;
-import servlet.core.interfaces.Implementations;
 
 public class User
 {
