@@ -25,15 +25,15 @@ import common.Util;
 import common.implementation.Packet.Types;
 import res.Resources;
 import servlet.core.ServletLogger;
-import servlet.core._Logger;
-import servlet.core.interfaces.Database;
-import servlet.core.interfaces.Encryption;
+import servlet.core.PPCDatabase;
+import servlet.core.PPCStringScramble;
+import servlet.core.PPCLogger;
 import servlet.core.usermanager.RegisteredOnlineUserManager;
 import servlet.core.usermanager.ThreadedActivityMonitor;
 import servlet.core.usermanager.UserManager;
 import servlet.implementation.AdminPacket.AdminTypes;
 import servlet.implementation.io.PacketData;
-import servlet.implementation.io._PacketData;
+import servlet.implementation.io.IPacketData;
 import servlet.implementation.mail.MailMan;
 import servlet.implementation.mail.MailManFactory;
 import servlet.implementation.mail.MessageGenerator;
@@ -65,8 +65,8 @@ public class ServletBridge extends HttpServlet {
 			message = Util.fileToString(res.Resources.MAIN_PAGE, "UTF-8");
 		} catch (IOException e) { } catch (UnsupportedCharsetException e) { }
 		
-		_Logger logger = ServletLogger.LOGGER;
-		_PacketData packetData = new PacketData(new JSONParser(), logger);
+		PPCLogger logger = ServletLogger.LOGGER;
+		IPacketData packetData = new PacketData(new JSONParser(), logger);
 		RegisteredOnlineUserManager usr = new RegisteredOnlineUserManager();
 		UserManager um = new UserManager(usr, new ThreadedActivityMonitor(usr));
 		MailMan mm = null;
@@ -99,11 +99,11 @@ public class ServletBridge extends HttpServlet {
 			logger.log(String.format("FATAL: Hashing algorithms %s and/or %s is not available.", "SHA1PRNG", "SHA-256"));
 			System.exit(1);
 		}
-		Encryption encryption = new SHAEncryption(sr, md);
-		Database db = new MySQLDatabase(dataSource, encryption, logger);
+		PPCStringScramble encryption = new SHAEncryption(sr, md);
+		PPCDatabase db = new MySQLDatabase(dataSource, encryption, logger);
 		
 		QDBFormat qdbf = new QDBFormat(db, packetData);
-		servlet.core.interfaces._Locale locale = new LocaleSE();
+		servlet.core.PPCLocale locale = new LocaleSE();
 
 		BigInteger powPrivate = null, mod = null, powPublic = null;
 		try {

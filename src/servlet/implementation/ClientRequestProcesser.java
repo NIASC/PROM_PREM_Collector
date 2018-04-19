@@ -10,17 +10,18 @@ import static servlet.implementation.AdminPacket._ADMIN;
 import static servlet.implementation.AdminPacket._TYPE;
 
 import common.implementation.Packet.Types;
-import servlet.core._Logger;
+import servlet.core.PPCLogger;
+import servlet.core.PPCClientRequestProcesser;
 import servlet.core.usermanager.UserManager;
 import servlet.implementation.AdminPacket.Admin;
 import servlet.implementation.AdminPacket.AdminTypes;
 import servlet.implementation.io.MapData;
-import servlet.implementation.io._PacketData;
+import servlet.implementation.io.IPacketData;
 import servlet.implementation.requestprocessing.RequestProcesser;
 
-public class ClientRequestProcesser implements _ClientRequestProcesser {
+public class ClientRequestProcesser implements PPCClientRequestProcesser {
 	
-	public ClientRequestProcesser(_Logger logger, _PacketData packetData, UserManager um,
+	public ClientRequestProcesser(PPCLogger logger, IPacketData packetData, UserManager um,
 			Map<Types, RequestProcesser> userMethods, Map<AdminTypes, RequestProcesser> adminMethods) {
 		this.logger = logger;
 		this.packetData = packetData;
@@ -65,8 +66,8 @@ public class ClientRequestProcesser implements _ClientRequestProcesser {
 		}
 	}
 	
-	private _Logger logger;
-	private _PacketData packetData;
+	private PPCLogger logger;
+	private IPacketData packetData;
 	private UserManager um;
 	private Map<Types, RequestProcesser> userMethods = new HashMap<Types, RequestProcesser>();
 	private Map<AdminTypes, RequestProcesser> adminMethods = new HashMap<AdminTypes, RequestProcesser>();

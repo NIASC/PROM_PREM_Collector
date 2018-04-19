@@ -16,15 +16,15 @@ import niasc.phony.database.PhonyConnection;
 import niasc.phony.database.PhonyDataSource;
 import niasc.phony.database.PhonyResultSet;
 import niasc.phony.database.PhonyStatement;
-import servlet.core.PhonyLogger;
-import servlet.core._Logger;
+import niasc.servlet.LoggerForTesting;
+import servlet.core.PPCLogger;
 import servlet.implementation.MySQLDatabase;
 import servlet.implementation.QuestionData;
 import servlet.implementation.User;
 
 public class MySQLDatabaseTest {
 	MySQLDatabase db;
-	_Logger logger;
+	PPCLogger logger;
 	
 	PhonyDataSource ds;
 	PhonyStatement s;
@@ -32,7 +32,7 @@ public class MySQLDatabaseTest {
 
 	@Before
 	public void setUp() throws Exception {
-		logger = new PhonyLogger();
+		logger = new LoggerForTesting();
 		rs = new PhonyResultSet();
 		s = new PhonyStatement(rs);
 		ds = new PhonyDataSource(new PhonyConnection(s));

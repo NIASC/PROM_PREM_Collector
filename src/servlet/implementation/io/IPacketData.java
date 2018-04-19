@@ -1,6 +1,6 @@
 package servlet.implementation.io;
 
-public interface _PacketData {
+public interface IPacketData {
 	MapData getMapData();
 	MapData getMapData(String str);
 	ListData getListData();

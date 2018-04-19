@@ -6,18 +6,18 @@ import static servlet.implementation.AdminPacket._TYPE;
 import java.util.Map;
 import java.util.Map.Entry;
 
-import servlet.core._Logger;
-import servlet.core.interfaces.Database;
+import servlet.core.PPCDatabase;
+import servlet.core.PPCLogger;
 import servlet.implementation.AdminPacket.AdminData;
 import servlet.implementation.AdminPacket.AdminTypes;
 import servlet.implementation.io.MapData;
-import servlet.implementation.io._PacketData;
+import servlet.implementation.io.IPacketData;
 import servlet.implementation.requestprocessing.RequestProcesser;
 
 public class _GetClinics extends RequestProcesser {
-	private Database db;
+	private PPCDatabase db;
 	
-	public _GetClinics(_PacketData packetData, _Logger logger, Database db) {
+	public _GetClinics(IPacketData packetData, PPCLogger logger, PPCDatabase db) {
 		super(packetData, logger);
 		this.db = db;
 	}

@@ -8,26 +8,26 @@ import java.util.List;
 
 import common.implementation.Packet.Data;
 import common.implementation.Packet.Types;
-import servlet.core._Logger;
-import servlet.core.interfaces.Database;
-import servlet.core.interfaces.Encryption;
+import servlet.core.PPCDatabase;
+import servlet.core.PPCStringScramble;
+import servlet.core.PPCLogger;
 import servlet.core.usermanager.UserManager;
 import servlet.implementation.Crypto;
 import servlet.implementation.io.ListData;
 import servlet.implementation.io.MapData;
-import servlet.implementation.io._PacketData;
+import servlet.implementation.io.IPacketData;
 import servlet.implementation.requestprocessing.QDBFormat;
 import servlet.implementation.requestprocessing.LoggedInRequestProcesser;
 
 public class AddQuestionnaireAnswers extends LoggedInRequestProcesser {
-	private Database db;
+	private PPCDatabase db;
 	private QDBFormat qdbf;
-	private Encryption encryption;
-	private servlet.core.interfaces._Locale locale;
+	private PPCStringScramble encryption;
+	private servlet.core.PPCLocale locale;
 	private Crypto crypto;
 
-	public AddQuestionnaireAnswers(_PacketData packetData, _Logger logger, UserManager um, Database db, QDBFormat qdbf,
-			Encryption encryption, servlet.core.interfaces._Locale locale, Crypto crypto) {
+	public AddQuestionnaireAnswers(IPacketData packetData, PPCLogger logger, UserManager um, PPCDatabase db, QDBFormat qdbf,
+			PPCStringScramble encryption, servlet.core.PPCLocale locale, Crypto crypto) {
 		super(packetData, logger, um);
 		this.db = db;
 		this.qdbf = qdbf;

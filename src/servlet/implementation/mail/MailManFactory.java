@@ -9,27 +9,27 @@ import java.util.Properties;
 import javax.mail.Session;
 
 import res.Resources;
-import servlet.core._Logger;
+import servlet.core.PPCLogger;
 
 public class MailManFactory {
 	
-	public static MailMan newInstance(String accountsFile, String configFile, _Logger logger) throws IOException {
+	public static MailMan newInstance(String accountsFile, String configFile, PPCLogger logger) throws IOException {
 		EmailAccounts ea = loadEmailAccounts(accountsFile);
-		_MailConfig emcfg = loadEmailConfig(configFile);
+		IMailConfig emcfg = loadEmailConfig(configFile);
 		return newInstance(new ArrayList<String>(0), new Credentials(ea.serverEmail, ea.serverPassword), emcfg, logger);
 	}
 	
-	public static MailMan newAdminInstance(String accountsFile, String configFile, _Logger logger) throws IOException {
+	public static MailMan newAdminInstance(String accountsFile, String configFile, PPCLogger logger) throws IOException {
 		EmailAccounts ea = loadEmailAccounts(accountsFile);
-		_MailConfig emcfg = loadEmailConfig(configFile);
+		IMailConfig emcfg = loadEmailConfig(configFile);
 		return newInstance(Arrays.asList(ea.adminEmail), new Credentials(ea.serverEmail, ea.serverPassword), emcfg, logger);
 	}
 	
-	private static MailMan newInstance(List<String> defaultRecipient, Credentials cred, _MailConfig emcfg, _Logger logger) {
+	private static MailMan newInstance(List<String> defaultRecipient, Credentials cred, IMailConfig emcfg, PPCLogger logger) {
 		return new MailMan(emcfg, cred, defaultRecipient, logger);
 	}
 
-	private static _MailConfig loadEmailConfig(String filename) throws IOException {
+	private static IMailConfig loadEmailConfig(String filename) throws IOException {
 		Properties emailCfg = new Properties();
 		emailCfg.load(Resources.getStream(filename));
 		return new MailConfig(Session.getDefaultInstance(emailCfg, null));

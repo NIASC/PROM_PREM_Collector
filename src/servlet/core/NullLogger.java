@@ -2,9 +2,9 @@ package servlet.core;
 
 import java.util.logging.Level;
 
-public class PhonyLogger implements _Logger {
+public class NullLogger implements PPCLogger {
 
-	public PhonyLogger() { }
+	public NullLogger() { }
 
 	@Override
 	public void log(String msg) { }

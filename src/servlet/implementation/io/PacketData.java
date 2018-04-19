@@ -6,11 +6,11 @@ import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
 
-import servlet.core._Logger;
+import servlet.core.PPCLogger;
 
-public class PacketData implements _PacketData {
+public class PacketData implements IPacketData {
 	
-    public PacketData(JSONParser parser, _Logger logger) {
+    public PacketData(JSONParser parser, PPCLogger logger) {
         this.parser = parser;
         this.logger = logger;
     }
@@ -52,5 +52,5 @@ public class PacketData implements _PacketData {
 	}
 
     private JSONParser parser;
-    private _Logger logger;
+    private PPCLogger logger;
 }

@@ -1,13 +1,13 @@
 package servlet.implementation.requestprocessing;
 
-import servlet.core._Logger;
+import servlet.core.PPCLogger;
 import servlet.core.usermanager.UserManager;
-import servlet.implementation.io._PacketData;
+import servlet.implementation.io.IPacketData;
 
 public abstract class IdleRequestProcesser extends RequestProcesser {
 	protected UserManager um;
 
-	public IdleRequestProcesser(_PacketData packetData, _Logger logger, UserManager um) {
+	public IdleRequestProcesser(IPacketData packetData, PPCLogger logger, UserManager um) {
 		super(packetData, logger);
 		this.um = um;
 	}

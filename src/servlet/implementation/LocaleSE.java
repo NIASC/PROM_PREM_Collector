@@ -9,9 +9,9 @@ import java.util.List;
 import java.util.Locale;
 import java.util.regex.Pattern;
 
-import servlet.core.interfaces._Locale;
+import servlet.core.PPCLocale;
 
-public class LocaleSE implements _Locale {
+public class LocaleSE implements PPCLocale {
 	private PersonalIDFormatter
 	yymmddxxxx = new YYMMDDXXXX(),
 	yymmdd_xxxx = new YYMMDD_XXXX(),

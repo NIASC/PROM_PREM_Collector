@@ -9,12 +9,12 @@ import javax.mail.internet.AddressException;
 import javax.mail.internet.InternetAddress;
 
 import common.Util;
-import servlet.core._Logger;
+import servlet.core.PPCLogger;
 import servlet.implementation.mail.emails.EMail;
 
 public class MailMan {
 
-	public MailMan(_MailConfig cfg, Credentials cred, List<String> defaultRecipients, _Logger logger) {
+	public MailMan(IMailConfig cfg, Credentials cred, List<String> defaultRecipients, PPCLogger logger) {
 		this.cfg = cfg;
 		this.defaultRecipients = defaultRecipients;
 		this.logger = logger;
@@ -53,8 +53,8 @@ public class MailMan {
 		t.close();
 	}
 	
-	private _Logger logger;
-	private _MailConfig cfg;
+	private PPCLogger logger;
+	private IMailConfig cfg;
 	private Credentials cred;
 	private List<String> defaultRecipients;
 }

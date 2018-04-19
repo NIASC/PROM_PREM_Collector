@@ -1,6 +1,6 @@
 package servlet.implementation;
 
-import servlet.core.interfaces.Encryption;
+import servlet.core.PPCStringScramble;
 
 public class User
 {
@@ -11,11 +11,11 @@ public class User
 	public String salt;
 	public boolean update_password;
 	
-	public User(Encryption crypto) {
+	public User(PPCStringScramble crypto) {
 		this.crypto = crypto;
 	}
 	
-	public User(Encryption crypto, int clinicID, String username, String password, String email, String salt, boolean updatePass) {
+	public User(PPCStringScramble crypto, int clinicID, String username, String password, String email, String salt, boolean updatePass) {
 		this(crypto);
 		
 		this.clinic_id = clinicID;
@@ -39,5 +39,5 @@ public class User
 		return crypto.hashMessage(unhashedPass, salt);
 	}
 
-	private final Encryption crypto;
+	private final PPCStringScramble crypto;
 }

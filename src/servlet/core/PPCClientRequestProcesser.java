@@ -1,6 +1,6 @@
-package servlet.implementation;
+package servlet.core;
 
-public interface _ClientRequestProcesser {
+public interface PPCClientRequestProcesser {
 	String handleRequest(String message, String remoteAddr, String hostAddr);
 	void terminate();
 }

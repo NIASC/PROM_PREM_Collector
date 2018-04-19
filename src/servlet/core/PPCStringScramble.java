@@ -1,6 +1,6 @@
-package servlet.core.interfaces;
+package servlet.core;
 
-public interface Encryption
+public interface PPCStringScramble
 {
 	public String generateNewSalt();
 	public String hashMessage(String message, String salt);

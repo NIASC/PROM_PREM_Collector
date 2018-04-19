@@ -1,6 +1,6 @@
-package servlet.implementation;
+package servlet.core;
 
-public interface _Crypto {
+public interface PPCEncryption {
 	String decrypt(String messageEncrypted) throws NumberFormatException;
 	String encrypt(String messagePlain);
 }

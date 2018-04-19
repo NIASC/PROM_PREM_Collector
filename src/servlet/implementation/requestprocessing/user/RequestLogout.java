@@ -5,18 +5,18 @@ import static common.implementation.Packet.TYPE;
 
 import common.implementation.Packet.Data;
 import common.implementation.Packet.Types;
-import servlet.core._Logger;
-import servlet.core.interfaces.Database;
+import servlet.core.PPCDatabase;
+import servlet.core.PPCLogger;
 import servlet.core.usermanager.UserManager;
 import servlet.implementation.Crypto;
 import servlet.implementation.io.MapData;
-import servlet.implementation.io._PacketData;
+import servlet.implementation.io.IPacketData;
 import servlet.implementation.requestprocessing.LoggedInRequestProcesser;
 
 public class RequestLogout extends LoggedInRequestProcesser {
 	private Crypto crypto;
 	
-	public RequestLogout(UserManager um, Database db, _PacketData packetData, _Logger logger, Crypto crypto) {
+	public RequestLogout(UserManager um, PPCDatabase db, IPacketData packetData, PPCLogger logger, Crypto crypto) {
 		super(packetData, logger, um);
 		this.crypto = crypto;
 	}

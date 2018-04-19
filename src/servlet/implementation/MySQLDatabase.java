@@ -14,15 +14,15 @@ import java.util.TreeMap;
 
 import javax.sql.DataSource;
 
-import servlet.core._Logger;
-import servlet.core.interfaces.Database;
-import servlet.core.interfaces.Encryption;
+import servlet.core.PPCDatabase;
+import servlet.core.PPCStringScramble;
+import servlet.core.PPCLogger;
 import servlet.implementation.exceptions.DBReadException;
 import servlet.implementation.exceptions.DBWriteException;
 
-public class MySQLDatabase implements Database {
+public class MySQLDatabase implements PPCDatabase {
 	
-	public MySQLDatabase(DataSource dataSource, Encryption crypto, _Logger logger) {
+	public MySQLDatabase(DataSource dataSource, PPCStringScramble crypto, PPCLogger logger) {
 		this.logger = logger;
 		this.dataSource = dataSource;
 		this.crypto = crypto;
@@ -344,9 +344,9 @@ public class MySQLDatabase implements Database {
 		return _results;
 	}
 
-	private _Logger logger;
+	private PPCLogger logger;
 	private DataSource dataSource;
-	private Encryption crypto;
+	private PPCStringScramble crypto;
 	
 	private boolean patientInDatabase(String identifier) throws SQLException, DBReadException
 	{

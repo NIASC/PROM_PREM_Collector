@@ -9,11 +9,12 @@ import javax.servlet.ServletException;
 import javax.servlet.ServletRequest;
 import javax.servlet.ServletResponse;
 
-import servlet.core._Logger;
+import servlet.core.PPCLogger;
+import servlet.core.PPCClientRequestProcesser;
 
 public class Servlet {
 
-	public Servlet(String mainPage, _ClientRequestProcesser ppc, _Logger logger) {
+	public Servlet(String mainPage, PPCClientRequestProcesser ppc, PPCLogger logger) {
 		this.message = mainPage;
 		this.ppc = ppc;
 		this.logger = logger;
@@ -79,7 +80,7 @@ public class Servlet {
 	}
 
 	private String message;
-	private _ClientRequestProcesser ppc;
-	private _Logger logger;
+	private PPCClientRequestProcesser ppc;
+	private PPCLogger logger;
 
 }

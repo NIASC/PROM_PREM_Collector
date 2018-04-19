@@ -8,18 +8,18 @@ import java.util.Map.Entry;
 
 import common.implementation.Packet.Data;
 import common.implementation.Packet.Types;
-import servlet.core._Logger;
-import servlet.core.interfaces.Database;
+import servlet.core.PPCDatabase;
+import servlet.core.PPCLogger;
 import servlet.implementation.QuestionData;
 import servlet.implementation.io.ListData;
 import servlet.implementation.io.MapData;
-import servlet.implementation.io._PacketData;
+import servlet.implementation.io.IPacketData;
 import servlet.implementation.requestprocessing.RequestProcesser;
 
 public class LoadQuestions extends RequestProcesser {
-	private Database db;
+	private PPCDatabase db;
 	
-	public LoadQuestions(_PacketData packetData, _Logger logger, Database db) {
+	public LoadQuestions(IPacketData packetData, PPCLogger logger, PPCDatabase db) {
 		super(packetData, logger);
 		this.db = db;
 	}

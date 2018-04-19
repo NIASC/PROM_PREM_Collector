@@ -10,7 +10,6 @@ import javax.mail.Message;
 import javax.mail.NoSuchProviderException;
 import javax.mail.Session;
 import javax.mail.Transport;
-import javax.mail.URLName;
 
 import org.junit.Assert;
 import org.junit.Before;
@@ -18,10 +17,10 @@ import org.junit.Test;
 
 import niasc.phony.email.PhonyMessage;
 import niasc.phony.email.PhonyTransport;
-import servlet.core.PhonyLogger;
+import niasc.servlet.LoggerForTesting;
 import servlet.implementation.mail.Credentials;
 import servlet.implementation.mail.MailMan;
-import servlet.implementation.mail._MailConfig;
+import servlet.implementation.mail.IMailConfig;
 import servlet.implementation.mail.emails.EMail;
 
 public class MailManTest {
@@ -29,7 +28,7 @@ public class MailManTest {
 
 	@Before
 	public void setUp() throws Exception {
-		_MailConfig _mc = new _MailConfig() {
+		IMailConfig _mc = new IMailConfig() {
 			@Override
 			public Message createEmptyMessage() { return new PhonyMessage(); }
 			@Override
@@ -37,7 +36,7 @@ public class MailManTest {
 				return new PhonyTransport(Session.getDefaultInstance(new Properties(), null), null);
 			}
 		};
-		mm = new MailMan(_mc, new Credentials("", ""), new ArrayList<String>(0), new PhonyLogger());
+		mm = new MailMan(_mc, new Credentials("", ""), new ArrayList<String>(0), new LoggerForTesting());
 	}
 
 	@Test

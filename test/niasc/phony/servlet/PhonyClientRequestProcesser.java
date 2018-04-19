@@ -1,8 +1,8 @@
 package niasc.phony.servlet;
 
-import servlet.implementation._ClientRequestProcesser;
+import servlet.core.PPCClientRequestProcesser;
 
-public class PhonyClientRequestProcesser implements _ClientRequestProcesser {
+public class PhonyClientRequestProcesser implements PPCClientRequestProcesser {
 	@Override
 	public String handleRequest(String message, String remoteAddr, String hostAddr) {
 		return message;

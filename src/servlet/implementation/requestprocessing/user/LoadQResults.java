@@ -12,8 +12,8 @@ import java.util.Map.Entry;
 
 import common.implementation.Packet.Data;
 import common.implementation.Packet.Types;
-import servlet.core._Logger;
-import servlet.core.interfaces.Database;
+import servlet.core.PPCDatabase;
+import servlet.core.PPCLogger;
 import servlet.core.statistics.StatisticsContainer;
 import servlet.core.statistics.StatisticsData;
 import servlet.core.usermanager.UserManager;
@@ -21,16 +21,16 @@ import servlet.implementation.Crypto;
 import servlet.implementation.User;
 import servlet.implementation.io.ListData;
 import servlet.implementation.io.MapData;
-import servlet.implementation.io._PacketData;
+import servlet.implementation.io.IPacketData;
 import servlet.implementation.requestprocessing.QDBFormat;
 import servlet.implementation.requestprocessing.LoggedInRequestProcesser;
 
 public class LoadQResults extends LoggedInRequestProcesser {
-	private Database db;
+	private PPCDatabase db;
 	private QDBFormat qdbf;
 	private Crypto crypto;
 	
-	public LoadQResults(_PacketData packetData, _Logger logger, UserManager um, Database db, QDBFormat qdbf, Crypto crypto) {
+	public LoadQResults(IPacketData packetData, PPCLogger logger, UserManager um, PPCDatabase db, QDBFormat qdbf, Crypto crypto) {
 		super(packetData, logger, um);
 		this.db = db;
 		this.qdbf = qdbf;

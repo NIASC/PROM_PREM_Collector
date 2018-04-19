@@ -5,11 +5,11 @@ import static common.implementation.Packet.TYPE;
 
 import common.implementation.Packet.Data;
 import common.implementation.Packet.Types;
-import servlet.core._Logger;
-import servlet.core.interfaces.Database;
+import servlet.core.PPCDatabase;
+import servlet.core.PPCLogger;
 import servlet.implementation.Crypto;
 import servlet.implementation.io.MapData;
-import servlet.implementation.io._PacketData;
+import servlet.implementation.io.IPacketData;
 import servlet.implementation.mail.MailMan;
 import servlet.implementation.mail.emails.RegistrationRequest;
 import servlet.implementation.requestprocessing.RequestProcesser;
@@ -17,7 +17,7 @@ import servlet.implementation.requestprocessing.RequestProcesser;
 public class RequestRegistration extends RequestProcesser {
 	private Crypto crypto;
 	
-	public RequestRegistration(Database db, _PacketData packetData, _Logger logger, MailMan emailer, RegistrationRequest req, Crypto crypto) {
+	public RequestRegistration(PPCDatabase db, IPacketData packetData, PPCLogger logger, MailMan emailer, RegistrationRequest req, Crypto crypto) {
 		super(packetData, logger);
 		this.emailer = emailer;
 		this.req = req;

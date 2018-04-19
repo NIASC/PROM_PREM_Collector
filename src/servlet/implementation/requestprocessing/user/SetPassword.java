@@ -6,24 +6,24 @@ import static common.implementation.Packet.TYPE;
 import common.implementation.Constants;
 import common.implementation.Packet.Data;
 import common.implementation.Packet.Types;
-import servlet.core._Logger;
-import servlet.core.interfaces.Database;
-import servlet.core.interfaces.Encryption;
+import servlet.core.PPCDatabase;
+import servlet.core.PPCStringScramble;
+import servlet.core.PPCLogger;
 import servlet.core.usermanager.UserManager;
 import servlet.implementation.Crypto;
 import servlet.implementation.PasswordHandle;
 import servlet.implementation.User;
 import servlet.implementation.io.MapData;
-import servlet.implementation.io._PacketData;
+import servlet.implementation.io.IPacketData;
 import servlet.implementation.requestprocessing.LoggedInRequestProcesser;
 
 public class SetPassword extends LoggedInRequestProcesser {
-	private Database db;
+	private PPCDatabase db;
 	private Crypto crypto;
-	private Encryption encryption;
+	private PPCStringScramble encryption;
 	private PasswordHandle pwdHandle;
 	
-	public SetPassword(UserManager um, Database db, _PacketData packetData, _Logger logger, Encryption hash, Crypto crypto, PasswordHandle pwdHandle) {
+	public SetPassword(UserManager um, PPCDatabase db, IPacketData packetData, PPCLogger logger, PPCStringScramble hash, Crypto crypto, PasswordHandle pwdHandle) {
 		super(packetData, logger, um);
 		this.db = db;
 		this.encryption = hash;

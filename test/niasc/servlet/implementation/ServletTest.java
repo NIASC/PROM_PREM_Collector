@@ -18,14 +18,14 @@ import niasc.phony.servlet.PhonyReader;
 import niasc.phony.servlet.PhonyServletRequest;
 import niasc.phony.servlet.PhonyServletResponse;
 import niasc.servlet.LoggerForTesting;
-import servlet.core._Logger;
+import servlet.core.PPCLogger;
 import servlet.implementation.Servlet;
 
 public class ServletTest {
 	Servlet servlet;
 	String mainPage = "<html><head><title>Phony Servlet</title></head></html>";
 	String request = "phony request";
-	_Logger logger;
+	PPCLogger logger;
 	PhonyServletRequest req;
 	PhonyServletResponse resp;
 	

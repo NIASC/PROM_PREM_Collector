@@ -7,7 +7,7 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.regex.Pattern;
 
-import servlet.core.interfaces.Encryption;
+import servlet.core.PPCStringScramble;
 import servlet.implementation.SHAEncryption;
 
 import java.util.Scanner;
@@ -24,13 +24,13 @@ public class Manage
 			System.err.printf("FATAL: Hashing algorithms %s and/or %s is not available.\n", "SHA1PRNG", "SHA-256");
 			System.exit(1);
 		}
-		Encryption crypto = new SHAEncryption(sr, md);
+		PPCStringScramble crypto = new SHAEncryption(sr, md);
 		ServletCommunication scom = new ServletCommunication(crypto);
 		Scanner in = new Scanner(System.in);
 		new Manage(scom, crypto, in).runManager();
 	}
 	
-	public Manage(ServletCommunication scom, Encryption crypto, Scanner in) {
+	public Manage(ServletCommunication scom, PPCStringScramble crypto, Scanner in) {
 		this.db = scom;
 		this.in = in;
 		this.crypto = crypto;
@@ -316,7 +316,7 @@ public class Manage
 	
 	private Scanner in;
 	private ServletCommunication db;
-	private Encryption crypto;
+	private PPCStringScramble crypto;
 	
 	private String option(int key, String description) {
 		return String.format("%s: %s",

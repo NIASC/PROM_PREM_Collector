@@ -1,4 +1,4 @@
-package servlet.core.interfaces;
+package servlet.core;
 
 import java.util.Date;
 import java.util.List;
@@ -7,7 +7,7 @@ import java.util.Map;
 import servlet.implementation.User;
 import servlet.implementation.QuestionData;
 
-public interface Database
+public interface PPCDatabase
 {
 	String escapeReplaceAndConvertToSQLEntry(String str);
 	String escapeReplaceAndConvertToSQLListOfEntries(List<String> str);

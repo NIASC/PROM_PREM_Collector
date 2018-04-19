@@ -10,7 +10,7 @@ import niasc.servlet.implementation.mail.AllMailTests;
 @RunWith(Suite.class)
 @SuiteClasses({ ClientRequestProcesserTest.class, CryptoTest.class, LocaleSETest.class,
 	MySQLDatabaseTest.class, PasswordHandleTest.class, QuestionDataTest.class,
-	ServletTest.class,
+	ServletTest.class, SHAEncryptionTest.class, UserTest.class,
 	AllMailTests.class, AllIOTests.class })
 public class AllImplementationTests {
 }

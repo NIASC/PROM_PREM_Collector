@@ -5,17 +5,17 @@ import static common.implementation.Packet.TYPE;
 
 import common.implementation.Packet.Data;
 import common.implementation.Packet.Types;
-import servlet.core._Logger;
+import servlet.core.PPCLogger;
 import servlet.core.usermanager.UserManager;
 import servlet.implementation.Crypto;
 import servlet.implementation.io.MapData;
-import servlet.implementation.io._PacketData;
+import servlet.implementation.io.IPacketData;
 import servlet.implementation.requestprocessing.IdleRequestProcesser;
 
 public class Ping extends IdleRequestProcesser {
 	private Crypto crypto;
 	
-	public Ping(_PacketData packetData, _Logger logger, UserManager um, Crypto crypto) {
+	public Ping(IPacketData packetData, PPCLogger logger, UserManager um, Crypto crypto) {
 		super(packetData, logger, um);
 		this.crypto = crypto;
 	}

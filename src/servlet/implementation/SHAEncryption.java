@@ -4,9 +4,9 @@ import java.math.BigInteger;
 import java.security.MessageDigest;
 import java.security.SecureRandom;
 
-import servlet.core.interfaces.Encryption;
+import servlet.core.PPCStringScramble;
 
-public class SHAEncryption implements Encryption {
+public class SHAEncryption implements PPCStringScramble {
 	
 	public SHAEncryption(SecureRandom sr, MessageDigest md) throws NullPointerException {
 		this.sr = sr;

@@ -2,9 +2,9 @@ package niasc.servlet;
 
 import java.util.logging.Level;
 
-import servlet.core._Logger;
+import servlet.core.PPCLogger;
 
-public class LoggerForTesting implements _Logger {
+public class LoggerForTesting implements PPCLogger {
 	StringBuilder sb = new StringBuilder();
 	public String getLogData() { return sb.toString(); }
 

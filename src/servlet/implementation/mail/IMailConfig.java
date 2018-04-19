@@ -4,7 +4,7 @@ import javax.mail.Message;
 import javax.mail.NoSuchProviderException;
 import javax.mail.Transport;
 
-public interface _MailConfig {
+public interface IMailConfig {
 	Message createEmptyMessage();
 	Transport getTransport() throws NoSuchProviderException;
 }

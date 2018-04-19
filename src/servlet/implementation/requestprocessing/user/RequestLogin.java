@@ -6,23 +6,23 @@ import static common.implementation.Packet.TYPE;
 import common.implementation.Constants;
 import common.implementation.Packet.Data;
 import common.implementation.Packet.Types;
-import servlet.core._Logger;
-import servlet.core.interfaces.Database;
-import servlet.core.interfaces.Encryption;
+import servlet.core.PPCDatabase;
+import servlet.core.PPCStringScramble;
+import servlet.core.PPCLogger;
 import servlet.core.usermanager.UserManager;
 import servlet.implementation.Crypto;
 import servlet.implementation.User;
 import servlet.implementation.io.MapData;
-import servlet.implementation.io._PacketData;
+import servlet.implementation.io.IPacketData;
 import servlet.implementation.requestprocessing.RequestProcesser;
 
 public class RequestLogin extends RequestProcesser {
 	private UserManager um;
-	private Database db;
-	private Encryption encryption;
+	private PPCDatabase db;
+	private PPCStringScramble encryption;
 	private Crypto crypto;
 	
-	public RequestLogin(_PacketData packetData, _Logger logger, UserManager um, Database db, Encryption encryption, Crypto crypto) {
+	public RequestLogin(IPacketData packetData, PPCLogger logger, UserManager um, PPCDatabase db, PPCStringScramble encryption, Crypto crypto) {
 		super(packetData, logger);
 		this.um = um;
 		this.db = db;

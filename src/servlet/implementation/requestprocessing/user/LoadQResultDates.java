@@ -7,21 +7,21 @@ import java.util.List;
 
 import common.implementation.Packet.Data;
 import common.implementation.Packet.Types;
-import servlet.core._Logger;
-import servlet.core.interfaces.Database;
+import servlet.core.PPCDatabase;
+import servlet.core.PPCLogger;
 import servlet.core.usermanager.UserManager;
 import servlet.implementation.Crypto;
 import servlet.implementation.User;
 import servlet.implementation.io.ListData;
 import servlet.implementation.io.MapData;
-import servlet.implementation.io._PacketData;
+import servlet.implementation.io.IPacketData;
 import servlet.implementation.requestprocessing.LoggedInRequestProcesser;
 
 public class LoadQResultDates extends LoggedInRequestProcesser {
-	private Database db;
+	private PPCDatabase db;
 	private Crypto crypto;
 	
-	public LoadQResultDates(_PacketData packetData, _Logger logger, UserManager um, Database db, Crypto crypto) {
+	public LoadQResultDates(IPacketData packetData, PPCLogger logger, UserManager um, PPCDatabase db, Crypto crypto) {
 		super(packetData, logger, um);
 		this.db = db;
 		this.crypto = crypto;

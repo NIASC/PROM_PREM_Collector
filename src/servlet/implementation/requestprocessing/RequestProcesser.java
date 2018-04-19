@@ -1,14 +1,14 @@
 package servlet.implementation.requestprocessing;
 
-import servlet.core._Logger;
+import servlet.core.PPCLogger;
 import servlet.implementation.io.MapData;
-import servlet.implementation.io._PacketData;
+import servlet.implementation.io.IPacketData;
 
 public abstract class RequestProcesser {
-	protected _PacketData packetData;
-	protected _Logger logger;
+	protected IPacketData packetData;
+	protected PPCLogger logger;
 	
-	public RequestProcesser(_PacketData packetData, _Logger logger) {
+	public RequestProcesser(IPacketData packetData, PPCLogger logger) {
 		this.packetData = packetData;
 		this.logger = logger;
 	}

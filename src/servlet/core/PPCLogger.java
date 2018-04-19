@@ -2,7 +2,7 @@ package servlet.core;
 
 import java.util.logging.Level;
 
-public interface _Logger {
+public interface PPCLogger {
 	void log(String msg);
 	void log(Level level, String msg);
 	public void fatalLogAndAction(String msg);

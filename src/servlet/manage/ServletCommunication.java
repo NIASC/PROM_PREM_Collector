@@ -19,8 +19,8 @@ import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
 
 import common.implementation.Constants;
+import servlet.core.PPCStringScramble;
 import servlet.core.ServletConst;
-import servlet.core.interfaces.Encryption;
 import servlet.implementation.SHAEncryption;
 import servlet.implementation.User;
 import servlet.implementation.AdminPacket.Admin;
@@ -29,7 +29,7 @@ import servlet.implementation.AdminPacket.AdminTypes;
 
 public class ServletCommunication {
 	
-	public ServletCommunication(Encryption crypto) {
+	public ServletCommunication(PPCStringScramble crypto) {
 		this.crypto = crypto;
 	}
 
@@ -153,7 +153,7 @@ public class ServletCommunication {
 		return Constants.equal(AdminData.AdminRespondRegistration.Response.SUCCESS, insert);
 	}
 
-	private Encryption crypto;
+	private PPCStringScramble crypto;
 	private static JSONParser parser;
 	
 	static {

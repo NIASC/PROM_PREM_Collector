@@ -4,11 +4,11 @@ import java.util.Date;
 import java.util.List;
 import java.util.Map;
 
-import servlet.core.interfaces.Database;
+import servlet.core.PPCDatabase;
 import servlet.implementation.QuestionData;
 import servlet.implementation.User;
 
-public class PhonyDatabase implements Database {
+public class PhonyDatabase implements PPCDatabase {
 	@Override
 	public String escapeReplaceAndConvertToSQLEntry(String str) { return null; }
 	@Override

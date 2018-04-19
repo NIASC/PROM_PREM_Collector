@@ -3,18 +3,18 @@ package servlet.implementation.requestprocessing.admin;
 import static servlet.implementation.AdminPacket._DATA;
 import static servlet.implementation.AdminPacket._TYPE;
 
-import servlet.core._Logger;
+import servlet.core.PPCLogger;
 import servlet.implementation.AdminPacket.AdminData;
 import servlet.implementation.AdminPacket.AdminTypes;
 import servlet.implementation.io.MapData;
-import servlet.implementation.io._PacketData;
+import servlet.implementation.io.IPacketData;
 import servlet.implementation.mail.MailMan;
 import servlet.implementation.mail.emails.RegistrationResponse;
 import servlet.implementation.requestprocessing.RequestProcesser;
 
 public class _RespondRegistration extends RequestProcesser {
 	
-	public _RespondRegistration(_PacketData packetData, _Logger logger, MailMan emailer, RegistrationResponse resp) {
+	public _RespondRegistration(IPacketData packetData, PPCLogger logger, MailMan emailer, RegistrationResponse resp) {
 		super(packetData, logger);
 		this.emailer = emailer;
 		this.resp = resp;

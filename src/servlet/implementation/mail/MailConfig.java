@@ -6,7 +6,7 @@ import javax.mail.Session;
 import javax.mail.Transport;
 import javax.mail.internet.MimeMessage;
 
-public class MailConfig implements _MailConfig {
+public class MailConfig implements IMailConfig {
 	public MailConfig(Session session) {
 		loadConfig(session);
 	}

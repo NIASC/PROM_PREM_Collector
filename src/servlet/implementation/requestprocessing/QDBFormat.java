@@ -4,19 +4,19 @@ import java.util.ArrayList;
 import java.util.List;
 
 import common.implementation.Constants.QuestionTypes;
-import servlet.core.interfaces.Database;
+import servlet.core.PPCDatabase;
 import servlet.core.statistics.containers.Area;
 import servlet.core.statistics.containers.MultipleOption;
 import servlet.core.statistics.containers.SingleOption;
 import servlet.core.statistics.containers.Slider;
 import servlet.core.statistics.containers.Statistics;
 import servlet.implementation.io.MapData;
-import servlet.implementation.io._PacketData;
+import servlet.implementation.io.IPacketData;
 
 public class QDBFormat {
-	Database db;
-	_PacketData packetData;
-	public QDBFormat(Database db, _PacketData packetData) {
+	PPCDatabase db;
+	IPacketData packetData;
+	public QDBFormat(PPCDatabase db, IPacketData packetData) {
 		this.db = db;
 		this.packetData = packetData;
 	}

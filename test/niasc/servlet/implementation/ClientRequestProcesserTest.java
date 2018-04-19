@@ -13,8 +13,8 @@ import common.implementation.Packet;
 import common.implementation.Packet.Types;
 import niasc.phony.PhonyDatabase;
 import niasc.servlet.LoggerForTesting;
-import servlet.core._Logger;
-import servlet.core.interfaces.Database;
+import servlet.core.PPCDatabase;
+import servlet.core.PPCLogger;
 import servlet.core.usermanager.ActivityMonitor;
 import servlet.core.usermanager.ConnectionData;
 import servlet.core.usermanager.ConnectionManager;
@@ -24,7 +24,7 @@ import servlet.implementation.AdminPacket.AdminTypes;
 import servlet.implementation.ClientRequestProcesser;
 import servlet.implementation.io.MapData;
 import servlet.implementation.io.PacketData;
-import servlet.implementation.io._PacketData;
+import servlet.implementation.io.IPacketData;
 import servlet.implementation.requestprocessing.RequestProcesser;
 
 public class ClientRequestProcesserTest {
@@ -35,7 +35,7 @@ public class ClientRequestProcesserTest {
 	MapData userData, adminData, adminUserData;
 	
 	private class DummyRequestProcesser extends RequestProcesser {
-		public DummyRequestProcesser(Database db, _PacketData packetData, _Logger logger) {
+		public DummyRequestProcesser(PPCDatabase db, IPacketData packetData, PPCLogger logger) {
 			super(packetData, logger);
 		}
 		@Override
@@ -66,7 +66,7 @@ public class ClientRequestProcesserTest {
 		adminUserData.put(AdminPacket.AdminData.AdminGetUser.__NULL__, "adminUserData");
 		adminUserPacket.put(AdminPacket._DATA, adminUserData.toString());
 		
-		Database db = new PhonyDatabase();
+		PPCDatabase db = new PhonyDatabase();
 		ConnectionManager cmgr = new ConnectionManager() {
 			@Override public void registerConnection(ConnectionData connection) { }
 			@Override public void deregisterConnection(ConnectionData connection) { }

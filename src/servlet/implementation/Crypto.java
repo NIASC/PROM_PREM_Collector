@@ -3,7 +3,9 @@ package servlet.implementation;
 import java.math.BigInteger;
 import java.util.Locale;
 
-public class Crypto implements _Crypto
+import servlet.core.PPCEncryption;
+
+public class Crypto implements PPCEncryption
 {
 	private final BigInteger powPrivate, mod, powPublic;
 	public Crypto(BigInteger powPrivate, BigInteger mod, BigInteger powPublic) {

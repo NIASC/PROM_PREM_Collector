@@ -10,7 +10,7 @@ import java.util.logging.Level;
 import java.util.logging.LogRecord;
 import java.util.logging.Logger;
 
-public enum ServletLogger implements _Logger {
+public enum ServletLogger implements PPCLogger {
 	LOGGER;
 
 	@Override
