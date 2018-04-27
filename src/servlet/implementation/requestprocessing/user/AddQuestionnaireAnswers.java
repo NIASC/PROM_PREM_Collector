@@ -70,8 +70,9 @@ public class AddQuestionnaireAnswers extends LoggedInRequestProcesser {
 
 		List<String> answers = new ArrayList<String>();
 		ListData m = packetData.getListData(in.get(Data.AddQuestionnaireAnswers.QUESTIONS));
-		for (String str : m.iterable())
+		for (String str : m.iterable()) {
 			answers.add(qdbf.getDBFormat(packetData.getMapData(str)));
+		}
 		
 		return db.addPatient(clinic_id, identifier)
 				&& db.addQuestionnaireAnswers(clinic_id, identifier, answers);

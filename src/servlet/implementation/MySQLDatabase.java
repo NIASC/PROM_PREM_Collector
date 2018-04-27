@@ -60,7 +60,12 @@ public class MySQLDatabase implements PPCDatabase {
 		if (!isSQLList(l)) {
 			throw new IllegalArgumentException("Not an SQL list");
 		}
-		return Arrays.asList(l.substring(1, l.length()-1).split(","));
+		List<String> jlist = new ArrayList<String>();
+		for (String str : l.substring(1, l.length()-1).split(",")) {
+			jlist.add(str.trim().substring(1, str.length()-1));
+		}
+		return jlist;
+		//return Arrays.asList(l.substring(1, l.length()-1).split(","));
 	}
 
 	@Override

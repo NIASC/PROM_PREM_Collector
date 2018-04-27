@@ -51,6 +51,26 @@ public class PacketData implements IPacketData {
 		}
 	}
 
+	@Override
+	public boolean isMapData(String str) {
+		try {
+			MapData ignored = new MapData((JSONObject) parser.parse(str));
+	        return true;
+		} catch (Exception e) {
+	        return false;
+		}
+	}
+
+	@Override
+	public boolean isListData(String str) {
+		try {
+	        ListData ignored = new ListData((JSONArray) parser.parse(str));
+	        return true;
+		} catch (Exception e) {
+	        return false;
+		}
+	}
+	
     private JSONParser parser;
     private PPCLogger logger;
 }

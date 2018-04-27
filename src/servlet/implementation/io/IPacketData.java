@@ -5,4 +5,6 @@ public interface IPacketData {
 	MapData getMapData(String str);
 	ListData getListData();
 	ListData getListData(String str);
+	boolean isMapData(String str);
+	boolean isListData(String str);
 }

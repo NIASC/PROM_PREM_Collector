@@ -71,8 +71,9 @@ public class MySQLDatabaseTest {
 
 	@Test
 	public void testSQLListToJavaList() {
-		Assert.assertEquals(Arrays.asList("'test0'", "'test1'"), db.SQLListToJavaList("['test0','test1']"));
-		Assert.assertEquals(Arrays.asList("test0", "test1"), db.SQLListToJavaList("[test0,test1]"));
+		Assert.assertEquals(Arrays.asList("\"test0\"", "\"test1\""),
+				db.SQLListToJavaList("[\"\"test0\"\",\"\"test1\"\"]"));
+		Assert.assertEquals(Arrays.asList("test0", "test1"), db.SQLListToJavaList("[\"test0\",\"test1\"]"));
 		try {
 			List<String> l = db.SQLListToJavaList("{test0,test1}");
 			Assert.fail("Invalid SQLList successfully converted to Java List");

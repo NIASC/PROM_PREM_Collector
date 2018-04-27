@@ -27,6 +27,9 @@ public class QDBFormat {
 			return db.escapeReplaceAndConvertToSQLEntry(String.format("option%d", Integer.parseInt(val)));
 		} else if ((val = fc.get(QuestionTypes.MULTIPLE_OPTION)) != null) {
 			List<String> lstr = new ArrayList<String>();
+			if (!packetData.isListData(val)) {
+				throw new Exception("MultipleOption data is not a ListData object.");
+			}
 			for (String str : packetData.getListData(val).iterable()) {
 				lstr.add(String.format("option%d", Integer.parseInt(str)));
 			}

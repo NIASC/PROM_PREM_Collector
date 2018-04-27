@@ -65,11 +65,12 @@ public class UserManagerTest {
 	@Test
 	public void testInactivityKicksUser() {
 		um.addUserToListOfOnline(identifier1, uid1);
-		for (int i = cyclesBeforeInactive/cyclesBeforeIdle+1; i > 0; --i) {
+		for (int i = cyclesBeforeInactive/cyclesBeforeIdle; i > 0; --i) {
 			Assert.assertEquals(true, um.isOnline(uid1));
 			try { Thread.sleep(millisPerCycle*cyclesBeforeIdle); } catch (Exception e) { }
 			um.refreshIdleTimer(uid1);
 		}
+		try { Thread.sleep(millisPerCycle*cyclesBeforeIdle); } catch (Exception e) { }
 		Assert.assertEquals(false, um.isOnline(uid1));
 	}
 
