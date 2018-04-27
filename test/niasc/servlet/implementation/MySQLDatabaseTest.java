@@ -60,10 +60,10 @@ public class MySQLDatabaseTest {
 
 	@Test
 	public void testIsSQLList() {
-		Assert.assertTrue(db.isSQLList("['test0']"));
-		Assert.assertTrue(db.isSQLList("['test0','test1']"));
-		Assert.assertTrue(db.isSQLList("['\"test0\"','test1']"));
-		Assert.assertTrue(db.isSQLList("[test0,test1]"));
+		Assert.assertTrue(db.isSQLList("[\"test0\"]"));
+		Assert.assertTrue(db.isSQLList("[\"test0\",\"test1\"]"));
+		Assert.assertTrue(db.isSQLList("[\"\"test0\"\",\"test1\"]"));
+		Assert.assertTrue(db.isSQLList("[\"test0\",\"test1\"]"));
 		Assert.assertFalse(db.isSQLList("{test0,test1}"));
 		Assert.assertFalse(db.isSQLList("{test0}"));
 		Assert.assertFalse(db.isSQLList("test0"));
@@ -109,6 +109,10 @@ public class MySQLDatabaseTest {
 
 	@Test
 	public void testAddClinic() {
+		Assert.assertFalse(db.addClinic(null));
+		Assert.assertEquals(null, s.getLastSQLUpdate());
+		Assert.assertFalse(db.addClinic("   "));
+		Assert.assertEquals(null, s.getLastSQLUpdate());
 		Assert.assertTrue(db.addClinic("dummy"));
 		Assert.assertEquals("INSERT INTO `clinics` (`id`, `name`) VALUES (NULL, 'dummy')", s.getLastSQLUpdate());
 		Assert.assertTrue(db.addClinic("'; drop database phony_db; '"));

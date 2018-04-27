@@ -1,15 +1,11 @@
 package niasc.servlet.implementation.requestprocessing;
 
-import java.util.ArrayList;
-import java.util.List;
-
 import org.json.simple.parser.JSONParser;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 
 import common.implementation.Constants.QuestionTypes;
-import niasc.phony.PhonyDatabase;
 import niasc.phony.database.PhonyConnection;
 import niasc.phony.database.PhonyDataSource;
 import niasc.phony.database.PhonyResultSet;
@@ -39,12 +35,13 @@ public class QDBFormatTest {
 
 	@Before
 	public void setUp() throws Exception {
+		logger = new LoggerForTesting();
+		
 		rs = new PhonyResultSet();
 		s = new PhonyStatement(rs);
 		ds = new PhonyDataSource(new PhonyConnection(s));
 		db = new MySQLDatabase(ds, null, logger);
 		
-		logger = new LoggerForTesting();
 		pd = new PacketData(new JSONParser(), logger);
 		fmt = new QDBFormat(db, pd);
 	}

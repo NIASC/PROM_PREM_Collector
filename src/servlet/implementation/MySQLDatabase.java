@@ -53,7 +53,11 @@ public class MySQLDatabase implements PPCDatabase {
 	}
 	
 	public boolean isSQLList(String s) {
-		return s.startsWith("[") && s.endsWith("]");
+		boolean sqlList = s.startsWith("[") && s.endsWith("]");
+		for (String str : s.substring(1, s.length()-1).trim().split(",")) {
+			sqlList = sqlList && str.startsWith("\"") && str.endsWith("\"");
+		}
+		return sqlList;
 	}
 	
 	public List<String> SQLListToJavaList(String l) throws IllegalArgumentException {
@@ -65,7 +69,6 @@ public class MySQLDatabase implements PPCDatabase {
 			jlist.add(str.trim().substring(1, str.length()-1));
 		}
 		return jlist;
-		//return Arrays.asList(l.substring(1, l.length()-1).split(","));
 	}
 
 	@Override
@@ -142,6 +145,9 @@ public class MySQLDatabase implements PPCDatabase {
 	@Override
 	public boolean addClinic(String name)
 	{
+		if (name == null || name.trim().isEmpty()) {
+			return false;
+		}
 		String qInsert = String.format(
 				"INSERT INTO `clinics` (`id`, `name`) VALUES (NULL, '%s')",
 				escapeReplace(name));
