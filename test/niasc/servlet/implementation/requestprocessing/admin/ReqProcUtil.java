@@ -12,7 +12,7 @@ import servlet.implementation.MySQLDatabase;
 import servlet.implementation.io.IPacketData;
 import servlet.implementation.io.PacketData;
 
-public class RequestDatabaseFactory {
+public class ReqProcUtil {
 	public IPacketData pd;
 	public MySQLDatabase db;
 	public PPCLogger logger;
@@ -21,11 +21,11 @@ public class RequestDatabaseFactory {
 	public PhonyStatement s;
 	public PhonyResultSet rs;
 	
-	public static RequestDatabaseFactory newInstance() {
-		return new RequestDatabaseFactory();
+	public static ReqProcUtil newInstance() {
+		return new ReqProcUtil();
 	}
 
-	public RequestDatabaseFactory() {
+	public ReqProcUtil() {
 		logger = new LoggerForTesting();
 		
 		rs = new PhonyResultSet();

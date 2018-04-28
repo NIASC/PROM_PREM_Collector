@@ -1,32 +1,22 @@
 package niasc.servlet.implementation.requestprocessing.admin;
 
-import org.json.simple.parser.JSONParser;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 
 import common.implementation.Constants;
-import niasc.phony.database.PhonyConnection;
-import niasc.phony.database.PhonyDataSource;
-import niasc.phony.database.PhonyResultSet;
-import niasc.phony.database.PhonyStatement;
-import niasc.servlet.LoggerForTesting;
-import servlet.core.PPCLogger;
 import servlet.implementation.AdminPacket;
-import servlet.implementation.MySQLDatabase;
 import servlet.implementation.AdminPacket.AdminData;
-import servlet.implementation.io.IPacketData;
 import servlet.implementation.io.MapData;
-import servlet.implementation.io.PacketData;
 import servlet.implementation.requestprocessing.admin._AddClinic;
 
 public class AddClinicTest {
 	_AddClinic processer;
-	RequestDatabaseFactory dbutil;
+	ReqProcUtil dbutil;
 
 	@Before
 	public void setUp() throws Exception {
-		dbutil = RequestDatabaseFactory.newInstance();
+		dbutil = ReqProcUtil.newInstance();
 		
 		processer = new _AddClinic(dbutil.pd, dbutil.logger, dbutil.db);
 	}
@@ -40,8 +30,6 @@ public class AddClinicTest {
 		in.put(AdminPacket._DATA, data.toString());
 		
 		MapData out = processer.processRequest(in);
-		Assert.assertEquals("INSERT INTO `clinics` (`id`, `name`) VALUES (NULL, 'dummy')",
-				dbutil.s.getLastSQLUpdate());
 		Assert.assertTrue(Constants.equal(AdminPacket.AdminTypes.ADD_CLINIC,
 				Constants.getEnum(AdminPacket.AdminTypes.values(), out.get(AdminPacket._TYPE))));
 		MapData response = dbutil.pd.getMapData(out.get(AdminPacket._DATA));

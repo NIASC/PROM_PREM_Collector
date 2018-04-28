@@ -17,12 +17,12 @@ import servlet.implementation.requestprocessing.admin._AddUser;
 
 public class AddUserTest {
 	_AddUser processer;
-	RequestDatabaseFactory dbutil;
+	ReqProcUtil dbutil;
 	MapData details;
 
 	@Before
 	public void setUp() throws Exception {
-		dbutil = RequestDatabaseFactory.newInstance();
+		dbutil = ReqProcUtil.newInstance();
 		
 		processer = new _AddUser(dbutil.pd, dbutil.logger, dbutil.db);
 
@@ -53,10 +53,6 @@ public class AddUserTest {
 		
 		MapData out = processer.processRequest(in);
 
-		Assert.assertEquals(String.format(
-				"INSERT INTO `users` (`clinic_id`, `name`, `password`, `email`, `registered`, `salt`, `update_password`) VALUES ('1', 'phony name', 's3cr3t', 'example@phony.com', '%s', 's4lt', '1')",
-				new SimpleDateFormat("yyyy-MM-dd").format(new Date())),
-				dbutil.s.getLastSQLUpdate());
 		Assert.assertTrue(Constants.equal(AdminPacket.AdminTypes.ADD_USER,
 				Constants.getEnum(AdminPacket.AdminTypes.values(), out.get(AdminPacket._TYPE))));
 		MapData response = dbutil.pd.getMapData(out.get(AdminPacket._DATA));
