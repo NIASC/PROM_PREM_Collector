@@ -41,8 +41,21 @@ public class _RespondRegistration extends RequestProcesser {
 	private boolean _sendRegResp(MapData in) throws Exception {
 		MapData details = packetData.getMapData(in.get(AdminData.AdminRespondRegistration.DETAILS));
 		String username = details.get(AdminData.AdminRespondRegistration.Details.USERNAME);
+		if (!validString(username)) {
+			return false;
+		}
 		String password = details.get(AdminData.AdminRespondRegistration.Details.PASSWORD);
+		if (!validString(password)) {
+			return false;
+		}
 		String email = details.get(AdminData.AdminRespondRegistration.Details.EMAIL);
+		if (!validString(email) || !email.contains("@")) {
+			return false;
+		}
 		return emailer.send(resp.create(username, password, email));
+	}
+	
+	private boolean validString(String str) {
+		return str != null && !str.trim().isEmpty();
 	}
 }
