@@ -109,10 +109,6 @@ public class MySQLDatabaseTest {
 
 	@Test
 	public void testAddClinic() {
-		Assert.assertFalse(db.addClinic(null));
-		Assert.assertEquals(null, s.getLastSQLUpdate());
-		Assert.assertFalse(db.addClinic("   "));
-		Assert.assertEquals(null, s.getLastSQLUpdate());
 		Assert.assertTrue(db.addClinic("dummy"));
 		Assert.assertEquals("INSERT INTO `clinics` (`id`, `name`) VALUES (NULL, 'dummy')", s.getLastSQLUpdate());
 		Assert.assertTrue(db.addClinic("'; drop database phony_db; '"));

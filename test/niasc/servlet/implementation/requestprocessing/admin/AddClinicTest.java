@@ -22,59 +22,45 @@ import servlet.implementation.requestprocessing.admin._AddClinic;
 
 public class AddClinicTest {
 	_AddClinic processer;
-
-	IPacketData pd;
-	MySQLDatabase db;
-	PPCLogger logger;
-	
-	PhonyDataSource ds;
-	PhonyStatement s;
-	PhonyResultSet rs;
+	RequestDatabaseFactory dbutil;
 
 	@Before
 	public void setUp() throws Exception {
-		logger = new LoggerForTesting();
+		dbutil = RequestDatabaseFactory.newInstance();
 		
-		rs = new PhonyResultSet();
-		s = new PhonyStatement(rs);
-		ds = new PhonyDataSource(new PhonyConnection(s));
-		db = new MySQLDatabase(ds, null, logger);
-		
-		pd = new PacketData(new JSONParser(), logger);
-		
-		processer = new _AddClinic(pd, logger, db);
+		processer = new _AddClinic(dbutil.pd, dbutil.logger, dbutil.db);
 	}
 
 	@Test
 	public void testProcessRequest() {
-		MapData in = pd.getMapData();
+		MapData in = dbutil.pd.getMapData();
 		in.put(AdminPacket._TYPE, AdminPacket.AdminTypes.ADD_CLINIC);
-		MapData data = pd.getMapData();
+		MapData data = dbutil.pd.getMapData();
 		data.put(AdminData.AdminAddClinic.NAME, "dummy");
 		in.put(AdminPacket._DATA, data.toString());
 		
 		MapData out = processer.processRequest(in);
 		Assert.assertEquals("INSERT INTO `clinics` (`id`, `name`) VALUES (NULL, 'dummy')",
-				s.getLastSQLUpdate());
+				dbutil.s.getLastSQLUpdate());
 		Assert.assertTrue(Constants.equal(AdminPacket.AdminTypes.ADD_CLINIC,
 				Constants.getEnum(AdminPacket.AdminTypes.values(), out.get(AdminPacket._TYPE))));
-		MapData response = pd.getMapData(out.get(AdminPacket._DATA));
+		MapData response = dbutil.pd.getMapData(out.get(AdminPacket._DATA));
 		Assert.assertTrue(Constants.equal(AdminData.AdminAddClinic.Response.SUCCESS,
 				Constants.getEnum(AdminData.AdminAddClinic.Response.values(), response.get(AdminData.AdminAddClinic.RESPONSE))));
 	}
 
 	@Test
 	public void testProcessRequestEmptyPacket() {
-		MapData in = pd.getMapData();
+		MapData in = dbutil.pd.getMapData();
 		in.put(AdminPacket._TYPE, AdminPacket.AdminTypes.ADD_CLINIC);
-		MapData data = pd.getMapData();
+		MapData data = dbutil.pd.getMapData();
 		in.put(AdminPacket._DATA, data.toString());
 
 		MapData out = processer.processRequest(in);
-		Assert.assertEquals(null, s.getLastSQLUpdate());
+		Assert.assertEquals(null, dbutil.s.getLastSQLUpdate());
 		Assert.assertTrue(Constants.equal(AdminPacket.AdminTypes.ADD_CLINIC,
 				Constants.getEnum(AdminPacket.AdminTypes.values(), out.get(AdminPacket._TYPE))));
-		MapData response = pd.getMapData(out.get(AdminPacket._DATA));
+		MapData response = dbutil.pd.getMapData(out.get(AdminPacket._DATA));
 		Assert.assertTrue(Constants.equal(AdminData.AdminAddClinic.Response.FAIL,
 				Constants.getEnum(AdminData.AdminAddClinic.Response.values(), response.get(AdminData.AdminAddClinic.RESPONSE))));
 	}
