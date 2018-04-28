@@ -38,11 +38,32 @@ public class _AddUser extends RequestProcesser {
 	
 	private boolean _storeUser(MapData in) throws Exception {
 		MapData details = packetData.getMapData(in.get(AdminData.AdminAddUser.DETAILS));
+		
 		int clinic_id = Integer.parseInt(details.get(AdminData.AdminAddUser.Details.CLINIC_ID));
+		if (!db.getClinics().containsKey(clinic_id)) {
+			return false;
+		}
 		String name = details.get(AdminData.AdminAddUser.Details.NAME);
+		if (!validString(name)) {
+			return false;
+		}
 		String password = details.get(AdminData.AdminAddUser.Details.PASSWORD);
+		if (!validString(password)) {
+			return false;
+		}
 		String email = details.get(AdminData.AdminAddUser.Details.EMAIL);
+		if (!validString(email) || !email.contains("@")) {
+			return false;
+		}
 		String salt = details.get(AdminData.AdminAddUser.Details.SALT);
+		if (!validString(salt)) {
+			return false;
+		}
+		
 		return db.addUser(clinic_id, name, password, email, salt);
+	}
+	
+	private boolean validString(String str) {
+		return str != null && !str.trim().isEmpty();
 	}
 }

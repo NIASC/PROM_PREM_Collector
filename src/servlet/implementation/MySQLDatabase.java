@@ -145,9 +145,6 @@ public class MySQLDatabase implements PPCDatabase {
 	@Override
 	public boolean addClinic(String name)
 	{
-		if (name == null || name.trim().isEmpty()) {
-			return false;
-		}
 		String qInsert = String.format(
 				"INSERT INTO `clinics` (`id`, `name`) VALUES (NULL, '%s')",
 				escapeReplace(name));

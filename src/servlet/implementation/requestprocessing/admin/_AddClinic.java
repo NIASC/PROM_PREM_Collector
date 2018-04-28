@@ -36,6 +36,9 @@ public class _AddClinic extends RequestProcesser {
 	
 	private boolean _storeClinic(MapData in) throws Exception {
 		String name = in.get(AdminData.AdminAddClinic.NAME);
+		if (name == null || name.trim().isEmpty()) {
+			return false;
+		}
 		return db.addClinic(name);
 	}
 }
