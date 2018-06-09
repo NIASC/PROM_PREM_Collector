@@ -9,7 +9,7 @@ import se.nordicehealth.common.implementation.Packet.Data;
 import se.nordicehealth.common.implementation.Packet.Types;
 import se.nordicehealth.servlet.core.PPCDatabase;
 import se.nordicehealth.servlet.core.PPCLogger;
-import se.nordicehealth.servlet.core.usermanager.UserManager;
+import se.nordicehealth.servlet.core.PPCUserManager;
 import se.nordicehealth.servlet.implementation.Crypto;
 import se.nordicehealth.servlet.implementation.User;
 import se.nordicehealth.servlet.implementation.io.IPacketData;
@@ -21,7 +21,7 @@ public class LoadQResultDates extends LoggedInRequestProcesser {
 	private PPCDatabase db;
 	private Crypto crypto;
 	
-	public LoadQResultDates(IPacketData packetData, PPCLogger logger, UserManager um, PPCDatabase db, Crypto crypto) {
+	public LoadQResultDates(IPacketData packetData, PPCLogger logger, PPCUserManager um, PPCDatabase db, Crypto crypto) {
 		super(packetData, logger, um);
 		this.db = db;
 		this.crypto = crypto;

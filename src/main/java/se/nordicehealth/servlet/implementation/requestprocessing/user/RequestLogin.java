@@ -9,7 +9,7 @@ import se.nordicehealth.common.implementation.Packet.Types;
 import se.nordicehealth.servlet.core.PPCDatabase;
 import se.nordicehealth.servlet.core.PPCLogger;
 import se.nordicehealth.servlet.core.PPCStringScramble;
-import se.nordicehealth.servlet.core.usermanager.UserManager;
+import se.nordicehealth.servlet.core.PPCUserManager;
 import se.nordicehealth.servlet.implementation.Crypto;
 import se.nordicehealth.servlet.implementation.User;
 import se.nordicehealth.servlet.implementation.io.IPacketData;
@@ -17,12 +17,12 @@ import se.nordicehealth.servlet.implementation.io.MapData;
 import se.nordicehealth.servlet.implementation.requestprocessing.RequestProcesser;
 
 public class RequestLogin extends RequestProcesser {
-	private UserManager um;
+	private PPCUserManager um;
 	private PPCDatabase db;
 	private PPCStringScramble encryption;
 	private Crypto crypto;
 	
-	public RequestLogin(IPacketData packetData, PPCLogger logger, UserManager um, PPCDatabase db, PPCStringScramble encryption, Crypto crypto) {
+	public RequestLogin(IPacketData packetData, PPCLogger logger, PPCUserManager um, PPCDatabase db, PPCStringScramble encryption, Crypto crypto) {
 		super(packetData, logger);
 		this.um = um;
 		this.db = db;

@@ -7,7 +7,7 @@ import se.nordicehealth.common.implementation.Packet.Data;
 import se.nordicehealth.common.implementation.Packet.Types;
 import se.nordicehealth.servlet.core.PPCDatabase;
 import se.nordicehealth.servlet.core.PPCLogger;
-import se.nordicehealth.servlet.core.usermanager.UserManager;
+import se.nordicehealth.servlet.core.PPCUserManager;
 import se.nordicehealth.servlet.implementation.Crypto;
 import se.nordicehealth.servlet.implementation.io.IPacketData;
 import se.nordicehealth.servlet.implementation.io.MapData;
@@ -18,7 +18,7 @@ public class ValidatePatientID extends LoggedInRequestProcesser {
 	private Crypto crypto;
 	private se.nordicehealth.servlet.core.PPCLocale locale;
 
-	public ValidatePatientID(UserManager um, PPCDatabase db, IPacketData packetData, PPCLogger logger, Crypto crypto, se.nordicehealth.servlet.core.PPCLocale locale) {
+	public ValidatePatientID(PPCUserManager um, PPCDatabase db, IPacketData packetData, PPCLogger logger, Crypto crypto, se.nordicehealth.servlet.core.PPCLocale locale) {
 		super(packetData, logger, um);
 		this.db = db;
 		this.crypto = crypto;

@@ -14,9 +14,9 @@ import se.nordicehealth.common.implementation.Packet.Data;
 import se.nordicehealth.common.implementation.Packet.Types;
 import se.nordicehealth.servlet.core.PPCDatabase;
 import se.nordicehealth.servlet.core.PPCLogger;
+import se.nordicehealth.servlet.core.PPCUserManager;
 import se.nordicehealth.servlet.core.statistics.StatisticsContainer;
 import se.nordicehealth.servlet.core.statistics.StatisticsData;
-import se.nordicehealth.servlet.core.usermanager.UserManager;
 import se.nordicehealth.servlet.implementation.Crypto;
 import se.nordicehealth.servlet.implementation.User;
 import se.nordicehealth.servlet.implementation.io.IPacketData;
@@ -30,7 +30,7 @@ public class LoadQResults extends LoggedInRequestProcesser {
 	private QDBFormat qdbf;
 	private Crypto crypto;
 	
-	public LoadQResults(IPacketData packetData, PPCLogger logger, UserManager um, PPCDatabase db, QDBFormat qdbf, Crypto crypto) {
+	public LoadQResults(IPacketData packetData, PPCLogger logger, PPCUserManager um, PPCDatabase db, QDBFormat qdbf, Crypto crypto) {
 		super(packetData, logger, um);
 		this.db = db;
 		this.qdbf = qdbf;

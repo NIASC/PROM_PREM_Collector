@@ -9,7 +9,7 @@ import se.nordicehealth.common.implementation.Packet.Types;
 import se.nordicehealth.servlet.core.PPCDatabase;
 import se.nordicehealth.servlet.core.PPCLogger;
 import se.nordicehealth.servlet.core.PPCStringScramble;
-import se.nordicehealth.servlet.core.usermanager.UserManager;
+import se.nordicehealth.servlet.core.PPCUserManager;
 import se.nordicehealth.servlet.implementation.Crypto;
 import se.nordicehealth.servlet.implementation.PasswordHandle;
 import se.nordicehealth.servlet.implementation.User;
@@ -23,7 +23,7 @@ public class SetPassword extends LoggedInRequestProcesser {
 	private PPCStringScramble encryption;
 	private PasswordHandle pwdHandle;
 	
-	public SetPassword(UserManager um, PPCDatabase db, IPacketData packetData, PPCLogger logger, PPCStringScramble hash, Crypto crypto, PasswordHandle pwdHandle) {
+	public SetPassword(PPCUserManager um, PPCDatabase db, IPacketData packetData, PPCLogger logger, PPCStringScramble hash, Crypto crypto, PasswordHandle pwdHandle) {
 		super(packetData, logger, um);
 		this.db = db;
 		this.encryption = hash;

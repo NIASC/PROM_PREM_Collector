@@ -12,6 +12,7 @@ import se.nordicehealth.common.implementation.Constants;
 import se.nordicehealth.common.implementation.Packet.Types;
 import se.nordicehealth.servlet.core.PPCClientRequestProcesser;
 import se.nordicehealth.servlet.core.PPCLogger;
+import se.nordicehealth.servlet.core.PPCUserManager;
 import se.nordicehealth.servlet.core.usermanager.UserManager;
 import se.nordicehealth.servlet.implementation.AdminPacket.Admin;
 import se.nordicehealth.servlet.implementation.AdminPacket.AdminTypes;
@@ -21,7 +22,7 @@ import se.nordicehealth.servlet.implementation.requestprocessing.RequestProcesse
 
 public class ClientRequestProcesser implements PPCClientRequestProcesser {
 	
-	public ClientRequestProcesser(PPCLogger logger, IPacketData packetData, UserManager um,
+	public ClientRequestProcesser(PPCLogger logger, IPacketData packetData, PPCUserManager um,
 			Map<Types, RequestProcesser> userMethods, Map<AdminTypes, RequestProcesser> adminMethods) {
 		this.logger = logger;
 		this.packetData = packetData;
@@ -68,7 +69,7 @@ public class ClientRequestProcesser implements PPCClientRequestProcesser {
 	
 	private PPCLogger logger;
 	private IPacketData packetData;
-	private UserManager um;
+	private PPCUserManager um;
 	private Map<Types, RequestProcesser> userMethods = new HashMap<Types, RequestProcesser>();
 	private Map<AdminTypes, RequestProcesser> adminMethods = new HashMap<AdminTypes, RequestProcesser>();
 }

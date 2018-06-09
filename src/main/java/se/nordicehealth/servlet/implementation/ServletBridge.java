@@ -27,6 +27,7 @@ import se.nordicehealth.res.Resources;
 import se.nordicehealth.servlet.core.PPCDatabase;
 import se.nordicehealth.servlet.core.PPCLogger;
 import se.nordicehealth.servlet.core.PPCStringScramble;
+import se.nordicehealth.servlet.core.PPCUserManager;
 import se.nordicehealth.servlet.core.ServletLogger;
 import se.nordicehealth.servlet.core.usermanager.RegisteredOnlineUserManager;
 import se.nordicehealth.servlet.core.usermanager.ThreadedActivityMonitor;
@@ -68,7 +69,7 @@ public class ServletBridge extends HttpServlet {
 		PPCLogger logger = ServletLogger.LOGGER;
 		IPacketData packetData = new PacketData(new JSONParser(), logger);
 		RegisteredOnlineUserManager usr = new RegisteredOnlineUserManager();
-		UserManager um = new UserManager(usr, new ThreadedActivityMonitor(usr));
+		PPCUserManager um = new UserManager(usr, new ThreadedActivityMonitor(usr));
 		MailMan mm = null;
 		MailMan amm = null;
 		try {

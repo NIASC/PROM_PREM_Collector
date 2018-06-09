@@ -9,10 +9,10 @@ import java.util.List;
 import se.nordicehealth.common.implementation.Packet.Data;
 import se.nordicehealth.common.implementation.Packet.Types;
 import se.nordicehealth.servlet.core.PPCDatabase;
+import se.nordicehealth.servlet.core.PPCEncryption;
 import se.nordicehealth.servlet.core.PPCLogger;
 import se.nordicehealth.servlet.core.PPCStringScramble;
-import se.nordicehealth.servlet.core.usermanager.UserManager;
-import se.nordicehealth.servlet.implementation.Crypto;
+import se.nordicehealth.servlet.core.PPCUserManager;
 import se.nordicehealth.servlet.implementation.io.IPacketData;
 import se.nordicehealth.servlet.implementation.io.ListData;
 import se.nordicehealth.servlet.implementation.io.MapData;
@@ -24,10 +24,10 @@ public class AddQuestionnaireAnswers extends LoggedInRequestProcesser {
 	private QDBFormat qdbf;
 	private PPCStringScramble encryption;
 	private se.nordicehealth.servlet.core.PPCLocale locale;
-	private Crypto crypto;
+	private PPCEncryption crypto;
 
-	public AddQuestionnaireAnswers(IPacketData packetData, PPCLogger logger, UserManager um, PPCDatabase db, QDBFormat qdbf,
-			PPCStringScramble encryption, se.nordicehealth.servlet.core.PPCLocale locale, Crypto crypto) {
+	public AddQuestionnaireAnswers(IPacketData packetData, PPCLogger logger, PPCUserManager um, PPCDatabase db, QDBFormat qdbf,
+			PPCStringScramble encryption, se.nordicehealth.servlet.core.PPCLocale locale, PPCEncryption crypto) {
 		super(packetData, logger, um);
 		this.db = db;
 		this.qdbf = qdbf;
@@ -44,7 +44,7 @@ public class AddQuestionnaireAnswers extends LoggedInRequestProcesser {
 		Data.AddQuestionnaireAnswers.Response result = Data.AddQuestionnaireAnswers.Response.FAIL;
 		try {
 			if (storeQestionnaireAnswers(packetData.getMapData(in.get(DATA)))) { result = Data.AddQuestionnaireAnswers.Response.SUCCESS; }
-		} catch (Exception e) { }
+		} catch (Exception e) { e.printStackTrace(); }
 		data.put(Data.AddQuestionnaireAnswers.RESPONSE, result);
 
 		out.put(DATA, data.toString());
@@ -62,6 +62,9 @@ public class AddQuestionnaireAnswers extends LoggedInRequestProcesser {
 		String forename = patient.get(Data.AddQuestionnaireAnswers.Patient.FORENAME);
 		String personalID = locale.formatPersonalID(patient.get(Data.AddQuestionnaireAnswers.Patient.PERSONAL_ID));
 		String surname = patient.get(Data.AddQuestionnaireAnswers.Patient.SURNAME);
+		if (forename == null || surname == null) {
+			throw new NullPointerException("malformed patient name");
+		}
 		if (personalID == null) {
 			throw new NullPointerException("malformed patient personal id");
 		}

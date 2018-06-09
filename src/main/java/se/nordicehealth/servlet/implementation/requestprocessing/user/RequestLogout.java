@@ -7,7 +7,7 @@ import se.nordicehealth.common.implementation.Packet.Data;
 import se.nordicehealth.common.implementation.Packet.Types;
 import se.nordicehealth.servlet.core.PPCDatabase;
 import se.nordicehealth.servlet.core.PPCLogger;
-import se.nordicehealth.servlet.core.usermanager.UserManager;
+import se.nordicehealth.servlet.core.PPCUserManager;
 import se.nordicehealth.servlet.implementation.Crypto;
 import se.nordicehealth.servlet.implementation.io.IPacketData;
 import se.nordicehealth.servlet.implementation.io.MapData;
@@ -16,7 +16,7 @@ import se.nordicehealth.servlet.implementation.requestprocessing.LoggedInRequest
 public class RequestLogout extends LoggedInRequestProcesser {
 	private Crypto crypto;
 	
-	public RequestLogout(UserManager um, PPCDatabase db, IPacketData packetData, PPCLogger logger, Crypto crypto) {
+	public RequestLogout(PPCUserManager um, PPCDatabase db, IPacketData packetData, PPCLogger logger, Crypto crypto) {
 		super(packetData, logger, um);
 		this.crypto = crypto;
 	}
