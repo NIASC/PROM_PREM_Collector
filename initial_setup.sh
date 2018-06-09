@@ -5,7 +5,9 @@ build_props_configured=0;
 email_configured=0;
 encryption_configured=0;
 
-template_dir=templates;
+setup_dir=setup;
+template_dir=$setup_dir/templates;
+database_dir=$setup_dir/sql;
 resource_dir=src/main/java/se/nordicehealth/res;
 webapp_dir=src/main/webapp
 
@@ -30,7 +32,7 @@ user_exec() {
 
 ppc_create_database() {
     db_name="prom_prem_db";
-    db_template="sql/prom_prem_db.sql";
+    db_template="$database_dir/prom_prem_db.sql";
     printf "creating database $db_name and importing tables from $db_template.\n";
 
     user_exec "mysql -u $1 -p$2 -e '\
