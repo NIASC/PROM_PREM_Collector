@@ -6,7 +6,8 @@ email_configured=0;
 encryption_configured=0;
 
 template_dir=templates;
-resource_dir=src/res;
+resource_dir=src/main/java/se/nordicehealth/res;
+webapp_dir=src/main/webapp
 
 query_user() {
     printf "$1: ";
@@ -45,7 +46,7 @@ ppc_database_setup() {
     query_user "MySql root username" ppc_db_root_name;
     query_user_secret "MySQL root password" ppc_db_root_passwd;
     ppc_create_database $ppc_db_root_name $ppc_db_root_passwd;
-    user_exec 'mkdir -p web/META-INF; cat '$template_dir'/context.xml.template | sed -e "s,PPC_DB_ROOT_NAME,"\"'$ppc_db_root_name'\"",g" | sed -e "s,PPC_DB_ROOT_PASSWD,"\"'$ppc_db_root_passwd'\"",g" > web/META-INF/context.xml';
+    user_exec 'mkdir -p '$webapp_dir'/META-INF; cat '$template_dir'/context.xml.template | sed -e "s,PPC_DB_ROOT_NAME,"\"'$ppc_db_root_name'\"",g" | sed -e "s,PPC_DB_ROOT_PASSWD,"\"'$ppc_db_root_passwd'\"",g" > '$webapp_dir'/META-INF/context.xml';
     database_configured=1;
 }
 
