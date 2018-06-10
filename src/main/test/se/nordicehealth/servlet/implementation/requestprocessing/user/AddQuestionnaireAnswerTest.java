@@ -43,7 +43,7 @@ public class AddQuestionnaireAnswerTest {
 	}
 	
 	private ListData CreateQuestionsEntry() {
-		ListData questions = new ListData(null);
+		ListData questions = new ListData();
         for (int i : new int[] {2, 0, 1}) {
         	MapData fmt = new MapData();
         	fmt.put(QuestionTypes.SINGLE_OPTION, String.format(Locale.US, "%d", i));

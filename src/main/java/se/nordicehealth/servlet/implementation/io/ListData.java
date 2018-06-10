@@ -11,7 +11,10 @@ public class ListData
 	public String toString() { return a.toString(); }
 	public void add(String v) { l.add(v); }
 	public Iterable<String> iterable() { return Collections.unmodifiableList(l); }
-	
+
+	public ListData() {
+		this((JSONArray)null);
+	}
 	
 	@SuppressWarnings("unchecked")
 	public ListData(JSONArray a) {
