@@ -21,6 +21,11 @@ public class MapData
         return m.entrySet();
     }
 	
+	public MapData()
+	{
+		this((JSONObject)null);
+	}
+	
 	@SuppressWarnings("unchecked")
 	public MapData(JSONObject o)
 	{

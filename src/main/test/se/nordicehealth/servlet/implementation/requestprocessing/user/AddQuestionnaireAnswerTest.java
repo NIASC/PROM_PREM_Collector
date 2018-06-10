@@ -45,7 +45,7 @@ public class AddQuestionnaireAnswerTest {
 	private ListData CreateQuestionsEntry() {
 		ListData questions = new ListData(null);
         for (int i : new int[] {2, 0, 1}) {
-        	MapData fmt = new MapData(null);
+        	MapData fmt = new MapData();
         	fmt.put(QuestionTypes.SINGLE_OPTION, String.format(Locale.US, "%d", i));
             questions.add(fmt.toString());
         }
@@ -53,7 +53,7 @@ public class AddQuestionnaireAnswerTest {
 	}
 	
 	private MapData createPatientEntry(String fname, String sname, String pid) {
-		MapData pobj = new MapData(null);
+		MapData pobj = new MapData();
         pobj.put(Data.AddQuestionnaireAnswers.Patient.FORENAME, fname);
         pobj.put(Data.AddQuestionnaireAnswers.Patient.SURNAME, sname);
         pobj.put(Data.AddQuestionnaireAnswers.Patient.PERSONAL_ID, pid);
@@ -61,7 +61,7 @@ public class AddQuestionnaireAnswerTest {
 	}
 	
 	private MapData createUserCredentialsEntry(Long uid) {
-		MapData details = new MapData(null);
+		MapData details = new MapData();
 		if (uid != null) {
 			details.put(Data.AddQuestionnaireAnswers.Details.UID, Long.toString(uid));
 		}
@@ -69,7 +69,7 @@ public class AddQuestionnaireAnswerTest {
 	}
 	
 	private MapData createDataEntry(MapData pobj, MapData details, ListData questions) {
-        MapData dataOut = new MapData(null);
+        MapData dataOut = new MapData();
         if (details != null) {
         	dataOut.put(Data.AddQuestionnaireAnswers.DETAILS, dbutil.crypto.encrypt(details.toString()));
         }
@@ -84,7 +84,7 @@ public class AddQuestionnaireAnswerTest {
 
 	@Test
 	public void testProcessRequest() {
-		MapData out = new MapData(null);
+		MapData out = new MapData();
         out.put(Packet.TYPE, Packet.Types.ADD_QANS);
 
 		MapData pobj = createPatientEntry("kalle", "kula", "101010-0004");
@@ -105,7 +105,7 @@ public class AddQuestionnaireAnswerTest {
 
 	@Test
 	public void testProcessRequestUserNotOnline() {
-		MapData out = new MapData(null);
+		MapData out = new MapData();
         out.put(Packet.TYPE, Packet.Types.ADD_QANS);
 
 		MapData pobj = createPatientEntry("kalle", "kula", "101010-0004");
@@ -125,7 +125,7 @@ public class AddQuestionnaireAnswerTest {
 
 	@Test
 	public void testProcessRequestIncompletePatient() {
-		MapData out = new MapData(null);
+		MapData out = new MapData();
         out.put(Packet.TYPE, Packet.Types.ADD_QANS);
 
 		MapData pobj = createPatientEntry(null, null, "101010-0004");
@@ -146,7 +146,7 @@ public class AddQuestionnaireAnswerTest {
 
 	@Test
 	public void testProcessRequestIncompleteUserCredentials() {
-		MapData out = new MapData(null);
+		MapData out = new MapData();
         out.put(Packet.TYPE, Packet.Types.ADD_QANS);
 
 		MapData pobj = createPatientEntry("kalle", "kula", "101010-0004");

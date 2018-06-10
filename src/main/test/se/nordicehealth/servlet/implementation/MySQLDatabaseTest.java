@@ -164,12 +164,13 @@ public class MySQLDatabaseTest {
 		Map<String, Integer> ints = new HashMap<String, Integer>();
 		ints.put("clinic_id", 0);
 		ints.put("update_password", 1);
-		rs.setNextInts(ints);
 		Map<String, String> strings = new HashMap<String, String>();
 		strings.put("name", "phony");
 		strings.put("password", "s3cr3t");
 		strings.put("email", "phony@phony.com");
 		strings.put("salt", "s4lt");
+		
+		rs.setNextInts(ints);
 		rs.setNextStrings(strings);
 		rs.setNumberOfAvailableNextCalls(1);
 		
@@ -223,6 +224,7 @@ public class MySQLDatabaseTest {
 	public void testLoadQuestionResultDates() {
 		Map<String, String> name = new HashMap<String, String>();
 		name.put("date", "1970-01-01");
+		rs.setNextInts(new HashMap<String, Integer>());
 		rs.setNextStrings(name);
 		rs.setNumberOfAvailableNextCalls(1);
 		
@@ -239,6 +241,7 @@ public class MySQLDatabaseTest {
 		strings.put("question1", "option0");
 		strings.put("question2", "\"; drop database phony_db; \"");
 		strings.put("question3", "[\"option0\",\"option1\"]");
+		rs.setNextInts(new HashMap<String, Integer>());
 		rs.setNextStrings(strings);
 		rs.setNumberOfAvailableNextCalls(1);
 		

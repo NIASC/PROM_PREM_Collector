@@ -6,7 +6,7 @@ import org.junit.runners.Suite.SuiteClasses;
 
 @RunWith(Suite.class)
 @SuiteClasses({
-	AddQuestionnaireAnswerTest.class
+	AddQuestionnaireAnswerTest.class, LoadQResultDatesTest.class
 })
 public class AllUserTests {
 }

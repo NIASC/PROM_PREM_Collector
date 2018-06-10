@@ -8,9 +8,9 @@ import java.util.List;
 import se.nordicehealth.common.implementation.Packet.Data;
 import se.nordicehealth.common.implementation.Packet.Types;
 import se.nordicehealth.servlet.core.PPCDatabase;
+import se.nordicehealth.servlet.core.PPCEncryption;
 import se.nordicehealth.servlet.core.PPCLogger;
 import se.nordicehealth.servlet.core.PPCUserManager;
-import se.nordicehealth.servlet.implementation.Crypto;
 import se.nordicehealth.servlet.implementation.User;
 import se.nordicehealth.servlet.implementation.io.IPacketData;
 import se.nordicehealth.servlet.implementation.io.ListData;
@@ -19,9 +19,9 @@ import se.nordicehealth.servlet.implementation.requestprocessing.LoggedInRequest
 
 public class LoadQResultDates extends LoggedInRequestProcesser {
 	private PPCDatabase db;
-	private Crypto crypto;
+	private PPCEncryption crypto;
 	
-	public LoadQResultDates(IPacketData packetData, PPCLogger logger, PPCUserManager um, PPCDatabase db, Crypto crypto) {
+	public LoadQResultDates(IPacketData packetData, PPCLogger logger, PPCUserManager um, PPCDatabase db, PPCEncryption crypto) {
 		super(packetData, logger, um);
 		this.db = db;
 		this.crypto = crypto;
@@ -49,6 +49,9 @@ public class LoadQResultDates extends LoggedInRequestProcesser {
 		long uid = Long.parseLong(inpl.get(Data.LoadQResultDates.Details.UID));
 		refreshTimer(uid);
 		User user = db.getUser(um.nameForUID(uid));
+		if (user == null) {
+			return packetData.getListData();
+		}
 		List<String> dlist = db.loadQuestionResultDates(user.clinic_id);
 
 		ListData dates = packetData.getListData();

@@ -44,7 +44,7 @@ public class AddQuestionnaireAnswers extends LoggedInRequestProcesser {
 		Data.AddQuestionnaireAnswers.Response result = Data.AddQuestionnaireAnswers.Response.FAIL;
 		try {
 			if (storeQestionnaireAnswers(packetData.getMapData(in.get(DATA)))) { result = Data.AddQuestionnaireAnswers.Response.SUCCESS; }
-		} catch (Exception e) { e.printStackTrace(); }
+		} catch (Exception e) { }
 		data.put(Data.AddQuestionnaireAnswers.RESPONSE, result);
 
 		out.put(DATA, data.toString());
