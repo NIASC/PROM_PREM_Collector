@@ -5,17 +5,17 @@ import static se.nordicehealth.common.implementation.Packet.TYPE;
 
 import se.nordicehealth.common.implementation.Packet.Data;
 import se.nordicehealth.common.implementation.Packet.Types;
+import se.nordicehealth.servlet.core.PPCEncryption;
 import se.nordicehealth.servlet.core.PPCLogger;
 import se.nordicehealth.servlet.core.PPCUserManager;
-import se.nordicehealth.servlet.implementation.Crypto;
 import se.nordicehealth.servlet.implementation.io.IPacketData;
 import se.nordicehealth.servlet.implementation.io.MapData;
 import se.nordicehealth.servlet.implementation.requestprocessing.IdleRequestProcesser;
 
 public class Ping extends IdleRequestProcesser {
-	private Crypto crypto;
+	private PPCEncryption crypto;
 	
-	public Ping(IPacketData packetData, PPCLogger logger, PPCUserManager um, Crypto crypto) {
+	public Ping(IPacketData packetData, PPCLogger logger, PPCUserManager um, PPCEncryption crypto) {
 		super(packetData, logger, um);
 		this.crypto = crypto;
 	}

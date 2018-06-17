@@ -8,13 +8,13 @@ public class PhonyUserManager implements PPCUserManager {
 	@Override
 	public boolean refreshInactivityTimer(long uid) {
 		// TODO Auto-generated method stub
-		return false;
+		return true;
 	}
 
 	@Override
 	public boolean isOnline(long uid) {
 		// TODO Auto-generated method stub
-		return false;
+		return uid != 0L;
 	}
 
 	@Override
@@ -56,7 +56,7 @@ public class PhonyUserManager implements PPCUserManager {
 	@Override
 	public boolean refreshIdleTimer(long uid) {
 		// TODO Auto-generated method stub
-		return false;
+		return true;
 	}
 
 }

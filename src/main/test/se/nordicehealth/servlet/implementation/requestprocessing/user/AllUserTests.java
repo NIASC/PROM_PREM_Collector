@@ -7,7 +7,7 @@ import org.junit.runners.Suite.SuiteClasses;
 @RunWith(Suite.class)
 @SuiteClasses({
 	AddQuestionnaireAnswerTest.class, LoadQResultDatesTest.class, LoadQResultsTest.class,
-	LoadQuestionsTest.class
+	LoadQuestionsTest.class, PingTest.class
 })
 public class AllUserTests {
 }
