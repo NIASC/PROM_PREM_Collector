@@ -2,6 +2,7 @@ package se.nordicehealth.common;
 
 import java.io.BufferedInputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.nio.charset.Charset;
 import java.nio.charset.UnsupportedCharsetException;
 import java.util.ArrayList;
@@ -19,7 +20,7 @@ public class Util {
 	}
 	
 	public static String loadFile(String filename) throws IOException {
-		byte[] data = readFile(filename);
+		byte[] data = readFile(Resources.getStream(filename));
 		try {
 			return new String(data, Charset.forName("UTF-8"));
 		} catch (UnsupportedCharsetException e) {
@@ -27,8 +28,8 @@ public class Util {
 		}
 	}
 
-	public static byte[] readFile(String filepath) throws IOException {
-		BufferedInputStream buffIn = new BufferedInputStream(Resources.getStream(filepath));
+	public static byte[] readFile(InputStream filepath) throws IOException {
+		BufferedInputStream buffIn = new BufferedInputStream(filepath);
 		int size = 0;
 		byte dataBuffer[] = new byte[0x1000], buffer[] = new byte[0x400];
 		for (int k; (k = buffIn.read(buffer, 0, 0x400)) != -1; size += k) {
