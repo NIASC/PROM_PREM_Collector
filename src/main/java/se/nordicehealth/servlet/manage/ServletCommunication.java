@@ -1,8 +1,8 @@
 package se.nordicehealth.servlet.manage;
 
-import static se.nordicehealth.servlet.implementation.AdminPacket._ADMIN;
-import static se.nordicehealth.servlet.implementation.AdminPacket._DATA;
-import static se.nordicehealth.servlet.implementation.AdminPacket._TYPE;
+import static se.nordicehealth.servlet.impl.AdminPacket._ADMIN;
+import static se.nordicehealth.servlet.impl.AdminPacket._DATA;
+import static se.nordicehealth.servlet.impl.AdminPacket._TYPE;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -18,14 +18,14 @@ import java.util.TreeMap;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
 
-import se.nordicehealth.common.implementation.Constants;
+import se.nordicehealth.common.impl.Constants;
 import se.nordicehealth.servlet.core.PPCStringScramble;
 import se.nordicehealth.servlet.core.ServletConst;
-import se.nordicehealth.servlet.implementation.SHAEncryption;
-import se.nordicehealth.servlet.implementation.User;
-import se.nordicehealth.servlet.implementation.AdminPacket.Admin;
-import se.nordicehealth.servlet.implementation.AdminPacket.AdminData;
-import se.nordicehealth.servlet.implementation.AdminPacket.AdminTypes;
+import se.nordicehealth.servlet.impl.SHAEncryption;
+import se.nordicehealth.servlet.impl.User;
+import se.nordicehealth.servlet.impl.AdminPacket.Admin;
+import se.nordicehealth.servlet.impl.AdminPacket.AdminData;
+import se.nordicehealth.servlet.impl.AdminPacket.AdminTypes;
 
 public class ServletCommunication {
 	

@@ -1,9 +1,11 @@
 package se.nordicehealth.zzphony;
 
-import se.nordicehealth.common.implementation.Packet.Data.RequestLogin.Response;
+import se.nordicehealth.common.impl.Packet.Data.RequestLogin.Response;
 import se.nordicehealth.servlet.core.PPCUserManager;
 
 public class PhonyUserManager implements PPCUserManager {
+	
+	private boolean uidIsAvailable = true;
 
 	@Override
 	public boolean refreshInactivityTimer(long uid) {
@@ -26,19 +28,19 @@ public class PhonyUserManager implements PPCUserManager {
 	@Override
 	public boolean isAvailable(long uid) {
 		// TODO Auto-generated method stub
-		return false;
+		return uidIsAvailable;
 	}
 
 	@Override
 	public Response addUserToListOfOnline(String username, long uid) {
 		// TODO Auto-generated method stub
-		return null;
+		return Response.SUCCESS;
 	}
 
 	@Override
 	public boolean delUserFromListOfOnline(long uid) {
 		// TODO Auto-generated method stub
-		return false;
+		return isOnline(uid);
 	}
 
 	@Override
@@ -57,6 +59,10 @@ public class PhonyUserManager implements PPCUserManager {
 	public boolean refreshIdleTimer(long uid) {
 		// TODO Auto-generated method stub
 		return true;
+	}
+	
+	public void setIsAvailableUID(boolean available) {
+		uidIsAvailable = available;
 	}
 
 }

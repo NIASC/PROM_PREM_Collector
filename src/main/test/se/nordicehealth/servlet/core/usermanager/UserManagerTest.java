@@ -5,7 +5,7 @@ import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 
-import se.nordicehealth.common.implementation.Packet.Data.RequestLogin.Response;
+import se.nordicehealth.common.impl.Packet.Data.RequestLogin.Response;
 import se.nordicehealth.servlet.core.usermanager.ConnectionManager;
 import se.nordicehealth.servlet.core.usermanager.RegisteredOnlineUserManager;
 import se.nordicehealth.servlet.core.usermanager.ThreadedActivityMonitor;

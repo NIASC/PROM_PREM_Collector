@@ -1,6 +1,6 @@
 package se.nordicehealth.servlet.core;
 
-import se.nordicehealth.common.implementation.Packet.Data.RequestLogin.Response;
+import se.nordicehealth.common.impl.Packet.Data.RequestLogin.Response;
 
 public interface PPCUserManager {
 	boolean refreshInactivityTimer(long uid);

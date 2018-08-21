@@ -5,7 +5,7 @@ import org.junit.runners.Suite;
 import org.junit.runners.Suite.SuiteClasses;
 
 import se.nordicehealth.servlet.core.AllCoreTests;
-import se.nordicehealth.servlet.implementation.AllImplementationTests;
+import se.nordicehealth.servlet.impl.AllImplementationTests;
 
 @RunWith(Suite.class)
 @SuiteClasses({ AllCoreTests.class, AllImplementationTests.class })

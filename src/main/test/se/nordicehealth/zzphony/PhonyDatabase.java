@@ -5,8 +5,8 @@ import java.util.List;
 import java.util.Map;
 
 import se.nordicehealth.servlet.core.PPCDatabase;
-import se.nordicehealth.servlet.implementation.QuestionData;
-import se.nordicehealth.servlet.implementation.User;
+import se.nordicehealth.servlet.impl.QuestionData;
+import se.nordicehealth.servlet.impl.User;
 
 public class PhonyDatabase implements PPCDatabase {
 	@Override

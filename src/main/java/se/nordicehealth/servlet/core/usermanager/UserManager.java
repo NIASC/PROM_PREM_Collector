@@ -1,6 +1,6 @@
 package se.nordicehealth.servlet.core.usermanager;
 
-import se.nordicehealth.common.implementation.Packet.Data.RequestLogin.Response;
+import se.nordicehealth.common.impl.Packet.Data.RequestLogin.Response;
 import se.nordicehealth.servlet.core.PPCUserManager;
 
 public class UserManager implements PPCUserManager {

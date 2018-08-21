@@ -8,7 +8,7 @@ import java.util.Map.Entry;
 import java.util.regex.Pattern;
 
 import se.nordicehealth.servlet.core.PPCStringScramble;
-import se.nordicehealth.servlet.implementation.SHAEncryption;
+import se.nordicehealth.servlet.impl.SHAEncryption;
 
 import java.util.Scanner;
 
