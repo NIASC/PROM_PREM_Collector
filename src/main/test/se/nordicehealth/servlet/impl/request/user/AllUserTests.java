@@ -8,7 +8,7 @@ import org.junit.runners.Suite.SuiteClasses;
 @SuiteClasses({
 	AddQuestionnaireAnswerTest.class, LoadQResultDatesTest.class, LoadQResultsTest.class,
 	LoadQuestionsTest.class, PingTest.class, RequestLoginTest.class, RequestLogoutTest.class,
-	RequestRegistrationTest.class
+	RequestRegistrationTest.class, SetPasswordTest.class
 })
 public class AllUserTests {
 }

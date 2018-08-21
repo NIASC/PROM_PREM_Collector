@@ -5,8 +5,9 @@ import java.util.List;
 import java.util.regex.Pattern;
 
 import se.nordicehealth.common.impl.Packet.Data;
+import se.nordicehealth.servlet.core.PPCPasswordValidation;
 
-public class PasswordHandle
+public class PasswordHandle implements PPCPasswordValidation
 {
 	public Data.SetPassword.Response newPassError(User user,
 			String oldPass, String newPass1, String newPass2)

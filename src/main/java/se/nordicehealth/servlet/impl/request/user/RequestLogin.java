@@ -47,7 +47,7 @@ public class RequestLogin extends RequestProcesser {
 			if (Constants.equal(ret.response, Data.RequestLogin.Response.SUCCESS)) {
 				uid = Long.toString(ret.uid);
 			}
-		} catch (Exception e) { e.printStackTrace(); }
+		} catch (Exception e) { }
 		data.put(Data.RequestLogin.RESPONSE, response);
 		data.put(Data.RequestLogin.UPDATE_PASSWORD, update_password);
 		data.put(Data.RequestLogin.UID, uid);

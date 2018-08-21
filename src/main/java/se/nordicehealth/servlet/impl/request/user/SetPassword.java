@@ -7,11 +7,11 @@ import se.nordicehealth.common.impl.Constants;
 import se.nordicehealth.common.impl.Packet.Data;
 import se.nordicehealth.common.impl.Packet.Types;
 import se.nordicehealth.servlet.core.PPCDatabase;
+import se.nordicehealth.servlet.core.PPCEncryption;
 import se.nordicehealth.servlet.core.PPCLogger;
+import se.nordicehealth.servlet.core.PPCPasswordValidation;
 import se.nordicehealth.servlet.core.PPCStringScramble;
 import se.nordicehealth.servlet.core.PPCUserManager;
-import se.nordicehealth.servlet.impl.Crypto;
-import se.nordicehealth.servlet.impl.PasswordHandle;
 import se.nordicehealth.servlet.impl.User;
 import se.nordicehealth.servlet.impl.io.IPacketData;
 import se.nordicehealth.servlet.impl.io.MapData;
@@ -19,11 +19,11 @@ import se.nordicehealth.servlet.impl.request.LoggedInRequestProcesser;
 
 public class SetPassword extends LoggedInRequestProcesser {
 	private PPCDatabase db;
-	private Crypto crypto;
+	private PPCEncryption crypto;
 	private PPCStringScramble encryption;
-	private PasswordHandle pwdHandle;
+	private PPCPasswordValidation pwdHandle;
 	
-	public SetPassword(PPCUserManager um, PPCDatabase db, IPacketData packetData, PPCLogger logger, PPCStringScramble hash, Crypto crypto, PasswordHandle pwdHandle) {
+	public SetPassword(PPCUserManager um, PPCDatabase db, IPacketData packetData, PPCLogger logger, PPCStringScramble hash, PPCEncryption crypto, PPCPasswordValidation pwdHandle) {
 		super(packetData, logger, um);
 		this.db = db;
 		this.encryption = hash;

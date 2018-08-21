@@ -5,7 +5,6 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
@@ -36,8 +35,6 @@ public class MySQLDatabase implements PPCDatabase {
 	}
 	
 	private String escapeReplace(String str) {
-		if (str == null) { return null; }
-		
 		return String.format("%s", str.replace("\'", "\""));
 	}
 

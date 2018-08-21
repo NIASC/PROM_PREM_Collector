@@ -136,12 +136,12 @@ public class MySQLDatabaseTest {
 		Map<String, Integer> ints = new HashMap<String, Integer>();
 		ints.put("clinic_id", 0);
 		ints.put("update_password", 1);
-		rs.setNextInts(ints);
 		Map<String, String> strings = new HashMap<String, String>();
 		strings.put("name", "phony");
 		strings.put("password", "s3cr3t");
 		strings.put("email", "phony@phony.com");
 		strings.put("salt", "s4lt");
+		rs.setNextInts(ints);
 		rs.setNextStrings(strings);
 		User user = db.getUser("phony");
 		Assert.assertEquals("SELECT `clinic_id`, `name`, `password`, `email`, `salt`, `update_password` FROM `users` WHERE `users`.`name`='phony'", s.getLastSQLQuery());

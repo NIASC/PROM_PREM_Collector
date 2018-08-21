@@ -22,7 +22,7 @@ public class PhonyUserManager implements PPCUserManager {
 	@Override
 	public String nameForUID(long uid) {
 		// TODO Auto-generated method stub
-		return "phony";
+		return isOnline(uid) ? "phony" : null;
 	}
 
 	@Override
