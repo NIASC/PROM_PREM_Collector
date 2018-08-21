@@ -20,48 +20,17 @@ import se.nordicehealth.servlet.impl.request.user.LoadQResults;
 public class LoadQResultsTest {
 	LoadQResults processer;
 	ReqProcUtil dbutil;
+	UserRequestUtil requtil;
 	Map<Integer, Map<String, Integer>> allResults;
 
 	@Before
 	public void setUp() throws Exception {
 		dbutil = ReqProcUtil.newInstance();
-		
+		requtil = new UserRequestUtil(dbutil);
 		
 		processer = new LoadQResults(dbutil.pd, dbutil.logger, dbutil.um, dbutil.db, dbutil.qdbf, dbutil.crypto);
 		
 		allResults = calculateStatistics();
-	}
-	
-	private int setNextDatabaseUserCall(String name) {
-		Map<String, Integer> ints = new HashMap<String, Integer>();
-		ints.put("clinic_id", 0);
-		ints.put("update_password", 1);
-		Map<String, String> strings = new HashMap<String, String>();
-		strings.put("name", name);
-		strings.put("password", "s3cr3t");
-		strings.put("email", "phony@phony.com");
-		strings.put("salt", "s4lt");
-		
-		dbutil.rs.setNextInts(ints);
-		dbutil.rs.setNextStrings(strings);
-		return 1;
-	}
-	
-	private int setNextDatabaseDates(List<Map<String, String>> dates) {
-		for (Map<String, String> date : dates) {
-			Map<String, String> strings = new HashMap<String, String>();
-			strings.putAll(date);
-			dbutil.rs.setNextStrings(strings);
-			dbutil.rs.setNextInts(new HashMap<String, Integer>());
-		}
-		return dates.size();
-	}
-	
-	private void setupDatabaseCalls(List<Map<String, String>> dates) {
-		int availNextCalls = 0;
-		availNextCalls += setNextDatabaseUserCall("phony");
-		availNextCalls += setNextDatabaseDates(dates);
-		dbutil.rs.setNumberOfAvailableNextCalls(availNextCalls);
 	}
 	
 	private int ids[][] = {
@@ -133,12 +102,6 @@ public class LoadQResultsTest {
 		return dataOut;
 	}
 
-	private MapData createDetailsEntry() {
-		MapData details = new MapData();
-		details.put(Packet.Data.LoadQResults.Details.UID, Long.toString(1L));
-		return details;
-	}
-
 	private ListData createQuestionsRequestEntry(List<Integer> questionIDs) {
 		ListData questions = new ListData();
 		for (Integer i : questionIDs) {
@@ -150,36 +113,11 @@ public class LoadQResultsTest {
 	@Test
 	public void testProcessRequest() {
 		List<Integer> questionIDs = Arrays.asList(1, 2, 4);
-		
-		MapData out = new MapData();
-		out.put(Packet.TYPE, Packet.Types.LOAD_QR);
-		out.put(Packet.DATA, createDataPacket(createQuestionsRequestEntry(questionIDs), createDetailsEntry()).toString());
-		
-		setupDatabaseCalls(createDatabaseQuestionAnswerContent(ids.length));
-		MapData in = processer.processRequest(out);
-		MapData inData = dbutil.pd.getMapData(in.get(Packet.DATA));
-		Map<Integer, Map<String, Integer>> container = unpackResult(dbutil.pd.getMapData(inData.get(Packet.Data.LoadQResults.RESULTS)));
-		
-		Map<Integer, Map<String, Integer>> expected = new HashMap<Integer, Map<String, Integer>>();
-		for (int i : questionIDs) {
-			expected.put(i, allResults.get(i));
-		}
-		Assert.assertEquals(expected, container);
-	}
-	
-	@Test
-	public void testProcessRequestEmptyList() {
-		List<Integer> questionIDs = new ArrayList<Integer>();
-		
-		MapData out = new MapData();
-		out.put(Packet.TYPE, Packet.Types.LOAD_QR);
-		out.put(Packet.DATA, createDataPacket(createQuestionsRequestEntry(questionIDs), createDetailsEntry()).toString());
-		
-		setupDatabaseCalls(createDatabaseQuestionAnswerContent(ids.length));
-		MapData in = processer.processRequest(out);
-		MapData inData = dbutil.pd.getMapData(in.get(Packet.DATA));
-		Map<Integer, Map<String, Integer>> container = unpackResult(dbutil.pd.getMapData(inData.get(Packet.Data.LoadQResults.RESULTS)));
-		
+		MapData dataOut = createDataPacket(createQuestionsRequestEntry(questionIDs),
+				requtil.createUserUIDEntry(requtil.login()));
+		List<Map<String, String>> dates = createDatabaseQuestionAnswerContent(ids.length);
+		Map<Integer, Map<String, Integer>> container = sendRequest(dataOut, dates);
+
 		Map<Integer, Map<String, Integer>> expected = new HashMap<Integer, Map<String, Integer>>();
 		for (int i : questionIDs) {
 			expected.put(i, allResults.get(i));
@@ -190,16 +128,11 @@ public class LoadQResultsTest {
 	@Test
 	public void testProcessRequestInvalidUser() {
 		List<Integer> questionIDs = Arrays.asList(1, 2, 4);
-		
-		MapData out = new MapData();
-		out.put(Packet.TYPE, Packet.Types.LOAD_QR);
-		out.put(Packet.DATA, createDataPacket(createQuestionsRequestEntry(questionIDs), new MapData()).toString());
-		
-		setupDatabaseCalls(createDatabaseQuestionAnswerContent(ids.length));
-		MapData in = processer.processRequest(out);
-		MapData inData = dbutil.pd.getMapData(in.get(Packet.DATA));
-		Map<Integer, Map<String, Integer>> container = unpackResult(dbutil.pd.getMapData(inData.get(Packet.Data.LoadQResults.RESULTS)));
-		
+		MapData dataOut = createDataPacket(createQuestionsRequestEntry(questionIDs),
+				new MapData());
+		List<Map<String, String>> dates = createDatabaseQuestionAnswerContent(ids.length);
+		Map<Integer, Map<String, Integer>> container = sendRequest(dataOut, dates);
+
 		Map<Integer, Map<String, Integer>> expected = new HashMap<Integer, Map<String, Integer>>();
 		Assert.assertEquals(expected, container);
 	}
@@ -208,21 +141,43 @@ public class LoadQResultsTest {
 	public void testProcessRequestFewEntries() {
 		int nEntries = 3;
 		List<Integer> questionIDs = Arrays.asList(1, 2, 4);
-		
-		MapData out = new MapData();
-		out.put(Packet.TYPE, Packet.Types.LOAD_QR);
-		out.put(Packet.DATA, createDataPacket(createQuestionsRequestEntry(questionIDs), createDetailsEntry()).toString());
-		
-		setupDatabaseCalls(createDatabaseQuestionAnswerContent(nEntries));
-		MapData in = processer.processRequest(out);
-		MapData inData = dbutil.pd.getMapData(in.get(Packet.DATA));
-		Map<Integer, Map<String, Integer>> container = unpackResult(dbutil.pd.getMapData(inData.get(Packet.Data.LoadQResults.RESULTS)));
-		
+		MapData dataOut = createDataPacket(createQuestionsRequestEntry(questionIDs),
+				requtil.createUserUIDEntry(requtil.login()));
+		List<Map<String, String>> dates = createDatabaseQuestionAnswerContent(nEntries);
+		Map<Integer, Map<String, Integer>> container = sendRequest(dataOut, dates);
+
 		Map<Integer, Map<String, Integer>> expected = new HashMap<Integer, Map<String, Integer>>();
 		for (int i : questionIDs) {
 			expected.put(i, allResults.get(i));
 		}
 		Assert.assertEquals(expected, container);
+	}
+	
+	@Test
+	public void testProcessRequestEmptyList() {
+		List<Integer> questionIDs = new ArrayList<Integer>();
+		MapData dataOut = createDataPacket(createQuestionsRequestEntry(questionIDs),
+				requtil.createUserUIDEntry(requtil.login()));
+		List<Map<String, String>> dates = createDatabaseQuestionAnswerContent(ids.length);
+		Map<Integer, Map<String, Integer>> container = sendRequest(dataOut, dates);
+
+		Map<Integer, Map<String, Integer>> expected = new HashMap<Integer, Map<String, Integer>>();
+		for (int i : questionIDs) {
+			expected.put(i, allResults.get(i));
+		}
+		Assert.assertEquals(expected, container);
+	}
+	
+	public Map<Integer, Map<String, Integer>> sendRequest(MapData dataOut, List<Map<String, String>> dates) {
+		MapData out = new MapData();
+		out.put(Packet.TYPE, Packet.Types.LOAD_QR);
+		out.put(Packet.DATA, dataOut.toString());
+
+		requtil.setNextDatabaseUserCall();
+		requtil.setNextDatabaseDatesMapStrStr(dates);
+		MapData in = processer.processRequest(out);
+		MapData inData = dbutil.pd.getMapData(in.get(Packet.DATA));
+		return unpackResult(dbutil.pd.getMapData(inData.get(Packet.Data.LoadQResults.RESULTS)));
 	}
 
 }

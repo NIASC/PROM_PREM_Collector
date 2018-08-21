@@ -1,6 +1,7 @@
 package se.nordicehealth.servlet.impl.request.user;
 
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 import org.junit.Assert;
@@ -19,11 +20,31 @@ public class UserRequestUtil {
 		processerLogIn = new RequestLogin(dbutil.pd, dbutil.logger, dbutil.um, dbutil.db, dbutil.encryption, dbutil.crypto);
 	}
 
-	private MapData createDetailsEntry() {
+	public MapData createDetailsEntry() {
 		MapData details = new MapData();
 		details.put(Packet.Data.RequestLogin.Details.USERNAME, "12345678");
 		details.put(Packet.Data.RequestLogin.Details.PASSWORD, "s3cr3t");
 		return details;
+	}
+	
+	public void setNextDatabaseDatesMapStrStr(List<Map<String, String>> dates) {
+		for (Map<String, String> date : dates) {
+			Map<String, String> strings = new HashMap<String, String>();
+			strings.putAll(date);
+			dbutil.rs.setNextStrings(strings);
+			dbutil.rs.setNextInts(new HashMap<String, Integer>());
+		}
+		dbutil.rs.addNumberOfAvailableNextCalls(dates.size());
+	}
+	
+	public void setNextDatabaseDatesString(List<String> dates) {
+		for (String date : dates) {
+			Map<String, String> strings = new HashMap<String, String>();
+			strings.put("date", date);
+			dbutil.rs.setNextStrings(strings);
+			dbutil.rs.setNextInts(new HashMap<String, Integer>());
+		}
+		dbutil.rs.addNumberOfAvailableNextCalls(dates.size());
 	}
 	
 	public MapData createUserUIDEntry(long uid) {
