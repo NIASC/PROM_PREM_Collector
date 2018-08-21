@@ -43,32 +43,54 @@ public class RequestRegistrationTest {
 		RegistrationRequest rr = new RegistrationRequest(new MessageGenerator("Name: %s<br>Email: %s<br>Clinic: %s<br>"));
 		processer = new RequestRegistration(dbutil.db, dbutil.pd, dbutil.logger, mm, rr, dbutil.crypto);
 	}
-
-	@Test
-	public void testProcessRequest() {
-		String name = "andrew smith";
-		String email = "andrew.smith@localdomain";
-		String clinic = "local clinic";
-		
-		MapData out = dbutil.pd.getMapData();
-		out.put(Packet.TYPE, Packet.Types.REQ_REGISTR);
-        MapData dataOut = dbutil.pd.getMapData();
-
+	
+	private MapData createDetails(String name, String email, String clinic) {
 		MapData details = dbutil.pd.getMapData();
         details.put(Packet.Data.RequestRegistration.Details.NAME, name);
         details.put(Packet.Data.RequestRegistration.Details.EMAIL, email);
         details.put(Packet.Data.RequestRegistration.Details.CLINIC, clinic);
-        dataOut.put(Packet.Data.RequestRegistration.DETAILS, dbutil.crypto.encrypt(details.toString()));
+        return details;
+	}
 
+	public Packet.Data.RequestRegistration.Response processRequest(MapData dataOut) {
+		MapData out = dbutil.pd.getMapData();
+		out.put(Packet.TYPE, Packet.Types.REQ_REGISTR);
         out.put(Packet.DATA, dataOut.toString());
 		MapData in = processer.processRequest(out);
         MapData inData = dbutil.pd.getMapData(in.get(Packet.DATA));
 
-        Packet.Data.RequestRegistration.Response insert = Packet.Data.RequestRegistration.Response.FAIL;
         try {
-            insert = Constants.getEnum(Packet.Data.RequestRegistration.Response.values(), inData.get(Packet.Data.RequestRegistration.RESPONSE));
-        } catch (NumberFormatException ignored) { }
+            return Constants.getEnum(Packet.Data.RequestRegistration.Response.values(), inData.get(Packet.Data.RequestRegistration.RESPONSE));
+        } catch (NumberFormatException ignored) {
+            return Packet.Data.RequestRegistration.Response.FAIL;
+        }
+	}
+	
+	@Test
+	public void testProcessRequestCompleteForm() {
+		String name = "andrew smith";
+		String email = "andrew.smith@localdomain";
+		String clinic = "local clinic";
+		
+        MapData dataOut = dbutil.pd.getMapData();
+        MapData details = createDetails(name, email, clinic);
+        dataOut.put(Packet.Data.RequestRegistration.DETAILS, dbutil.crypto.encrypt(details.toString()));
+        Packet.Data.RequestRegistration.Response insert = processRequest(dataOut);
         Assert.assertTrue(Constants.equal(Packet.Data.RequestRegistration.Response.SUCCESS, insert));
+	}
+	
+	@Test
+	public void testProcessRequestInompleteForm() {
+		String name = "andrew smith";
+		String email = "andrew.smith@localdomain";
+		
+        MapData dataOut = dbutil.pd.getMapData();
+		MapData details = dbutil.pd.getMapData();
+        details.put(Packet.Data.RequestRegistration.Details.NAME, name);
+        details.put(Packet.Data.RequestRegistration.Details.EMAIL, email);
+        dataOut.put(Packet.Data.RequestRegistration.DETAILS, dbutil.crypto.encrypt(details.toString()));
+        Packet.Data.RequestRegistration.Response insert = processRequest(dataOut);
+        Assert.assertTrue(Constants.equal(Packet.Data.RequestRegistration.Response.FAIL, insert));
 	}
 
 }
