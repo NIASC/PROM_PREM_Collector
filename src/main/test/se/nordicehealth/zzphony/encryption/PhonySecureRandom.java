@@ -4,6 +4,7 @@ import java.security.Provider;
 import java.security.SecureRandom;
 import java.security.SecureRandomSpi;
 
+@SuppressWarnings("serial")
 public class PhonySecureRandom extends SecureRandom {
 
 	public PhonySecureRandom() {

@@ -21,7 +21,6 @@ import org.json.simple.parser.JSONParser;
 import se.nordicehealth.common.impl.Constants;
 import se.nordicehealth.servlet.core.PPCStringScramble;
 import se.nordicehealth.servlet.core.ServletConst;
-import se.nordicehealth.servlet.impl.SHAEncryption;
 import se.nordicehealth.servlet.impl.User;
 import se.nordicehealth.servlet.impl.AdminPacket.Admin;
 import se.nordicehealth.servlet.impl.AdminPacket.AdminData;

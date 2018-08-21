@@ -29,6 +29,7 @@ public class MapDataTest {
 		md = new MapData(new JSONObject());
 	}
 
+	@SuppressWarnings("unchecked")
 	@Test
 	public void testToString() {
 		JSONObject o = new JSONObject();

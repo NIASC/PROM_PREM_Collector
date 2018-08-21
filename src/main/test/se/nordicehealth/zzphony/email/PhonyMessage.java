@@ -38,7 +38,7 @@ public class PhonyMessage extends Message {
 	}
 
 	@Override
-	public Enumeration getAllHeaders() throws MessagingException {
+	public Enumeration<?> getAllHeaders() throws MessagingException {
 		// TODO Auto-generated method stub
 		return null;
 	}
@@ -98,13 +98,13 @@ public class PhonyMessage extends Message {
 	}
 
 	@Override
-	public Enumeration getMatchingHeaders(String[] arg0) throws MessagingException {
+	public Enumeration<?> getMatchingHeaders(String[] arg0) throws MessagingException {
 		// TODO Auto-generated method stub
 		return null;
 	}
 
 	@Override
-	public Enumeration getNonMatchingHeaders(String[] arg0) throws MessagingException {
+	public Enumeration<?> getNonMatchingHeaders(String[] arg0) throws MessagingException {
 		// TODO Auto-generated method stub
 		return null;
 	}

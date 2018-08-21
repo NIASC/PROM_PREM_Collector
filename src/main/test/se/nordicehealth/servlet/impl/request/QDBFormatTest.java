@@ -82,7 +82,7 @@ public class QDBFormatTest {
 		MapData data = pd.getMapData();
 		data.put(QuestionTypes.SLIDER, "a");
 		try {
-			String dbfmt = fmt.getDBFormat(data);
+			fmt.getDBFormat(data);
 			Assert.fail("Slider value is not a number, should throw exception");
 		} catch (Exception e) {
 			
@@ -109,7 +109,7 @@ public class QDBFormatTest {
 		options.add("");
 		data.put(QuestionTypes.MULTIPLE_OPTION, options.toString());
 		try {
-			String dbfmt = fmt.getDBFormat(data);
+			fmt.getDBFormat(data);
 			Assert.fail("Malformed options. Should trow excetion");
 		} catch (Exception e) { }
 	}
@@ -119,7 +119,7 @@ public class QDBFormatTest {
 		MapData data = pd.getMapData();
 		data.put(QuestionTypes.MULTIPLE_OPTION, "1");
 		try {
-			String dbfmt = fmt.getDBFormat(data);
+			fmt.getDBFormat(data);
 			Assert.fail("MultipleOption entry is not a ListData object. Should throw exception.");
 		} catch (Exception e) { }
 	}
@@ -137,7 +137,7 @@ public class QDBFormatTest {
 		MapData data = pd.getMapData();
 		data.put(QuestionTypes.SINGLE_OPTION, "a");
 		try {
-			String dbfmt = fmt.getDBFormat(data);
+			fmt.getDBFormat(data);
 			Assert.fail("Malformed expression. Should throw exception.");
 		} catch (Exception e) { }
 	}
@@ -150,7 +150,7 @@ public class QDBFormatTest {
 		options.add("3");
 		data.put(QuestionTypes.SINGLE_OPTION, options.toString());
 		try {
-			String dbfmt = fmt.getDBFormat(data);
+			fmt.getDBFormat(data);
 			Assert.fail("MultipleOption was passed as SingleOption. Should throw exception");
 		} catch (Exception e) { }
 	}

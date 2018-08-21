@@ -1,7 +1,5 @@
 package se.nordicehealth.servlet.impl;
 
-import static org.junit.Assert.*;
-
 import java.math.BigInteger;
 
 import org.junit.Assert;

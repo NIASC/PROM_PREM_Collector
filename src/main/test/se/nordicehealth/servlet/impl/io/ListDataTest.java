@@ -21,6 +21,7 @@ public class ListDataTest {
 		ld = new ListData(new JSONArray());
 	}
 
+	@SuppressWarnings("unchecked")
 	@Test
 	public void testToString() {
 		JSONArray jarr = new JSONArray();

@@ -1,7 +1,6 @@
 package se.nordicehealth.servlet.impl.mail.emails;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 
 import org.junit.Assert;
 import org.junit.Before;

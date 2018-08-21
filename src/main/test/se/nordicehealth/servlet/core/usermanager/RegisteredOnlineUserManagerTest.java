@@ -88,7 +88,7 @@ public class RegisteredOnlineUserManagerTest {
 		roum.registerConnection(ud1);
 		roum.registerConnection(ud2);
 		int users = 0;
-		for (ConnectionData _ : roum.iterable()) {
+		for (@SuppressWarnings("unused") ConnectionData _ : roum.iterable()) {
 			users++;
 		}
 		Assert.assertEquals(2, users);

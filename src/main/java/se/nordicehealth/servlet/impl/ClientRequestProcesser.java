@@ -13,7 +13,6 @@ import se.nordicehealth.common.impl.Packet.Types;
 import se.nordicehealth.servlet.core.PPCClientRequestProcesser;
 import se.nordicehealth.servlet.core.PPCLogger;
 import se.nordicehealth.servlet.core.PPCUserManager;
-import se.nordicehealth.servlet.core.usermanager.UserManager;
 import se.nordicehealth.servlet.impl.AdminPacket.Admin;
 import se.nordicehealth.servlet.impl.AdminPacket.AdminTypes;
 import se.nordicehealth.servlet.impl.io.IPacketData;

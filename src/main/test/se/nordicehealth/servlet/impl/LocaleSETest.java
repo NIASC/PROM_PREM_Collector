@@ -18,7 +18,7 @@ public class LocaleSETest {
 	
 	@Test
 	public void testCalculateControlNumber() {
-		String pID = "640823-3234";
+		// 640823-3234
 		Assert.assertEquals(4, locale.calculateControlDigit(640823323));
 		Assert.assertNotEquals(4, locale.calculateControlDigit(640823322));
 	}
@@ -39,19 +39,19 @@ public class LocaleSETest {
 	@Test
 	public void testFormatTooLongPersonalID() {
 		try {
-			String str = locale.formatPersonalID("70001011237");
+			locale.formatPersonalID("70001011237");
 			Assert.fail("Personal id was badly formatted but it was successfully parsed");
 		} catch (ParseException e) { }
 		try {
-			String str = locale.formatPersonalID("7000101-1237");
+			locale.formatPersonalID("7000101-1237");
 			Assert.fail("Personal id was badly formatted but it was successfully parsed");
 		} catch (ParseException e) { }
 		try {
-			String str = locale.formatPersonalID("1970001011237");
+			locale.formatPersonalID("1970001011237");
 			Assert.fail("Personal id was badly formatted but it was successfully parsed");
 		} catch (ParseException e) { }
 		try {
-			String str = locale.formatPersonalID("197000101-1237");
+			locale.formatPersonalID("197000101-1237");
 			Assert.fail("Personal id was badly formatted but it was successfully parsed");
 		} catch (ParseException e) { }
 	}
@@ -59,19 +59,19 @@ public class LocaleSETest {
 	@Test
 	public void testFormatTooShortPersonalID() {
 		try {
-			String str = locale.formatPersonalID("701011233");
+			locale.formatPersonalID("701011233");
 			Assert.fail("Personal id was badly formatted but it was successfully parsed");
 		} catch (ParseException e) { }
 		try {
-			String str = locale.formatPersonalID("70101-1233");
+			locale.formatPersonalID("70101-1233");
 			Assert.fail("Personal id was badly formatted but it was successfully parsed");
 		} catch (ParseException e) { }
 		try {
-			String str = locale.formatPersonalID("19701011233");
+			locale.formatPersonalID("19701011233");
 			Assert.fail("Personal id was badly formatted but it was successfully parsed");
 		} catch (ParseException e) { }
 		try {
-			String str = locale.formatPersonalID("1970101-1233");
+			locale.formatPersonalID("1970101-1233");
 			Assert.fail("Personal id was badly formatted but it was successfully parsed");
 		} catch (ParseException e) { }
 	}
@@ -79,19 +79,19 @@ public class LocaleSETest {
 	@Test
 	public void testFormatInvalidDatePersonalID() {
 		try {
-			String str = locale.formatPersonalID("7001321233");
+			locale.formatPersonalID("7001321233");
 			Assert.fail("Personal id was badly formatted but it was successfully parsed");
 		} catch (ParseException e) { }
 		try {
-			String str = locale.formatPersonalID("700132-1233");
+			locale.formatPersonalID("700132-1233");
 			Assert.fail("Personal id was badly formatted but it was successfully parsed");
 		} catch (ParseException e) { }
 		try {
-			String str = locale.formatPersonalID("197001321233");
+			locale.formatPersonalID("197001321233");
 			Assert.fail("Personal id was badly formatted but it was successfully parsed");
 		} catch (ParseException e) { }
 		try {
-			String str = locale.formatPersonalID("19700132-1233");
+			locale.formatPersonalID("19700132-1233");
 			Assert.fail("Personal id was badly formatted but it was successfully parsed");
 		} catch (ParseException e) { }
 	}
@@ -99,11 +99,11 @@ public class LocaleSETest {
 	@Test
 	public void testFormatInvalidStringsPersonalID() {
 		try {
-			String str = locale.formatPersonalID("asdasd");
+			locale.formatPersonalID("asdasd");
 			Assert.fail("Personal id was badly formatted but it was successfully parsed");
 		} catch (ParseException e) { }
 		try {
-			String str = locale.formatPersonalID("");
+			locale.formatPersonalID("");
 			Assert.fail("Personal id was badly formatted but it was successfully parsed");
 		} catch (ParseException e) { }
 	}

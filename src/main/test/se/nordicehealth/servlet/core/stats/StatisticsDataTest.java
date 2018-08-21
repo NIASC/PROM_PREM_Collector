@@ -3,7 +3,6 @@ package se.nordicehealth.servlet.core.stats;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map.Entry;
-import java.util.Set;
 
 import org.junit.Assert;
 import org.junit.Before;

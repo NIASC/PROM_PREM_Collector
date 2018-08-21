@@ -1,7 +1,5 @@
 package se.nordicehealth.servlet.core.usermanager;
 
-import static org.junit.Assert.*;
-
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
