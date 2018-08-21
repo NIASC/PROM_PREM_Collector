@@ -6,8 +6,8 @@ import static se.nordicehealth.common.impl.Packet.TYPE;
 import se.nordicehealth.common.impl.Packet.Data;
 import se.nordicehealth.common.impl.Packet.Types;
 import se.nordicehealth.servlet.core.PPCDatabase;
+import se.nordicehealth.servlet.core.PPCEncryption;
 import se.nordicehealth.servlet.core.PPCLogger;
-import se.nordicehealth.servlet.impl.Crypto;
 import se.nordicehealth.servlet.impl.io.IPacketData;
 import se.nordicehealth.servlet.impl.io.MapData;
 import se.nordicehealth.servlet.impl.mail.MailMan;
@@ -15,9 +15,9 @@ import se.nordicehealth.servlet.impl.mail.emails.RegistrationRequest;
 import se.nordicehealth.servlet.impl.request.RequestProcesser;
 
 public class RequestRegistration extends RequestProcesser {
-	private Crypto crypto;
+	private PPCEncryption crypto;
 	
-	public RequestRegistration(PPCDatabase db, IPacketData packetData, PPCLogger logger, MailMan emailer, RegistrationRequest req, Crypto crypto) {
+	public RequestRegistration(PPCDatabase db, IPacketData packetData, PPCLogger logger, MailMan emailer, RegistrationRequest req, PPCEncryption crypto) {
 		super(packetData, logger);
 		this.emailer = emailer;
 		this.req = req;
