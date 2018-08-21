@@ -11,7 +11,7 @@ import se.nordicehealth.servlet.impl.request.AllRequestProcessingTests;
 @RunWith(Suite.class)
 @SuiteClasses({ ClientRequestProcesserTest.class, CryptoTest.class, LocaleSETest.class,
 	MySQLDatabaseTest.class, PasswordHandleTest.class, QuestionDataTest.class,
-	ServletTest.class, SHAEncryptionTest.class, UserTest.class,
-	AllMailTests.class, AllIOTests.class, AllRequestProcessingTests.class })
+	SHAEncryptionTest.class, UserTest.class, AllMailTests.class, AllIOTests.class,
+	AllRequestProcessingTests.class })
 public class AllImplementationTests {
 }

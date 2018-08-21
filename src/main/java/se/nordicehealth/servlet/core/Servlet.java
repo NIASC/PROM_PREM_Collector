@@ -1,4 +1,4 @@
-package se.nordicehealth.servlet.impl;
+package se.nordicehealth.servlet.core;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -8,9 +8,6 @@ import java.util.logging.Level;
 import javax.servlet.ServletException;
 import javax.servlet.ServletRequest;
 import javax.servlet.ServletResponse;
-
-import se.nordicehealth.servlet.core.PPCClientRequestProcesser;
-import se.nordicehealth.servlet.core.PPCLogger;
 
 public class Servlet {
 
@@ -66,8 +63,7 @@ public class Servlet {
 		try {
 			br = req.getReader();
 			StringBuilder sb = new StringBuilder();
-			for (String str; (str = br.readLine()) != null; sb.append(str))
-				;
+			for (String str; (str = br.readLine()) != null; sb.append(str));
 			return sb.toString();
 		} catch (IOException e) {
 			logger.log(e.getMessage() != null ? e.getMessage() : "Error reading ServletRequest", e);

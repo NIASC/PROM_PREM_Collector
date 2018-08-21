@@ -8,6 +8,9 @@ import se.nordicehealth.servlet.core.stats.AllStatisticsTests;
 import se.nordicehealth.servlet.core.usermanager.AllUsermanagerTests;
 
 @RunWith(Suite.class)
-@SuiteClasses({ AllStatisticsTests.class, AllUsermanagerTests.class })
+@SuiteClasses({
+	//ServletLoggerTest.class,
+	ServletTest.class,
+	AllStatisticsTests.class, AllUsermanagerTests.class })
 public class AllCoreTests {
 }

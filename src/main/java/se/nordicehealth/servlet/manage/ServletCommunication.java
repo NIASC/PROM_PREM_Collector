@@ -11,6 +11,7 @@ import java.io.OutputStreamWriter;
 import java.io.UnsupportedEncodingException;
 import java.net.HttpURLConnection;
 import java.net.ProtocolException;
+import java.net.URL;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.TreeMap;
@@ -20,7 +21,6 @@ import org.json.simple.parser.JSONParser;
 
 import se.nordicehealth.common.impl.Constants;
 import se.nordicehealth.servlet.core.PPCStringScramble;
-import se.nordicehealth.servlet.core.ServletConst;
 import se.nordicehealth.servlet.impl.User;
 import se.nordicehealth.servlet.impl.AdminPacket.Admin;
 import se.nordicehealth.servlet.impl.AdminPacket.AdminData;
@@ -28,7 +28,7 @@ import se.nordicehealth.servlet.impl.AdminPacket.AdminTypes;
 
 public class ServletCommunication {
 	
-	public ServletCommunication(PPCStringScramble crypto) {
+	public ServletCommunication(PPCStringScramble crypto, URL url) {
 		this.crypto = crypto;
 	}
 
@@ -152,6 +152,7 @@ public class ServletCommunication {
 		return Constants.equal(AdminData.AdminRespondRegistration.Response.SUCCESS, insert);
 	}
 
+	private URL local_url;
 	private PPCStringScramble crypto;
 	private static JSONParser parser;
 	
@@ -191,7 +192,7 @@ public class ServletCommunication {
 	}
 
 	private HttpURLConnection setupHttpConnection() throws IOException, ProtocolException {
-		HttpURLConnection c = (HttpURLConnection) ServletConst.LOCAL_URL.openConnection();
+		HttpURLConnection c = (HttpURLConnection) local_url.openConnection();
 		c.setRequestMethod("POST");
 		c.setRequestProperty("Content-Type", "application/json");
 		c.setUseCaches(false);

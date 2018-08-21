@@ -63,7 +63,7 @@ public class SetPasswordTest {
 		MapData out = dbutil.pd.getMapData();
 		out.put(Packet.TYPE, Packet.Types.SET_PASSWORD);
         out.put(Packet.DATA, dataOut.toString());
-		dbutil.rs.setNumberOfAvailableNextCalls(requtil.setNextDatabaseUserCall("phony", "password"));
+		requtil.setNextDatabaseUserCall();
 		MapData in = processer.processRequest(out);
         MapData inData = dbutil.pd.getMapData(in.get(Packet.DATA));
 

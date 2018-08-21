@@ -1,12 +1,16 @@
 package se.nordicehealth.servlet.manage;
 
+import java.io.IOException;
+import java.net.URL;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.security.SecureRandom;
 import java.util.Map;
+import java.util.Properties;
 import java.util.Map.Entry;
 import java.util.regex.Pattern;
 
+import se.nordicehealth.res.Resources;
 import se.nordicehealth.servlet.core.PPCStringScramble;
 import se.nordicehealth.servlet.impl.SHAEncryption;
 
@@ -24,8 +28,18 @@ public class Manage
 			System.err.printf("FATAL: Hashing algorithms %s and/or %s is not available.\n", "SHA1PRNG", "SHA-256");
 			System.exit(1);
 		}
+		URL url = null;
+		try {
+			Properties props = new Properties();
+			props.load(Resources.getStream(Resources.SETTINGS_CONFIG));
+			url = new URL(props.getProperty("localurl"));
+		} catch (IOException e) {
+			System.err.printf("FATAL: local url is invalid. Communication with the servlet will not work.\n");
+			System.exit(1);
+		}
+		
 		PPCStringScramble crypto = new SHAEncryption(sr, md);
-		ServletCommunication scom = new ServletCommunication(crypto);
+		ServletCommunication scom = new ServletCommunication(crypto, url);
 		Scanner in = new Scanner(System.in);
 		new Manage(scom, crypto, in).runManager();
 	}

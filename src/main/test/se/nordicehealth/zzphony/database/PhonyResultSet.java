@@ -57,6 +57,11 @@ public class PhonyResultSet implements ResultSet {
 		return avail;
 	}
 	private int availableNextCalls = 0;
+	public void addNumberOfAvailableNextCalls(int num) {
+		if (num > 0) {
+			availableNextCalls += num;
+		}
+	}
 	public void setNumberOfAvailableNextCalls(int num) {
 		availableNextCalls = num > 0 ? num : 0;
 	}

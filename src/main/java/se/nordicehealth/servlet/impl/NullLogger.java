@@ -1,6 +1,8 @@
-package se.nordicehealth.servlet.core;
+package se.nordicehealth.servlet.impl;
 
 import java.util.logging.Level;
+
+import se.nordicehealth.servlet.core.PPCLogger;
 
 public class NullLogger implements PPCLogger {
 

@@ -1,4 +1,4 @@
-package se.nordicehealth.servlet.impl;
+package se.nordicehealth.servlet.core;
 
 import java.io.IOException;
 
@@ -10,7 +10,7 @@ import org.junit.Test;
 
 import se.nordicehealth.servlet.LoggerForTesting;
 import se.nordicehealth.servlet.core.PPCLogger;
-import se.nordicehealth.servlet.impl.Servlet;
+import se.nordicehealth.servlet.core.Servlet;
 import se.nordicehealth.zzphony.servlet.PhonyBufferedReader;
 import se.nordicehealth.zzphony.servlet.PhonyClientRequestProcesser;
 import se.nordicehealth.zzphony.servlet.PhonyOutputStream;

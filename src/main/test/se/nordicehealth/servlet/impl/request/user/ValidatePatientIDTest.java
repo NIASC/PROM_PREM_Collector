@@ -51,7 +51,7 @@ public class ValidatePatientIDTest {
         out.put(Packet.TYPE, Packet.Types.VALIDATE_PID);
 
         out.put(Packet.DATA, dataOut.toString());
-		dbutil.rs.setNumberOfAvailableNextCalls(requtil.setNextDatabaseUserCall("phony", "password"));
+		requtil.setNextDatabaseUserCall();
 		MapData in = processer.processRequest(out);
         MapData inData = dbutil.pd.getMapData(in.get(Packet.DATA));
 

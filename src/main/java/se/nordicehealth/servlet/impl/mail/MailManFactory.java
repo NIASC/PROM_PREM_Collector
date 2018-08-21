@@ -13,13 +13,13 @@ import se.nordicehealth.servlet.core.PPCLogger;
 
 public class MailManFactory {
 	
-	public static MailMan newInstance(String accountsFile, String configFile, PPCLogger logger) throws IOException {
+	public static MailMan newAdminInstance(String accountsFile, String configFile, PPCLogger logger) throws IOException {
 		EmailAccounts ea = loadEmailAccounts(accountsFile);
 		IMailConfig emcfg = loadEmailConfig(configFile);
 		return newInstance(new ArrayList<String>(0), new Credentials(ea.serverEmail, ea.serverPassword), emcfg, logger);
 	}
 	
-	public static MailMan newAdminInstance(String accountsFile, String configFile, PPCLogger logger) throws IOException {
+	public static MailMan newUserInstance(String accountsFile, String configFile, PPCLogger logger) throws IOException {
 		EmailAccounts ea = loadEmailAccounts(accountsFile);
 		IMailConfig emcfg = loadEmailConfig(configFile);
 		return newInstance(Arrays.asList(ea.adminEmail), new Credentials(ea.serverEmail, ea.serverPassword), emcfg, logger);

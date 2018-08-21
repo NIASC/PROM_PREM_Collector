@@ -3,14 +3,17 @@ package se.nordicehealth.res;
 import java.io.InputStream;
 
 public abstract class Resources {
-	public static String ROOT_FOLDER = "se/nordicehealth/res";
-	public static String EMAIL_ACCOUNTS = ROOT_FOLDER + "/email_accounts.ini";
-	public static String EMAIL_CONFIG = ROOT_FOLDER + "/email_settings.txt";
-	public static String SETTINGS_PATH = ROOT_FOLDER + "/settings.ini";
-	public static String KEY_PATH = ROOT_FOLDER + "/keys.ini";
-	public static String REGREQ_EMAIL_BODY = ROOT_FOLDER + "/ppc_regreq.html";
-	public static String REGRESP_EMAIL_BODY = ROOT_FOLDER + "/ppc_regresp.html";
-	public static String MAIN_PAGE = ROOT_FOLDER + "/main.html";
+	private static final String ROOT_FOLDER = "se/nordicehealth/res";
+	private static final String ResourcePath(String file) { return ROOT_FOLDER + file; }
+	
+	public static final String
+	REGRESP_EMAIL_BODY_TEMPLATE = ResourcePath("/ppc_regresp.html"),
+	REGREQ_EMAIL_BODY_TEMPLATE = ResourcePath("/ppc_regreq.html"),
+	EMAIL_ACCOUNTS_CONFIG = ResourcePath("/email_accounts.ini"),
+	SETTINGS_CONFIG = ResourcePath("/settings.ini"),
+	EMAIL_CONFIG = ResourcePath("/email_settings.txt"),
+	KEY_CONFIG = ResourcePath("/keys.ini"),
+	MAIN_PAGE = ResourcePath("/main.html");
 
 	public static InputStream getStream(String filePath) {
 		return Resources.class != null ? Resources.class.getClassLoader().getResourceAsStream(filePath) : null;
