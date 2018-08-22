@@ -3,7 +3,7 @@ package se.nordicehealth.servlet.impl.request;
 import java.util.ArrayList;
 import java.util.List;
 
-import se.nordicehealth.common.impl.Constants.QuestionTypes;
+import se.nordicehealth.common.impl.Constants;
 import se.nordicehealth.servlet.core.PPCDatabase;
 import se.nordicehealth.servlet.core.stats.containers.Area;
 import se.nordicehealth.servlet.core.stats.containers.MultipleOption;
@@ -23,9 +23,9 @@ public class QDBFormat {
 	
 	public String getDBFormat(MapData fc) throws Exception {
 		String val = null;
-		if ((val = fc.get(QuestionTypes.SINGLE_OPTION)) != null) {
+		if ((val = fc.get(Constants.SINGLE_OPTION)) != null) {
 			return String.format("option%d", Integer.parseInt(val));
-		} else if ((val = fc.get(QuestionTypes.MULTIPLE_OPTION)) != null) {
+		} else if ((val = fc.get(Constants.MULTIPLE_OPTION)) != null) {
 			List<String> lstr = new ArrayList<String>();
 			if (!packetData.isListData(val)) {
 				throw new Exception("MultipleOption data is not a ListData object.");
@@ -34,9 +34,9 @@ public class QDBFormat {
 				lstr.add(String.format("option%d", Integer.parseInt(str)));
 			}
 			return db.convertToSQLList(lstr);
-		} else if ((val = fc.get(QuestionTypes.SLIDER)) != null) {
+		} else if ((val = fc.get(Constants.SLIDER)) != null) {
 			return String.format("slider%d", Integer.parseInt(val));
-		} else if ((val = fc.get(QuestionTypes.AREA)) != null) {
+		} else if ((val = fc.get(Constants.AREA)) != null) {
 			return val;
 		} else {
 			return "";

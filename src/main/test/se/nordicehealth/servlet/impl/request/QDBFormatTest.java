@@ -5,7 +5,7 @@ import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 
-import se.nordicehealth.common.impl.Constants.QuestionTypes;
+import se.nordicehealth.common.impl.Constants;
 import se.nordicehealth.servlet.LoggerForTesting;
 import se.nordicehealth.servlet.core.stats.containers.Area;
 import se.nordicehealth.servlet.core.stats.containers.MultipleOption;
@@ -56,7 +56,7 @@ public class QDBFormatTest {
 	@Test
 	public void testGetDBFormatAreaNormal() throws Exception {
 		MapData data = pd.getMapData();
-		data.put(QuestionTypes.AREA, "message");
+		data.put(Constants.AREA, "message");
 		String dbfmt = fmt.getDBFormat(data);
 		Assert.assertEquals("message", dbfmt);
 	}
@@ -64,7 +64,7 @@ public class QDBFormatTest {
 	@Test
 	public void testGetDBFormatAreaWithQuotes() throws Exception {
 		MapData data = pd.getMapData();
-		data.put(QuestionTypes.AREA, "'message'");
+		data.put(Constants.AREA, "'message'");
 		String dbfmt = fmt.getDBFormat(data);
 		Assert.assertEquals("'message'", dbfmt);
 	}
@@ -72,7 +72,7 @@ public class QDBFormatTest {
 	@Test
 	public void testGetDBFormatSlider() throws Exception {
 		MapData data = pd.getMapData();
-		data.put(QuestionTypes.SLIDER, "5");
+		data.put(Constants.SLIDER, "5");
 		String dbfmt = fmt.getDBFormat(data);
 		Assert.assertEquals("slider5", dbfmt);
 	}
@@ -80,7 +80,7 @@ public class QDBFormatTest {
 	@Test
 	public void testGetDBFormatSliderWithText() {
 		MapData data = pd.getMapData();
-		data.put(QuestionTypes.SLIDER, "a");
+		data.put(Constants.SLIDER, "a");
 		try {
 			fmt.getDBFormat(data);
 			Assert.fail("Slider value is not a number, should throw exception");
@@ -95,7 +95,7 @@ public class QDBFormatTest {
 		ListData options = pd.getListData();
 		options.add("1");
 		options.add("3");
-		data.put(QuestionTypes.MULTIPLE_OPTION, options.toString());
+		data.put(Constants.MULTIPLE_OPTION, options.toString());
 		String dbfmt = fmt.getDBFormat(data);
 		Assert.assertEquals("[\"option1\",\"option3\"]", dbfmt);
 	}
@@ -107,7 +107,7 @@ public class QDBFormatTest {
 		options.add("1");
 		options.add("a");
 		options.add("");
-		data.put(QuestionTypes.MULTIPLE_OPTION, options.toString());
+		data.put(Constants.MULTIPLE_OPTION, options.toString());
 		try {
 			fmt.getDBFormat(data);
 			Assert.fail("Malformed options. Should trow excetion");
@@ -117,7 +117,7 @@ public class QDBFormatTest {
 	@Test
 	public void testGetDBFormatMultipleOptionWithSingleOptionEntry() throws Exception {
 		MapData data = pd.getMapData();
-		data.put(QuestionTypes.MULTIPLE_OPTION, "1");
+		data.put(Constants.MULTIPLE_OPTION, "1");
 		try {
 			fmt.getDBFormat(data);
 			Assert.fail("MultipleOption entry is not a ListData object. Should throw exception.");
@@ -127,7 +127,7 @@ public class QDBFormatTest {
 	@Test
 	public void testGetDBFormatSingleOption() throws Exception {
 		MapData data = pd.getMapData();
-		data.put(QuestionTypes.SINGLE_OPTION, "1");
+		data.put(Constants.SINGLE_OPTION, "1");
 		String dbfmt = fmt.getDBFormat(data);
 		Assert.assertEquals("option1", dbfmt);
 	}
@@ -135,7 +135,7 @@ public class QDBFormatTest {
 	@Test
 	public void testGetDBFormatSingleOptionMalformedExpression() throws Exception {
 		MapData data = pd.getMapData();
-		data.put(QuestionTypes.SINGLE_OPTION, "a");
+		data.put(Constants.SINGLE_OPTION, "a");
 		try {
 			fmt.getDBFormat(data);
 			Assert.fail("Malformed expression. Should throw exception.");
@@ -148,7 +148,7 @@ public class QDBFormatTest {
 		ListData options = pd.getListData();
 		options.add("1");
 		options.add("3");
-		data.put(QuestionTypes.SINGLE_OPTION, options.toString());
+		data.put(Constants.SINGLE_OPTION, options.toString());
 		try {
 			fmt.getDBFormat(data);
 			Assert.fail("MultipleOption was passed as SingleOption. Should throw exception");

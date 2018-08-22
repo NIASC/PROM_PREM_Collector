@@ -6,8 +6,8 @@ import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 
+import se.nordicehealth.common.impl.Constants;
 import se.nordicehealth.common.impl.Packet;
-import se.nordicehealth.common.impl.Constants.QuestionTypes;
 import se.nordicehealth.servlet.impl.io.ListData;
 import se.nordicehealth.servlet.impl.io.MapData;
 import se.nordicehealth.servlet.impl.request.user.AddQuestionnaireAnswers;
@@ -31,7 +31,7 @@ public class AddQuestionnaireAnswerTest {
 		ListData questions = new ListData();
         for (int i : new int[] {2, 0, 1}) {
         	MapData fmt = new MapData();
-        	fmt.put(QuestionTypes.SINGLE_OPTION, String.format(Locale.US, "%d", i));
+        	fmt.put(Constants.SINGLE_OPTION, String.format(Locale.US, "%d", i));
             questions.add(fmt.toString());
         }
         return questions;
