@@ -17,6 +17,7 @@ import se.nordicehealth.servlet.core.PPCLogger;
 import se.nordicehealth.servlet.impl.MySQLDatabase;
 import se.nordicehealth.servlet.impl.QuestionData;
 import se.nordicehealth.servlet.impl.User;
+import se.nordicehealth.servlet.impl.io.ListData;
 import se.nordicehealth.zzphony.database.PhonyConnection;
 import se.nordicehealth.zzphony.database.PhonyDataSource;
 import se.nordicehealth.zzphony.database.PhonyResultSet;
@@ -41,21 +42,22 @@ public class MySQLDatabaseTest {
 
 	@Test
 	public void testEscapeReplaceAndConvertToSQLEntry() {
-		Assert.assertEquals("'test'", db.escapeReplaceAndConvertToSQLEntry("test"));
-		Assert.assertEquals("'\"test\"'", db.escapeReplaceAndConvertToSQLEntry("'test'"));
-		Assert.assertEquals("'\"test\"'", db.escapeReplaceAndConvertToSQLEntry("\"test\""));
-		Assert.assertEquals("'drop database phony_db;'", db.escapeReplaceAndConvertToSQLEntry("drop database phony_db;"));
-		Assert.assertEquals("'\"; drop database phony_db; \"'", db.escapeReplaceAndConvertToSQLEntry("'; drop database phony_db; '"));
-		Assert.assertEquals(null, db.escapeReplaceAndConvertToSQLEntry((String)null));
+		Assert.assertEquals("'test'", db.escapeAndConvertToSQLEntry("test"));
+		Assert.assertEquals("'''test'''", db.escapeAndConvertToSQLEntry("'test'"));
+		Assert.assertEquals("'\"test\"'", db.escapeAndConvertToSQLEntry("\"test\""));
+		Assert.assertEquals("'i don''t know'", db.escapeAndConvertToSQLEntry("i don't know"));
+		Assert.assertEquals("'drop database phony_db;'", db.escapeAndConvertToSQLEntry("drop database phony_db;"));
+		Assert.assertEquals("'''; drop database phony_db; '''", db.escapeAndConvertToSQLEntry("'; drop database phony_db; '"));
+		Assert.assertEquals(null, db.escapeAndConvertToSQLEntry((String)null));
 	}
 
 	@Test
-	public void testEscapeReplaceAndConvertToSQLListOfEntries() {
-		Assert.assertEquals("[\"test0\",\"test1\"]", db.escapeReplaceAndConvertToSQLListOfEntries(Arrays.asList("test0", "test1")));
-		Assert.assertEquals("[\"\"test0\"\",\"test1\"]", db.escapeReplaceAndConvertToSQLListOfEntries(Arrays.asList("'test0'", "test1")));
-		Assert.assertEquals("[\"test0\",\"\"; drop database phony_db; \"\",\"test2\"]", db.escapeReplaceAndConvertToSQLListOfEntries(Arrays.asList("test0", "'; drop database phony_db; '", "test2")));
-		Assert.assertEquals("[]", db.escapeReplaceAndConvertToSQLListOfEntries(new ArrayList<String>()));
-		Assert.assertEquals(null, db.escapeReplaceAndConvertToSQLListOfEntries((List<String>)null));
+	public void testConvertToSQLListOfEntries() {
+		Assert.assertEquals("[\"test0\",\"test1\"]", db.convertToSQLList(Arrays.asList("test0", "test1")));
+		Assert.assertEquals("[\"'test0'\",\"test1\"]", db.convertToSQLList(Arrays.asList("'test0'", "test1")));
+		Assert.assertEquals("[\"test0\",\"'; drop database phony_db; '\",\"test2\"]", db.convertToSQLList(Arrays.asList("test0", "'; drop database phony_db; '", "test2")));
+		Assert.assertEquals("[]", db.convertToSQLList(new ArrayList<String>()));
+		Assert.assertEquals(null, db.convertToSQLList((List<String>)null));
 	}
 
 	@Test
@@ -67,6 +69,8 @@ public class MySQLDatabaseTest {
 		Assert.assertFalse(db.isSQLList("{test0,test1}"));
 		Assert.assertFalse(db.isSQLList("{test0}"));
 		Assert.assertFalse(db.isSQLList("test0"));
+		Assert.assertFalse(db.isSQLList("a"));
+		Assert.assertFalse(db.isSQLList(""));
 	}
 
 	@Test
@@ -86,7 +90,7 @@ public class MySQLDatabaseTest {
 		Assert.assertEquals(String.format("INSERT INTO `users` (`clinic_id`, `name`, `password`, `email`, `registered`, `salt`, `update_password`) VALUES ('0', 'dummy', 's3cre3t', 'dummy@phony.com', '%s', 's4lt', '1')", new SimpleDateFormat("yyyy-MM-dd").format(new Date())),
 				s.getLastSQLUpdate());
 		Assert.assertTrue(db.addUser(0, "'; drop database phony_db; '", "s3cre3t", "dummy@phony.com", "s4lt"));
-		Assert.assertEquals(String.format("INSERT INTO `users` (`clinic_id`, `name`, `password`, `email`, `registered`, `salt`, `update_password`) VALUES ('0', '\"; drop database phony_db; \"', 's3cre3t', 'dummy@phony.com', '%s', 's4lt', '1')", new SimpleDateFormat("yyyy-MM-dd").format(new Date())),
+		Assert.assertEquals(String.format("INSERT INTO `users` (`clinic_id`, `name`, `password`, `email`, `registered`, `salt`, `update_password`) VALUES ('0', '''; drop database phony_db; ''', 's3cre3t', 'dummy@phony.com', '%s', 's4lt', '1')", new SimpleDateFormat("yyyy-MM-dd").format(new Date())),
 				s.getLastSQLUpdate());
 	}
 
@@ -96,14 +100,17 @@ public class MySQLDatabaseTest {
 		Assert.assertEquals("INSERT INTO `patients` (`clinic_id`, `identifier`, `id`) VALUES ('0', 'patientIdentifier', NULL)",
 				s.getLastSQLUpdate());
 		Assert.assertTrue(db.addPatient(0, "'; drop database phony_db; '"));
-		Assert.assertEquals("INSERT INTO `patients` (`clinic_id`, `identifier`, `id`) VALUES ('0', '\"; drop database phony_db; \"', NULL)",
+		Assert.assertEquals("INSERT INTO `patients` (`clinic_id`, `identifier`, `id`) VALUES ('0', '''; drop database phony_db; ''', NULL)",
 				s.getLastSQLUpdate());
 	}
 
 	@Test
 	public void testAddQuestionnaireAnswers() {
-		Assert.assertTrue(db.addQuestionnaireAnswers(0, "patientIdentifier", Arrays.asList("2", "option0", "'; drop database phony_db; '", "['option0','option1']")));
-		Assert.assertEquals(String.format("INSERT INTO `questionnaire_answers` (`clinic_id`, `patient_identifier`, `date`, `question0`, `question1`, `question2`, `question3`) VALUES ('0', 'patientIdentifier', '%s', '2', 'option0', '\"; drop database phony_db; \"', '[\"option0\",\"option1\"]')", new SimpleDateFormat("yyyy-MM-dd").format(new Date())),
+		ListData listEntry = new ListData();
+		listEntry.add("option0");
+		listEntry.add("option1");
+		Assert.assertTrue(db.addQuestionnaireAnswers(0, "patientIdentifier", Arrays.asList("2", "option0", "'; drop database phony_db; '", listEntry.toString())));
+		Assert.assertEquals(String.format("INSERT INTO `questionnaire_answers` (`clinic_id`, `patient_identifier`, `date`, `question0`, `question1`, `question2`, `question3`) VALUES ('0', 'patientIdentifier', '%s', '2', 'option0', '''; drop database phony_db; ''', '[\"option0\",\"option1\"]')", new SimpleDateFormat("yyyy-MM-dd").format(new Date())),
 				s.getLastSQLUpdate());
 	}
 
@@ -112,7 +119,7 @@ public class MySQLDatabaseTest {
 		Assert.assertTrue(db.addClinic("dummy"));
 		Assert.assertEquals("INSERT INTO `clinics` (`id`, `name`) VALUES (NULL, 'dummy')", s.getLastSQLUpdate());
 		Assert.assertTrue(db.addClinic("'; drop database phony_db; '"));
-		Assert.assertEquals("INSERT INTO `clinics` (`id`, `name`) VALUES (NULL, '\"; drop database phony_db; \"')", s.getLastSQLUpdate());
+		Assert.assertEquals("INSERT INTO `clinics` (`id`, `name`) VALUES (NULL, '''; drop database phony_db; ''')", s.getLastSQLUpdate());
 	}
 
 	@Test
@@ -183,7 +190,7 @@ public class MySQLDatabaseTest {
 		rs.setNextStrings(strings);
 		rs.setNumberOfAvailableNextCalls(1);
 		Assert.assertTrue(db.setPassword("phony", "s3cr3t", "'; drop database phony_db; '", "s4lt"));
-		Assert.assertEquals("UPDATE `users` SET `password`='\"; drop database phony_db; \"',`salt`='s4lt',`update_password`='0' WHERE `users`.`name`='phony'",
+		Assert.assertEquals("UPDATE `users` SET `password`='''; drop database phony_db; ''',`salt`='s4lt',`update_password`='0' WHERE `users`.`name`='phony'",
 				s.getLastSQLUpdate());
 	}
 

@@ -30,7 +30,6 @@ public class MailMan {
 			send(createMessage(Util.joinLists(defaultRecipients, email.getRecipients()), email.getSubject(), email.getBody(), email.getFormat()));
 			return true;
 		} catch (MessagingException me) {
-			me.printStackTrace();
 			logger.log("Could not send email", me);
 			return false;
 		}

@@ -18,12 +18,21 @@ query_user() {
 
 query_user_secret() {
     printf "$1: ";
-    read -s $2;			# -s: secret/no echo
+    stty_orig=`stty -g`		# store tty config
+    stty -echo			# disable echo
+    read $2;
+    stty $stty_orig		# restore tty config
     printf "\n";		# newline after password was entered
 }
 
 su_exec() {
-    su -c "sh -c \"$1\"";
+    if [ $(command -v sudo) ]; then
+	printf "Executing using sudo... \n"
+	sudo su -c "sh -c \"$1\"";
+    else
+	printf "Executing as superuser...\n"
+	su -c "sh -c \"$1\"";
+    fi
 }
 
 user_exec() {
@@ -35,12 +44,7 @@ ppc_create_database() {
     db_template="$database_dir/prom_prem_db.sql";
     printf "creating database $db_name and importing tables from $db_template.\n";
 
-    user_exec "mysql -u $1 -p$2 -e '\
-drop database if exists $db_name;\
-create database $db_name;\
-use $db_name;\
-source $db_template;\
-'";
+    su_exec "mysql -u $1 -p$2 -e 'drop database if exists $db_name;create database $db_name;use $db_name;source $db_template;'";
 }
 
 ppc_database_setup() {
@@ -100,10 +104,9 @@ ppc_rsa_key_setup() {
 	user_exec "openssl genpkey -algorithm RSA -out $private_key_file -pkeyopt rsa_keygen_bits:2048";
 	printf "Extracting keys...\n";
 	keys=`grep -v -- ----- $private_key_file | tr -d '\n' | base64 -d | openssl asn1parse -inform DER -i -strparse 22 | sed -e 's/[ +]//g' | sed -E 's/^(.+?)INTEGER://'`;
-	vararr=($keys[$@]);
-	ppc_modulus=${vararr[2]};
-	ppc_public_exponent=${vararr[3]};
-	ppc_private_exponent=${vararr[4]};
+	ppc_modulus=`echo ${keys} | cut -d' ' -f3`;
+	ppc_public_exponent=`echo ${keys} | cut -d' ' -f4`;
+	ppc_private_exponent=`echo ${keys} | cut -d' ' -f5`;
 	printf "Storing keys...\n";
 	user_exec 'cat '$template_dir'/keys.ini.template | sed -e "s,PPC_MODULUS,"'$ppc_modulus'",g" | sed -e "s,PPC_PRIVATE_EXPONENT,"'$ppc_private_exponent'",g" | sed -e "s,PPC_PUBLIC_EXPONENT,"'$ppc_public_exponent'",g" > '$key_settings_file'; chmod 400 private_key.pem '$key_settings_file'';
 	printf "Operation completed.\n";
@@ -119,7 +122,8 @@ printf "This script will configure the servlet according to the information you 
 
 printf "The setup is divided into 4 sections:\n\t0. Database setup,\n\t1. Build properties,\n\t2. Email setup,\n\t3. Encryption setup.\n"
 printf "\nBefore proceding with the setup, make sure that MariaDB and Tomcat\nis running and that you have the superuser password.\n"
-printf "Also make sure that MariaDB and Tomcat have been\nconfigured and that you have the root user and password for both.\n\n"
+printf "Also make sure that MariaDB and Tomcat have been\nconfigured and that you have the root user and password for both.\n"
+printf "In addition, ensure that OpenSSL is installed. This is required for basic encryption.\n\n"
 
 current_var=0
 while [ $database_configured -eq 0 -o $build_props_configured -eq 0 -o $email_configured -eq 0 -o $encryption_configured -eq 0 ]; do
@@ -169,7 +173,7 @@ done
 if [ $database_configured -ne 0 -a $build_props_configured -ne 0 -a $email_configured -ne 0 -a $encryption_configured -ne 0 ]; then
     printf "\nThe setup is now complete and the servlet is ready for install.\n";
     query_user "Press return to compile ant install the servlet" user_choice;
-    if [ ! -z $user_choice ]; then
+    if [ -z $user_choice ]; then
 	user_exec "ant clean >/dev/null 2>&1";
 	user_exec "ant compile";
 	user_exec "ant remove >/dev/null 2>&1";

@@ -42,7 +42,6 @@ import se.nordicehealth.servlet.impl.Crypto;
 import se.nordicehealth.servlet.impl.DiskFileHandlerUpdate;
 import se.nordicehealth.servlet.impl.LocaleSE;
 import se.nordicehealth.servlet.impl.MySQLDatabase;
-import se.nordicehealth.servlet.impl.NullLogger;
 import se.nordicehealth.servlet.impl.PasswordHandle;
 import se.nordicehealth.servlet.impl.SHAEncryption;
 import se.nordicehealth.servlet.impl.ServletLogger;
@@ -77,30 +76,30 @@ public class ServletMain extends HttpServlet {
 	@Override
 	public void init() throws ServletException
 	{
-		PPCLogger logger = loadLogger();
-		PPCUserManager um = loadUserManager();
-		PPCStringScramble encryption = loadStringScrambler(logger);
-		PPCDatabase db = loadDatabase(logger, encryption);
-		IPacketData packetData = loadPacketData(logger);
-		Map<Types, RequestProcesser> userMethods = loadUserResponseHandling(logger, um, encryption, db, packetData);
-		Map<AdminTypes, RequestProcesser> adminMethods = loadAdminResponseHandling(logger, db, packetData);
-		PPCClientRequestProcesser requestProcesser = new ClientRequestProcesser(logger, packetData, um, userMethods, adminMethods);
-		servlet = new Servlet(loadMainPage(), requestProcesser, logger);
+		try {
+			PPCLogger logger = loadLogger();
+			PPCUserManager um = loadUserManager();
+			PPCStringScramble encryption = loadStringScrambler(logger);
+			PPCDatabase db = loadDatabase(logger, encryption);
+			IPacketData packetData = loadPacketData(logger);
+			Map<Types, RequestProcesser> userMethods = loadUserResponseHandling(logger, um, encryption, db, packetData);
+			Map<AdminTypes, RequestProcesser> adminMethods = loadAdminResponseHandling(logger, db, packetData);
+			PPCClientRequestProcesser requestProcesser = new ClientRequestProcesser(logger, packetData, um, userMethods, adminMethods);
+			servlet = new Servlet(loadMainPage(), requestProcesser, logger);
+		} catch (Exception e) {
+			throw new ServletException(e.getMessage());
+		}
 	}
 
-	private Map<Types, RequestProcesser> loadUserResponseHandling(PPCLogger logger, PPCUserManager um, PPCStringScramble encryption, PPCDatabase db, IPacketData packetData)
+	private Map<Types, RequestProcesser> loadUserResponseHandling(PPCLogger logger, PPCUserManager um, PPCStringScramble encryption, PPCDatabase db, IPacketData packetData) throws IOException
 	{
 		QDBFormat qdbf = loadDatabaseJavaFormatConverter(db, packetData);
 		se.nordicehealth.servlet.core.PPCLocale locale = loadLocaleFormats();
 		PPCEncryption crypto = loadEnctryption();
 		PasswordHandle passHandle = new PasswordHandle();
-		MailMan umm = null;
-		try {
-			umm = MailManFactory.newUserInstance(Resources.EMAIL_ACCOUNTS_CONFIG, Resources.EMAIL_CONFIG, logger);
-		} catch (IOException e) {
-			logger.fatalLogAndAction("Email configuration could not be loaded.");
-		}
+		MailMan umm = MailManFactory.newUserInstance(Resources.EMAIL_ACCOUNTS_CONFIG, Resources.EMAIL_CONFIG, logger);
 		RegistrationRequest req = loadRequestTemplate(Resources.REGREQ_EMAIL_BODY_TEMPLATE);
+		
 		Map<Types, RequestProcesser> userMethods = new HashMap<Types, RequestProcesser>();
 		userMethods.put(Types.PING, new Ping(packetData, logger, um, crypto));
 		userMethods.put(Types.VALIDATE_PID, new ValidatePatientID(um, db, packetData, logger, crypto, locale));
@@ -115,15 +114,11 @@ public class ServletMain extends HttpServlet {
 		return userMethods;
 	}
 
-	private Map<AdminTypes, RequestProcesser> loadAdminResponseHandling(PPCLogger logger, PPCDatabase db, IPacketData packetData)
+	private Map<AdminTypes, RequestProcesser> loadAdminResponseHandling(PPCLogger logger, PPCDatabase db, IPacketData packetData) throws IOException
 	{
-		MailMan amm = null;
-		try {
-			amm = MailManFactory.newAdminInstance(Resources.EMAIL_ACCOUNTS_CONFIG, Resources.EMAIL_CONFIG, logger);
-		} catch (IOException e) {
-			logger.fatalLogAndAction("Email configuration could not be loaded.");
-		}
+		MailMan amm = MailManFactory.newAdminInstance(Resources.EMAIL_ACCOUNTS_CONFIG, Resources.EMAIL_CONFIG, logger);
 		RegistrationResponse resp = loadResponseTemplate(Resources.REGRESP_EMAIL_BODY_TEMPLATE);
+		
 		Map<AdminTypes, RequestProcesser> adminMethods = new HashMap<AdminTypes, RequestProcesser>();
 		adminMethods.put(AdminTypes.GET_USER, new _GetUser(packetData, logger, db));
 		adminMethods.put(AdminTypes.GET_CLINICS, new _GetClinics(packetData, logger, db));
@@ -133,17 +128,14 @@ public class ServletMain extends HttpServlet {
 		return adminMethods;
 	}
 
-	private PPCEncryption loadEnctryption()
+	private PPCEncryption loadEnctryption() throws IOException
 	{
-		BigInteger powPrivate = null, mod = null, powPublic = null;
-		try {
-			Properties props = new Properties();
-			props.load(Resources.getStream(Resources.KEY_CONFIG));
-			mod = new BigInteger(props.getProperty("mod"), 16);
-			powPrivate = new BigInteger(props.getProperty("exp"), 16);
-			powPrivate = new BigInteger(props.getProperty("public"), 16);
-			props.clear();
-		} catch (Exception _e) { }
+		Properties props = new Properties();
+		props.load(Resources.getStream(Resources.KEY_CONFIG));
+		BigInteger mod = new BigInteger(props.getProperty("mod"), 16);
+		BigInteger powPrivate = new BigInteger(props.getProperty("exp"), 16);
+		BigInteger powPublic = new BigInteger(props.getProperty("public"), 16);
+		props.clear();
 		return new Crypto(powPrivate, mod, powPublic);
 	}
 
@@ -162,29 +154,17 @@ public class ServletMain extends HttpServlet {
 		return new PacketData(new JSONParser(), logger);
 	}
 
-	private PPCDatabase loadDatabase(PPCLogger logger, PPCStringScramble encryption)
+	private PPCDatabase loadDatabase(PPCLogger logger, PPCStringScramble encryption) throws NamingException
 	{
-		DataSource dataSource = null;
-		try {
-			Context initContext = new InitialContext();
-			Context envContext = (Context) initContext.lookup("java:comp/env");
-			dataSource = (DataSource) envContext.lookup("jdbc/prom_prem_db");
-		} catch (NamingException e) {
-			logger.log("FATAL: Could not load database configuration", e);
-			System.exit(1);
-		}
+		Context initContext = new InitialContext();
+		Context envContext = (Context) initContext.lookup("java:comp/env");
+		DataSource dataSource = (DataSource) envContext.lookup("jdbc/prom_prem_db");
 		return new MySQLDatabase(dataSource, encryption, logger);
 	}
 
-	private PPCStringScramble loadStringScrambler(PPCLogger logger)
+	private PPCStringScramble loadStringScrambler(PPCLogger logger) throws NoSuchAlgorithmException
 	{
-		try {
-			return new SHAEncryption(SecureRandom.getInstance("SHA1PRNG"), MessageDigest.getInstance("SHA-256"));
-		} catch (NoSuchAlgorithmException e) {
-			logger.log(String.format("FATAL: Hashing algorithms %s and/or %s is not available.", "SHA1PRNG", "SHA-256"));
-			System.exit(1);
-			return null; // make the compiler happy
-		}
+		return new SHAEncryption(SecureRandom.getInstance("SHA1PRNG"), MessageDigest.getInstance("SHA-256"));
 	}
 
 	private PPCUserManager loadUserManager() {
@@ -192,27 +172,29 @@ public class ServletMain extends HttpServlet {
 		return new UserManager(usr, new ThreadedActivityMonitor(usr));
 	}
 	
-	private PPCLogger loadLogger()
+	private PPCLogger loadLogger() throws IOException
 	{
-		try {
-			Properties props = new Properties();
-			props.load(Resources.getStream(Resources.SETTINGS_CONFIG));
-			int logsize = Integer.parseInt(props.getProperty("logsize"));
-			int logcount = Integer.parseInt(props.getProperty("logcount"));
-			String logdir = props.getProperty("logdir");
-			if (!new File(logdir.endsWith("/") ? logdir.substring(0, logdir.length()-1) : logdir).mkdirs()) {
-				throw new IOException("Directory structure for logging (" + logdir + ") could not be created.");
-			}
-
-			PPCFileHandlerUpdate handler = new DiskFileHandlerUpdate(logdir, logsize, logcount, "Servlet");
-			Logger lgr = Logger.getLogger(ServletMain.class.getName());
-			lgr.setLevel(Level.FINEST);
-			return new ServletLogger(handler, lgr);
-		} catch (Exception _e) {
-			System.err.println("SEVERE: Could not load servlet settings file! Logging will be disabled");
-			_e.printStackTrace(System.err);
-			return new NullLogger();
+		Properties props = new Properties();
+		props.load(Resources.getStream(Resources.SETTINGS_CONFIG));
+		int logsize = Integer.parseInt(props.getProperty("logsize"));
+		int logcount = Integer.parseInt(props.getProperty("logcount"));
+		File logdir = new File(props.getProperty("logdir"));
+		if (logdir.exists() && !logdir.isDirectory() || !logdir.exists() && !logdir.mkdirs()) {
+			throw new IOException("Directory structure for logging (" + logdir.getPath() + ") could not be created.");
 		}
+
+		PPCFileHandlerUpdate handler = new DiskFileHandlerUpdate(logdir.getAbsolutePath(), logsize, logcount, "Servlet");
+		Logger lgr = Logger.getLogger(ServletMain.class.getName());
+		lgr.setLevel(Level.FINEST);
+		return new ServletLogger(handler, lgr);
+	}
+	
+	private RegistrationRequest loadRequestTemplate(String file) throws IOException {
+		return new RegistrationRequest(new MessageGenerator(Util.loadFile(file)));
+	}
+	
+	private RegistrationResponse loadResponseTemplate(String file) throws IOException {
+		return new RegistrationResponse(new MessageGenerator(Util.loadFile(file)));
 	}
 
 	@Override
@@ -228,22 +210,6 @@ public class ServletMain extends HttpServlet {
 	@Override
 	protected void doPost(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
 		servlet.handleRequest(req, resp);
-	}
-	
-	private RegistrationRequest loadRequestTemplate(String file) {
-		try {
-			return new RegistrationRequest(new MessageGenerator(Util.loadFile(file)));
-		} catch (IOException e) {
-			return new RegistrationRequest(new MessageGenerator(""));
-		}
-	}
-	
-	private RegistrationResponse loadResponseTemplate(String file) {
-		try {
-			return new RegistrationResponse(new MessageGenerator(Util.loadFile(file)));
-		} catch (IOException e) {
-			return new RegistrationResponse(new MessageGenerator(""));
-		}
 	}
 	
 	private String loadMainPage() {

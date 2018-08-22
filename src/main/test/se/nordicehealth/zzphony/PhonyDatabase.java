@@ -10,9 +10,9 @@ import se.nordicehealth.servlet.impl.User;
 
 public class PhonyDatabase implements PPCDatabase {
 	@Override
-	public String escapeReplaceAndConvertToSQLEntry(String str) { return null; }
+	public String escapeAndConvertToSQLEntry(String str) { return null; }
 	@Override
-	public String escapeReplaceAndConvertToSQLListOfEntries(List<String> str) { return null; }
+	public String convertToSQLList(List<String> str) { return null; }
 	@Override
 	public boolean isSQLList(String s) { return false; }
 	@Override

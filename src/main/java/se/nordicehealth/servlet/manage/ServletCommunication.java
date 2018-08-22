@@ -30,6 +30,7 @@ public class ServletCommunication {
 	
 	public ServletCommunication(PPCStringScramble crypto, URL url) {
 		this.crypto = crypto;
+		this.local_url = url;
 	}
 
 	public boolean addUser(String username, String password, String salt, int clinic, String email)
@@ -165,10 +166,10 @@ public class ServletCommunication {
 		try {
 			HttpURLConnection c = setupHttpConnection();
 			String request = obj.toString();
-			System.out.printf("OUT: '%s'\n", request);
+			//System.out.printf("OUT: '%s'\n", request);
 			sendRequest(c, request);
 			String response = receiveResponse(c);
-			System.out.printf(" IN: '%s'\n", response);
+			//System.out.printf(" IN: '%s'\n", response);
 			return new JSONMapData(response);
 		} catch (Exception ex) {
 			ex.printStackTrace();

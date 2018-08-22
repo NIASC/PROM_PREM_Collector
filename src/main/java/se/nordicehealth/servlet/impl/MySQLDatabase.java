@@ -28,33 +28,37 @@ public class MySQLDatabase implements PPCDatabase {
 	}
 
 	@Override
-	public String escapeReplaceAndConvertToSQLEntry(String str) {
+	public String escapeAndConvertToSQLEntry(String str) {
 		if (str == null) { return null; }
 		
-		return String.format("'%s'", escapeReplace(str));
+		return String.format("'%s'", escapeReplaceStr(str));
 	}
 	
-	private String escapeReplace(String str) {
-		return String.format("%s", str.replace("\'", "\""));
+	private String escapeReplaceStr(String str) {
+		return str.replace("'", "''");
 	}
 
 	@Override
-	public String escapeReplaceAndConvertToSQLListOfEntries(List<String> lstr) {
+	public String convertToSQLList(List<String> lstr) {
 		if (lstr == null) { return null; }
 		
 		List<String> out = new ArrayList<String>();
 		for (String str : lstr) {
-			out.add(String.format("\"%s\"", escapeReplace(str)));
+			out.add(String.format("\"%s\"", str));
 		}
 		return String.format("[%s]", String.join(",", out));
 	}
 	
 	public boolean isSQLList(String s) {
-		boolean sqlList = s.startsWith("[") && s.endsWith("]");
-		for (String str : s.substring(1, s.length()-1).trim().split(",")) {
-			sqlList = sqlList && str.startsWith("\"") && str.endsWith("\"");
+		if (s.startsWith("[") && s.endsWith("]")) {
+			for (String str : s.substring(1, s.length()-1).trim().split(",")) {
+				if (!str.startsWith("\"") || !str.endsWith("\"")) {
+					return false;
+				}
+			}
+			return true;
 		}
-		return sqlList;
+		return false;
 	}
 	
 	public List<String> SQLListToJavaList(String l) throws IllegalArgumentException {
@@ -75,11 +79,11 @@ public class MySQLDatabase implements PPCDatabase {
 		String qInsert = String.format(
 				"INSERT INTO `users` (`clinic_id`, `name`, `password`, `email`, `registered`, `salt`, `update_password`) VALUES ('%d', '%s', '%s', '%s', '%s', '%s', '%d')",
 				clinic_id,
-				escapeReplace(name),
-				escapeReplace(password),
-				escapeReplace(email),
+				escapeReplaceStr(name),
+				escapeReplaceStr(password),
+				escapeReplaceStr(email),
 				new SimpleDateFormat("yyyy-MM-dd").format(new Date()),
-				escapeReplace(salt), 1);
+				escapeReplaceStr(salt), 1);
 		try {
 			writeToDatabase(qInsert);
 			return true;
@@ -95,7 +99,7 @@ public class MySQLDatabase implements PPCDatabase {
 		String patientInsert = String.format(
 				"INSERT INTO `patients` (`clinic_id`, `identifier`, `id`) VALUES ('%d', '%s', NULL)",
 				clinic_id,
-				escapeReplace(identifier));
+				escapeReplaceStr(identifier));
 		try {
 			if (!patientInDatabase(identifier)) {
 				writeToDatabase(patientInsert);
@@ -118,16 +122,15 @@ public class MySQLDatabase implements PPCDatabase {
 	{
 		List<String> question_ids = new ArrayList<String>();
 		List<String> question_answers = new ArrayList<String>();
-		
+
 		for (int i = 0; i < _question_answers.size(); ++i) {
 			question_ids.add(String.format("`question%d`", i));
-			question_answers.add(escapeReplaceAndConvertToSQLEntry(_question_answers.get(i)));
+			question_answers.add(escapeAndConvertToSQLEntry(_question_answers.get(i)));
 		}
-
 		String resultInsert = String.format("INSERT INTO `questionnaire_answers` (`clinic_id`, `patient_identifier`, `date`, %s) VALUES ('%d', '%s', '%s', %s)",
 				String.join(", ", question_ids),
 				clinic_id,
-				escapeReplace(identifier),
+				escapeReplaceStr(identifier),
 				new SimpleDateFormat("yyyy-MM-dd").format(new Date()),
 				String.join(", ", question_answers));
 		try {
@@ -144,7 +147,7 @@ public class MySQLDatabase implements PPCDatabase {
 	{
 		String qInsert = String.format(
 				"INSERT INTO `clinics` (`id`, `name`) VALUES (NULL, '%s')",
-				escapeReplace(name));
+				escapeReplaceStr(name));
 		try {
 			writeToDatabase(qInsert);
 			return true;
@@ -182,7 +185,7 @@ public class MySQLDatabase implements PPCDatabase {
 	public User getUser(String username)
 	{
 		String q = String.format("SELECT `clinic_id`, `name`, `password`, `email`, `salt`, `update_password` FROM `users` WHERE `users`.`name`='%s'",
-				escapeReplace(username));
+				escapeReplaceStr(username));
 		Connection conn = null;
 		try {
 			conn = dataSource.getConnection();
@@ -217,16 +220,16 @@ public class MySQLDatabase implements PPCDatabase {
 			String newPass, String newSalt)
 	{
 		User _user = getUser(name);
-		if (_user == null || !_user.password.equals(escapeReplace(oldPass))) {
+		if (_user == null || !_user.password.equals(escapeReplaceStr(oldPass))) {
 			return false;
 		}
 		
 		String qInsert = String.format(
 				"UPDATE `users` SET `password`='%s',`salt`='%s',`update_password`='%d' WHERE `users`.`name`='%s'",
-				escapeReplace(newPass),
-				escapeReplace(newSalt),
+				escapeReplaceStr(newPass),
+				escapeReplaceStr(newSalt),
 				0,
-				escapeReplace(name));
+				escapeReplaceStr(name));
 		try {
 			writeToDatabase(qInsert);
 			return true;
@@ -360,7 +363,7 @@ public class MySQLDatabase implements PPCDatabase {
 			conn = dataSource.getConnection();
 			String q = String.format(
 					"SELECT `identifier` FROM `patients` where `patients`.`identifier`='%s'",
-					escapeReplace(identifier));
+					escapeReplaceStr(identifier));
 			ResultSet rs = readFromDatabase(conn, q);
 			boolean exsist = rs.next();
 			return exsist;

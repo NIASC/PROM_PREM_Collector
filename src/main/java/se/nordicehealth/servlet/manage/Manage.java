@@ -19,6 +19,7 @@ import java.util.Scanner;
 public class Manage
 {
 	public static void main(String[] args) {
+		System.out.println("Launchring manager app.");
 		SecureRandom sr = null;
 		MessageDigest md = null;
 		try {
@@ -32,6 +33,7 @@ public class Manage
 		try {
 			Properties props = new Properties();
 			props.load(Resources.getStream(Resources.SETTINGS_CONFIG));
+			System.out.println(props.getProperty("localurl"));
 			url = new URL(props.getProperty("localurl"));
 		} catch (IOException e) {
 			System.err.printf("FATAL: local url is invalid. Communication with the servlet will not work.\n");

@@ -50,7 +50,7 @@ public class QDBFormatTest {
 	public void testGetDBFormatEmpty() throws Exception {
 		MapData data = pd.getMapData();
 		String dbfmt = fmt.getDBFormat(data);
-		Assert.assertEquals("''", dbfmt);
+		Assert.assertEquals("", dbfmt);
 	}
 
 	@Test
@@ -58,7 +58,7 @@ public class QDBFormatTest {
 		MapData data = pd.getMapData();
 		data.put(QuestionTypes.AREA, "message");
 		String dbfmt = fmt.getDBFormat(data);
-		Assert.assertEquals("'message'", dbfmt);
+		Assert.assertEquals("message", dbfmt);
 	}
 
 	@Test
@@ -66,7 +66,7 @@ public class QDBFormatTest {
 		MapData data = pd.getMapData();
 		data.put(QuestionTypes.AREA, "'message'");
 		String dbfmt = fmt.getDBFormat(data);
-		Assert.assertEquals("'\"message\"'", dbfmt);
+		Assert.assertEquals("'message'", dbfmt);
 	}
 
 	@Test
@@ -74,7 +74,7 @@ public class QDBFormatTest {
 		MapData data = pd.getMapData();
 		data.put(QuestionTypes.SLIDER, "5");
 		String dbfmt = fmt.getDBFormat(data);
-		Assert.assertEquals("'slider5'", dbfmt);
+		Assert.assertEquals("slider5", dbfmt);
 	}
 
 	@Test
@@ -129,7 +129,7 @@ public class QDBFormatTest {
 		MapData data = pd.getMapData();
 		data.put(QuestionTypes.SINGLE_OPTION, "1");
 		String dbfmt = fmt.getDBFormat(data);
-		Assert.assertEquals("'option1'", dbfmt);
+		Assert.assertEquals("option1", dbfmt);
 	}
 
 	@Test

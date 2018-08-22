@@ -9,8 +9,8 @@ import se.nordicehealth.servlet.impl.User;
 
 public interface PPCDatabase
 {
-	String escapeReplaceAndConvertToSQLEntry(String str);
-	String escapeReplaceAndConvertToSQLListOfEntries(List<String> str);
+	String escapeAndConvertToSQLEntry(String str);
+	String convertToSQLList(List<String> str);
 	boolean isSQLList(String s);
 	List<String> SQLListToJavaList(String sqlList) throws IllegalArgumentException;
 	

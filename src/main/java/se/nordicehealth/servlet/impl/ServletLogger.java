@@ -65,6 +65,7 @@ public class ServletLogger implements PPCLogger {
 	public ServletLogger(PPCFileHandlerUpdate updater, Logger logger) {
 		this.handlerUpdater = updater;
 		this.logger = logger;
+		log("Logger initialized successfully.");
 	}
 	
 	private void updateHandlerIfNewDay() {
