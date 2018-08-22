@@ -10,7 +10,6 @@ import org.junit.Before;
 import org.junit.Test;
 
 import se.nordicehealth.common.impl.Packet;
-import se.nordicehealth.common.impl.Packet.Types;
 import se.nordicehealth.servlet.LoggerForTesting;
 import se.nordicehealth.servlet.core.PPCDatabase;
 import se.nordicehealth.servlet.core.PPCLogger;
@@ -20,7 +19,6 @@ import se.nordicehealth.servlet.core.usermanager.ConnectionManager;
 import se.nordicehealth.servlet.core.usermanager.UserManager;
 import se.nordicehealth.servlet.impl.AdminPacket;
 import se.nordicehealth.servlet.impl.ClientRequestProcesser;
-import se.nordicehealth.servlet.impl.AdminPacket.AdminTypes;
 import se.nordicehealth.servlet.impl.io.IPacketData;
 import se.nordicehealth.servlet.impl.io.MapData;
 import se.nordicehealth.servlet.impl.io.PacketData;
@@ -31,8 +29,8 @@ public class ClientRequestProcesserTest {
 	ClientRequestProcesser crp;
 	PacketData pd;
 	LoggerForTesting logger;
-	MapData userPacket, adminPacket, adminUserPacket;
-	MapData userData, adminData, adminUserData;
+	MapData userPacket, adminPacket;
+	MapData userData, adminData;
 	
 	private class DummyRequestProcesser extends RequestProcesser {
 		public DummyRequestProcesser(PPCDatabase db, IPacketData packetData, PPCLogger logger) {
@@ -49,22 +47,15 @@ public class ClientRequestProcesserTest {
 		logger = new LoggerForTesting();
 		pd = new PacketData(new JSONParser(), logger);
 		userPacket = pd.getMapData();
-		userPacket.put(Packet.TYPE, Packet.Types.PING);
+		userPacket.put(Packet.TYPE, Packet.PING);
 		userData = pd.getMapData();
-		userData.put(Packet.Data.Ping.__NULL__, "userData");
+		userData.put(Packet.NULL, "userData");
 		userPacket.put(Packet.DATA, userData.toString());
 		adminPacket = pd.getMapData();
-		adminPacket.put(AdminPacket._TYPE, AdminPacket.AdminTypes.GET_USER);
-		adminPacket.put(AdminPacket._ADMIN, AdminPacket.Admin.YES);
+		adminPacket.put(AdminPacket._TYPE, AdminPacket._GET_USER);
 		adminData = pd.getMapData();
-		adminData.put(AdminPacket.AdminData.AdminGetUser.__NULL__, "adminData");
+		adminData.put(AdminPacket.NULL, "adminData");
 		adminPacket.put(AdminPacket._DATA, adminData.toString());
-		adminUserPacket = pd.getMapData();
-		adminUserPacket.put(AdminPacket._TYPE, AdminPacket.AdminTypes.GET_USER);
-		adminUserPacket.put(AdminPacket._ADMIN, AdminPacket.Admin.NO);
-		adminUserData = pd.getMapData();
-		adminUserData.put(AdminPacket.AdminData.AdminGetUser.__NULL__, "adminUserData");
-		adminUserPacket.put(AdminPacket._DATA, adminUserData.toString());
 		
 		PPCDatabase db = new PhonyDatabase();
 		ConnectionManager cmgr = new ConnectionManager() {
@@ -87,11 +78,11 @@ public class ClientRequestProcesserTest {
 			@Override public void stop() { }
 		};
 		UserManager um = new UserManager(cmgr, acmon);
-		Map<Types, RequestProcesser> userMethods = new HashMap<Types, RequestProcesser>();
+		Map<String, RequestProcesser> userMethods = new HashMap<String, RequestProcesser>();
 		RequestProcesser urp = new DummyRequestProcesser(db, pd, logger);
-		userMethods.put(Packet.Types.PING, urp);
-		Map<AdminTypes, RequestProcesser> adminMethods = new HashMap<AdminTypes, RequestProcesser>();
-		adminMethods.put(AdminPacket.AdminTypes.GET_USER, urp);
+		userMethods.put(Packet.PING, urp);
+		Map<String, RequestProcesser> adminMethods = new HashMap<String, RequestProcesser>();
+		adminMethods.put(AdminPacket._GET_USER, urp);
 		crp = new ClientRequestProcesser(logger, pd, um, userMethods, adminMethods);
 	}
 
@@ -121,20 +112,6 @@ public class ClientRequestProcesserTest {
 		String in = adminPacket.toString();
 		String out = crp.handleRequest(in, "127.0.0.1", "127.0.0.2");
 		Assert.assertEquals(pd.getMapData().toString(), out);
-	}
-
-	@Test
-	public void testHandleAdminUserRequestSameIP() {
-		String in = adminUserPacket.toString();
-		String out = crp.handleRequest(in, "127.0.0.1", "127.0.0.1");
-		Assert.assertEquals(in, out);
-	}
-
-	@Test
-	public void testHandleAdminUserRequestDifferentIP() {
-		String in = adminUserPacket.toString();
-		String out = crp.handleRequest(in, "127.0.0.1", "127.0.0.2");
-		Assert.assertEquals(in, out);
 	}
 	
 	@Test

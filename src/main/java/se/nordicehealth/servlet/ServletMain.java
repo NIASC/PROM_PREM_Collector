@@ -24,7 +24,7 @@ import javax.sql.DataSource;
 import org.json.simple.parser.JSONParser;
 
 import se.nordicehealth.common.Util;
-import se.nordicehealth.common.impl.Packet.Types;
+import se.nordicehealth.common.impl.Packet;
 import se.nordicehealth.res.Resources;
 import se.nordicehealth.servlet.core.PPCClientRequestProcesser;
 import se.nordicehealth.servlet.core.PPCDatabase;
@@ -37,6 +37,7 @@ import se.nordicehealth.servlet.core.Servlet;
 import se.nordicehealth.servlet.core.usermanager.RegisteredOnlineUserManager;
 import se.nordicehealth.servlet.core.usermanager.ThreadedActivityMonitor;
 import se.nordicehealth.servlet.core.usermanager.UserManager;
+import se.nordicehealth.servlet.impl.AdminPacket;
 import se.nordicehealth.servlet.impl.ClientRequestProcesser;
 import se.nordicehealth.servlet.impl.Crypto;
 import se.nordicehealth.servlet.impl.DiskFileHandlerUpdate;
@@ -45,7 +46,6 @@ import se.nordicehealth.servlet.impl.MySQLDatabase;
 import se.nordicehealth.servlet.impl.PasswordHandle;
 import se.nordicehealth.servlet.impl.SHAEncryption;
 import se.nordicehealth.servlet.impl.ServletLogger;
-import se.nordicehealth.servlet.impl.AdminPacket.AdminTypes;
 import se.nordicehealth.servlet.impl.io.IPacketData;
 import se.nordicehealth.servlet.impl.io.PacketData;
 import se.nordicehealth.servlet.impl.mail.MailMan;
@@ -82,8 +82,8 @@ public class ServletMain extends HttpServlet {
 			PPCStringScramble encryption = loadStringScrambler(logger);
 			PPCDatabase db = loadDatabase(logger, encryption);
 			IPacketData packetData = loadPacketData(logger);
-			Map<Types, RequestProcesser> userMethods = loadUserResponseHandling(logger, um, encryption, db, packetData);
-			Map<AdminTypes, RequestProcesser> adminMethods = loadAdminResponseHandling(logger, db, packetData);
+			Map<String, RequestProcesser> userMethods = loadUserResponseHandling(logger, um, encryption, db, packetData);
+			Map<String, RequestProcesser> adminMethods = loadAdminResponseHandling(logger, db, packetData);
 			PPCClientRequestProcesser requestProcesser = new ClientRequestProcesser(logger, packetData, um, userMethods, adminMethods);
 			servlet = new Servlet(loadMainPage(), requestProcesser, logger);
 		} catch (Exception e) {
@@ -91,7 +91,7 @@ public class ServletMain extends HttpServlet {
 		}
 	}
 
-	private Map<Types, RequestProcesser> loadUserResponseHandling(PPCLogger logger, PPCUserManager um, PPCStringScramble encryption, PPCDatabase db, IPacketData packetData) throws IOException
+	private Map<String, RequestProcesser> loadUserResponseHandling(PPCLogger logger, PPCUserManager um, PPCStringScramble encryption, PPCDatabase db, IPacketData packetData) throws IOException
 	{
 		QDBFormat qdbf = loadDatabaseJavaFormatConverter(db, packetData);
 		se.nordicehealth.servlet.core.PPCLocale locale = loadLocaleFormats();
@@ -100,31 +100,31 @@ public class ServletMain extends HttpServlet {
 		MailMan umm = MailManFactory.newUserInstance(Resources.EMAIL_ACCOUNTS_CONFIG, Resources.EMAIL_CONFIG, logger);
 		RegistrationRequest req = loadRequestTemplate(Resources.REGREQ_EMAIL_BODY_TEMPLATE);
 		
-		Map<Types, RequestProcesser> userMethods = new HashMap<Types, RequestProcesser>();
-		userMethods.put(Types.PING, new Ping(packetData, logger, um, crypto));
-		userMethods.put(Types.VALIDATE_PID, new ValidatePatientID(um, db, packetData, logger, crypto, locale));
-		userMethods.put(Types.ADD_QANS, new AddQuestionnaireAnswers(packetData, logger, um, db, qdbf, encryption, locale, crypto));
-		userMethods.put(Types.SET_PASSWORD, new SetPassword(um, db, packetData, logger, encryption, crypto, passHandle));
-		userMethods.put(Types.LOAD_Q, new LoadQuestions(packetData, logger, db));
-		userMethods.put(Types.LOAD_QR_DATE, new LoadQResultDates(packetData, logger, um, db, crypto));
-		userMethods.put(Types.LOAD_QR, new LoadQResults(packetData, logger, um, db, qdbf, crypto));
-		userMethods.put(Types.REQ_REGISTR, new RequestRegistration(db, packetData, logger, umm, req, crypto));
-		userMethods.put(Types.REQ_LOGIN, new RequestLogin(packetData, logger, um, db, encryption, crypto));
-		userMethods.put(Types.REQ_LOGOUT, new RequestLogout(um, db, packetData, logger, crypto));
+		Map<String, RequestProcesser> userMethods = new HashMap<String, RequestProcesser>();
+		userMethods.put(Packet.PING, new Ping(packetData, logger, um, crypto));
+		userMethods.put(Packet.VALIDATE_PID, new ValidatePatientID(um, db, packetData, logger, crypto, locale));
+		userMethods.put(Packet.ADD_QANS, new AddQuestionnaireAnswers(packetData, logger, um, db, qdbf, encryption, locale, crypto));
+		userMethods.put(Packet.SET_PASSWORD, new SetPassword(um, db, packetData, logger, encryption, crypto, passHandle));
+		userMethods.put(Packet.LOAD_Q, new LoadQuestions(packetData, logger, db));
+		userMethods.put(Packet.LOAD_QR_DATE, new LoadQResultDates(packetData, logger, um, db, crypto));
+		userMethods.put(Packet.LOAD_QR, new LoadQResults(packetData, logger, um, db, qdbf, crypto));
+		userMethods.put(Packet.REQ_REGISTR, new RequestRegistration(db, packetData, logger, umm, req, crypto));
+		userMethods.put(Packet.REQ_LOGIN, new RequestLogin(packetData, logger, um, db, encryption, crypto));
+		userMethods.put(Packet.REQ_LOGOUT, new RequestLogout(um, db, packetData, logger, crypto));
 		return userMethods;
 	}
 
-	private Map<AdminTypes, RequestProcesser> loadAdminResponseHandling(PPCLogger logger, PPCDatabase db, IPacketData packetData) throws IOException
+	private Map<String, RequestProcesser> loadAdminResponseHandling(PPCLogger logger, PPCDatabase db, IPacketData packetData) throws IOException
 	{
 		MailMan amm = MailManFactory.newAdminInstance(Resources.EMAIL_ACCOUNTS_CONFIG, Resources.EMAIL_CONFIG, logger);
 		RegistrationResponse resp = loadResponseTemplate(Resources.REGRESP_EMAIL_BODY_TEMPLATE);
 		
-		Map<AdminTypes, RequestProcesser> adminMethods = new HashMap<AdminTypes, RequestProcesser>();
-		adminMethods.put(AdminTypes.GET_USER, new _GetUser(packetData, logger, db));
-		adminMethods.put(AdminTypes.GET_CLINICS, new _GetClinics(packetData, logger, db));
-		adminMethods.put(AdminTypes.ADD_USER, new _AddUser(packetData, logger, db));
-		adminMethods.put(AdminTypes.ADD_CLINIC, new _AddClinic(packetData, logger, db));
-		adminMethods.put(AdminTypes.RSP_REGISTR, new _RespondRegistration(packetData, logger, amm, resp));
+		Map<String, RequestProcesser> adminMethods = new HashMap<String, RequestProcesser>();
+		adminMethods.put(AdminPacket._GET_USER, new _GetUser(packetData, logger, db));
+		adminMethods.put(AdminPacket._GET_CLINICS, new _GetClinics(packetData, logger, db));
+		adminMethods.put(AdminPacket._ADD_USER, new _AddUser(packetData, logger, db));
+		adminMethods.put(AdminPacket._ADD_CLINIC, new _AddClinic(packetData, logger, db));
+		adminMethods.put(AdminPacket._RSP_REGISTR, new _RespondRegistration(packetData, logger, amm, resp));
 		return adminMethods;
 	}
 

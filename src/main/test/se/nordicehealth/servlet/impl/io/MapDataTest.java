@@ -15,9 +15,8 @@ import se.nordicehealth.servlet.impl.io.MapData;
 
 public class MapDataTest {
 	MapData md;
-	Packet enumKey = Packet.TYPE;
-	Packet.Types enumVal = Packet.Types.PING;
-	Packet.Types[] enumValTypes = Packet.Types.values();
+	String enumKey = Packet.TYPE;
+	String enumVal = Packet.PING;
 	String strVal = "ping";
 	Integer intKey = 0;
 	String strKey = "ping";
@@ -45,7 +44,7 @@ public class MapDataTest {
 	@Test
 	public void testPutEnumOfQEnumOfQ() {
 		md.put(enumKey, enumVal);
-		Packet.Types val = Constants.getEnum(enumValTypes, md.get(enumKey));
+		String val = md.get(enumKey);
 		Assert.assertEquals(val, enumVal);
 	}
 

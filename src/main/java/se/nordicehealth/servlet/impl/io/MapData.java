@@ -12,10 +12,13 @@ public class MapData
 	public String toString() { return o.toString(); }
 	public void put(Enum<?> k, Enum<?> v) { m.put(etos(k), etos(v)); }
 	public void put(Enum<?> k, String v) { m.put(etos(k), v); }
-	public void put(Enum<?> k, Integer v) { m.put(etos(k), itos(v)); }
-	public void put(Integer k, String v) { m.put(itos(k), v); }
-	public void put(String k, Integer v) { m.put(k, itos(v)); }
+	public void put(Enum<?> k, int v) { m.put(etos(k), itos(v)); }
+	public void put(int k, String v) { m.put(itos(k), v); }
+	public void put(String k, int v) { m.put(k, itos(v)); }
 	public String get(Enum<?> k) { return m.get(etos(k)); }
+
+	public void put(String k, String v) { m.put(k, v); }
+	public String get(String k) { return m.get(k); }
 
     public Iterable<Entry<String, String>> iterable() {
         return m.entrySet();

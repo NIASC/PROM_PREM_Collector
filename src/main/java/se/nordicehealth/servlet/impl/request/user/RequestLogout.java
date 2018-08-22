@@ -1,10 +1,6 @@
 package se.nordicehealth.servlet.impl.request.user;
 
-import static se.nordicehealth.common.impl.Packet.DATA;
-import static se.nordicehealth.common.impl.Packet.TYPE;
-
-import se.nordicehealth.common.impl.Packet.Data;
-import se.nordicehealth.common.impl.Packet.Types;
+import se.nordicehealth.common.impl.Packet;
 import se.nordicehealth.servlet.core.PPCDatabase;
 import se.nordicehealth.servlet.core.PPCEncryption;
 import se.nordicehealth.servlet.core.PPCLogger;
@@ -23,23 +19,23 @@ public class RequestLogout extends LoggedInRequestProcesser {
 
 	public MapData processRequest(MapData in) {
 		MapData out = packetData.getMapData();
-		out.put(TYPE, Types.REQ_LOGOUT);
+		out.put(Packet.TYPE, Packet.REQ_LOGOUT);
 
 		MapData data = packetData.getMapData();
-		Data.RequestLogout.Response result = Data.RequestLogout.Response.ERROR;
+		String result = Packet.ERROR;
 		try {
-			result = logout(packetData.getMapData(in.get(DATA)));
+			result = logout(packetData.getMapData(in.get(Packet.DATA)));
 		} catch (Exception e) { }
-		data.put(Data.RequestLogout.RESPONSE, result);
+		data.put(Packet.RESPONSE, result);
 
-		out.put(DATA, data.toString());
+		out.put(Packet.DATA, data.toString());
 		return out;
 	}
 	
-	private Data.RequestLogout.Response logout(MapData in) throws Exception {
-		MapData inpl = packetData.getMapData(crypto.decrypt(in.get(Data.RequestLogout.DETAILS)));
-		long uid = Long.parseLong(inpl.get(Data.RequestLogout.Details.UID));
+	private String logout(MapData in) throws Exception {
+		MapData inpl = packetData.getMapData(crypto.decrypt(in.get(Packet.DETAILS)));
+		long uid = Long.parseLong(inpl.get(Packet.UID));
 		refreshTimer(uid);
-		return um.delUserFromListOfOnline(uid) ? Data.RequestLogout.Response.SUCCESS : Data.RequestLogout.Response.ERROR;
+		return um.delUserFromListOfOnline(uid) ? Packet.SUCCESS : Packet.ERROR;
 	}
 }

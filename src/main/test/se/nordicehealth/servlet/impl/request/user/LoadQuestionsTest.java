@@ -11,7 +11,6 @@ import org.junit.Before;
 import org.junit.Test;
 
 import se.nordicehealth.common.impl.Packet;
-import se.nordicehealth.common.impl.Packet.Data;
 import se.nordicehealth.servlet.impl.io.MapData;
 import se.nordicehealth.servlet.impl.request.user.LoadQuestions;
 
@@ -49,12 +48,12 @@ public class LoadQuestionsTest {
 	@Test
 	public void testProcessRequest() {
 		MapData out = dbutil.pd.getMapData();
-		out.put(Packet.TYPE, Packet.Types.LOAD_Q);
+		out.put(Packet.TYPE, Packet.LOAD_Q);
 		
 		dbutil.rs.setNumberOfAvailableNextCalls(setNextDatabaseQuestions());
 		MapData in = processer.processRequest(out);
 		MapData inData = dbutil.pd.getMapData(in.get(Packet.DATA));
-		MapData allQData = dbutil.pd.getMapData(inData.get(Data.LoadQuestions.QUESTIONS));
+		MapData allQData = dbutil.pd.getMapData(inData.get(Packet.QUESTIONS));
 		int nEntries = 0;
 		for (Entry<String, String> e : allQData.iterable()) {
 			++nEntries;

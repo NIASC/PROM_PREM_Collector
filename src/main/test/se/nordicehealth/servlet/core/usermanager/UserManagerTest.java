@@ -5,7 +5,7 @@ import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 
-import se.nordicehealth.common.impl.Packet.Data.RequestLogin.Response;
+import se.nordicehealth.common.impl.Packet;
 import se.nordicehealth.servlet.core.usermanager.ConnectionManager;
 import se.nordicehealth.servlet.core.usermanager.RegisteredOnlineUserManager;
 import se.nordicehealth.servlet.core.usermanager.ThreadedActivityMonitor;
@@ -35,15 +35,15 @@ public class UserManagerTest {
 	@Test
 	public void testAddUserToListOfOnline() {
 		Assert.assertEquals(false, um.isOnline(uid1));
-		Assert.assertEquals(Response.SUCCESS, um.addUserToListOfOnline(identifier1, uid1));
+		Assert.assertEquals(Packet.SUCCESS, um.addUserToListOfOnline(identifier1, uid1));
 		Assert.assertEquals(true, um.isOnline(uid1));
-		Assert.assertEquals(Response.ERROR, um.addUserToListOfOnline(null, uid1));
-		Assert.assertEquals(Response.ERROR, um.addUserToListOfOnline("", uid1));
-		Assert.assertEquals(Response.ERROR, um.addUserToListOfOnline(identifier2, uid1));
-		Assert.assertEquals(Response.ALREADY_ONLINE, um.addUserToListOfOnline(identifier1, uid2));
+		Assert.assertEquals(Packet.ERROR, um.addUserToListOfOnline(null, uid1));
+		Assert.assertEquals(Packet.ERROR, um.addUserToListOfOnline("", uid1));
+		Assert.assertEquals(Packet.ERROR, um.addUserToListOfOnline(identifier2, uid1));
+		Assert.assertEquals(Packet.ALREADY_ONLINE, um.addUserToListOfOnline(identifier1, uid2));
 
-		Assert.assertEquals(Response.SUCCESS, um.addUserToListOfOnline(identifier2, uid2));
-		Assert.assertEquals(Response.SERVER_FULL, um.addUserToListOfOnline(identifier3, uid3));
+		Assert.assertEquals(Packet.SUCCESS, um.addUserToListOfOnline(identifier2, uid2));
+		Assert.assertEquals(Packet.SERVER_FULL, um.addUserToListOfOnline(identifier3, uid3));
 	}
 
 	@Test

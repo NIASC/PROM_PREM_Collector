@@ -6,9 +6,7 @@ import java.util.Map;
 
 import org.junit.Assert;
 
-import se.nordicehealth.common.impl.Constants;
 import se.nordicehealth.common.impl.Packet;
-import se.nordicehealth.common.impl.Packet.Data;
 import se.nordicehealth.servlet.impl.io.MapData;
 
 public class UserRequestUtil {
@@ -22,8 +20,8 @@ public class UserRequestUtil {
 
 	public MapData createDetailsEntry() {
 		MapData details = new MapData();
-		details.put(Packet.Data.RequestLogin.Details.USERNAME, "12345678");
-		details.put(Packet.Data.RequestLogin.Details.PASSWORD, "s3cr3t");
+		details.put(Packet.USERNAME, "12345678");
+		details.put(Packet.PASSWORD, "s3cr3t");
 		return details;
 	}
 	
@@ -49,20 +47,20 @@ public class UserRequestUtil {
 	
 	public MapData createUserUIDEntry(long uid) {
 		MapData details = new MapData();
-		details.put(Data.AddQuestionnaireAnswers.Details.UID, Long.toString(uid));
+		details.put(Packet.UID, Long.toString(uid));
         return details;
 	}
 	
 	public MapData createPatientEntry(String fname, String sname, String pid) {
 		MapData pobj = new MapData();
 		if (fname != null) {
-			pobj.put(Data.AddQuestionnaireAnswers.Patient.FORENAME, fname);
+			pobj.put(Packet.FORENAME, fname);
 		}
 		if (sname != null) {
-			pobj.put(Data.AddQuestionnaireAnswers.Patient.SURNAME, sname);
+			pobj.put(Packet.SURNAME, sname);
 		}
 		if (pid != null) {
-			pobj.put(Data.AddQuestionnaireAnswers.Patient.PERSONAL_ID, pid);
+			pobj.put(Packet.PERSONAL_ID, pid);
 		}
         return pobj;
 	}
@@ -83,21 +81,20 @@ public class UserRequestUtil {
 	
 	long login() {
 		MapData out = dbutil.pd.getMapData();
-		out.put(Packet.TYPE, Packet.Types.REQ_LOGIN);
+		out.put(Packet.TYPE, Packet.REQ_LOGIN);
 		MapData dataOut = dbutil.pd.getMapData();
 		// username has to be a number because ReqProcUtil uses PhonyEncryption
 		// which does not actually hash the input into a hex string.
-		dataOut.put(Packet.Data.RequestLogin.DETAILS, dbutil.crypto.encrypt(createDetailsEntry().toString()));
+		dataOut.put(Packet.DETAILS, dbutil.crypto.encrypt(createDetailsEntry().toString()));
 		out.put(Packet.DATA, dataOut.toString());
 		
 		setNextDatabaseUserCall();
 		MapData in = processerLogIn.processRequest(out);
 		MapData inData = dbutil.pd.getMapData(in.get(Packet.DATA));
 
-		Assert.assertTrue(Constants.equal(Data.RequestLogin.Response.SUCCESS,
-				Constants.getEnum(Data.RequestLogin.Response.values(), inData.get(Data.RequestLogin.RESPONSE))));
+		Assert.assertEquals(Packet.SUCCESS, inData.get(Packet.RESPONSE));
 		
-		String uid = inData.get(Packet.Data.RequestLogin.UID);
+		String uid = inData.get(Packet.UID);
 		return uid != null ? Long.parseLong(uid) : 0L;
 	}
 }

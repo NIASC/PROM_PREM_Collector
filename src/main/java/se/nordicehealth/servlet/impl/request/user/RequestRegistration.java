@@ -1,10 +1,6 @@
 package se.nordicehealth.servlet.impl.request.user;
 
-import static se.nordicehealth.common.impl.Packet.DATA;
-import static se.nordicehealth.common.impl.Packet.TYPE;
-
-import se.nordicehealth.common.impl.Packet.Data;
-import se.nordicehealth.common.impl.Packet.Types;
+import se.nordicehealth.common.impl.Packet;
 import se.nordicehealth.servlet.core.PPCDatabase;
 import se.nordicehealth.servlet.core.PPCEncryption;
 import se.nordicehealth.servlet.core.PPCLogger;
@@ -26,18 +22,18 @@ public class RequestRegistration extends RequestProcesser {
 
 	public MapData processRequest(MapData in) {
 		MapData out = packetData.getMapData();
-		out.put(TYPE, Types.REQ_REGISTR);
+		out.put(Packet.TYPE, Packet.REQ_REGISTR);
 
 		MapData data = packetData.getMapData();
-		Data.RequestRegistration.Response result = Data.RequestRegistration.Response.FAIL;
+		String result = Packet.FAIL;
 		try {
-			if (sendRegistration(packetData.getMapData(in.get(DATA)))) {
-				result = Data.RequestRegistration.Response.SUCCESS;
+			if (sendRegistration(packetData.getMapData(in.get(Packet.DATA)))) {
+				result = Packet.SUCCESS;
 			}
 		} catch (Exception e) { }
-		data.put(Data.RequestRegistration.RESPONSE, result);
+		data.put(Packet.RESPONSE, result);
 
-		out.put(DATA, data.toString());
+		out.put(Packet.DATA, data.toString());
 		return out;
 	}
 	
@@ -45,10 +41,10 @@ public class RequestRegistration extends RequestProcesser {
 	private RegistrationRequest req;
 	
 	private boolean sendRegistration(MapData in) throws Exception {
-		MapData inpl = packetData.getMapData(crypto.decrypt(in.get(Data.RequestRegistration.DETAILS)));
-		String name = inpl.get(Data.RequestRegistration.Details.NAME);
-		String email = inpl.get(Data.RequestRegistration.Details.EMAIL);
-		String clinic = inpl.get(Data.RequestRegistration.Details.CLINIC);
+		MapData inpl = packetData.getMapData(crypto.decrypt(in.get(Packet.DETAILS)));
+		String name = inpl.get(Packet.NAME);
+		String email = inpl.get(Packet.EMAIL);
+		String clinic = inpl.get(Packet.CLINIC);
 		return emailer.send(req.create(name, email, clinic));
 	}
 }

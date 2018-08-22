@@ -1,13 +1,9 @@
 package se.nordicehealth.servlet.impl.request.user;
 
-import static se.nordicehealth.common.impl.Packet.DATA;
-import static se.nordicehealth.common.impl.Packet.TYPE;
-
 import java.util.Map;
 import java.util.Map.Entry;
 
-import se.nordicehealth.common.impl.Packet.Data;
-import se.nordicehealth.common.impl.Packet.Types;
+import se.nordicehealth.common.impl.Packet;
 import se.nordicehealth.servlet.core.PPCDatabase;
 import se.nordicehealth.servlet.core.PPCLogger;
 import se.nordicehealth.servlet.impl.QuestionData;
@@ -26,16 +22,16 @@ public class LoadQuestions extends RequestProcesser {
 
 	public MapData processRequest(MapData in) {
 		MapData out = packetData.getMapData();
-		out.put(TYPE, Types.LOAD_Q);
+		out.put(Packet.TYPE, Packet.LOAD_Q);
 
 		MapData data = packetData.getMapData();
 		String result = packetData.getMapData().toString();
 		try {
 			result = retrieveQuestions().toString();
 		} catch (Exception e) { }
-		data.put(Data.LoadQuestions.QUESTIONS, result);
+		data.put(Packet.QUESTIONS, result);
 
-		out.put(DATA, data.toString());
+		out.put(Packet.DATA, data.toString());
 		return out;
 	}
 	
@@ -49,15 +45,14 @@ public class LoadQuestions extends RequestProcesser {
 			for (String str : _q.options) {
 				options.add(str);
 			}
-			_question.put(Data.LoadQuestions.Question.OPTIONS, options.toString());
-			_question.put(Data.LoadQuestions.Question.TYPE, _q.type);
-			_question.put(Data.LoadQuestions.Question.ID, Integer.toString(_q.id));
-			_question.put(Data.LoadQuestions.Question.QUESTION, _q.question);
-			_question.put(Data.LoadQuestions.Question.DESCRIPTION, _q.description);
-			_question.put(Data.LoadQuestions.Question.OPTIONAL,
-					_q.optional ? Data.LoadQuestions.Question.Optional.YES : Data.LoadQuestions.Question.Optional.NO);
-			_question.put(Data.LoadQuestions.Question.MAX_VAL, Integer.toString(_q.max_val));
-			_question.put(Data.LoadQuestions.Question.MIN_VAL, Integer.toString(_q.min_val));
+			_question.put(Packet.OPTIONS, options.toString());
+			_question.put(Packet.TYPE, _q.type);
+			_question.put(Packet.ID, Integer.toString(_q.id));
+			_question.put(Packet.QUESTION, _q.question);
+			_question.put(Packet.DESCRIPTION, _q.description);
+			_question.put(Packet.OPTIONAL, _q.optional ? Packet.YES : Packet.NO);
+			_question.put(Packet.MAX_VAL, Integer.toString(_q.max_val));
+			_question.put(Packet.MIN_VAL, Integer.toString(_q.min_val));
 			
 			_questions.put(_e.getKey(), _question.toString());
 		}

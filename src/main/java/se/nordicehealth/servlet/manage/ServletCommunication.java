@@ -1,9 +1,5 @@
 package se.nordicehealth.servlet.manage;
 
-import static se.nordicehealth.servlet.impl.AdminPacket._ADMIN;
-import static se.nordicehealth.servlet.impl.AdminPacket._DATA;
-import static se.nordicehealth.servlet.impl.AdminPacket._TYPE;
-
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
@@ -16,85 +12,83 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.TreeMap;
 
-import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
 
-import se.nordicehealth.common.impl.Constants;
 import se.nordicehealth.servlet.core.PPCStringScramble;
+import se.nordicehealth.servlet.impl.AdminPacket;
+import se.nordicehealth.servlet.impl.NullLogger;
 import se.nordicehealth.servlet.impl.User;
-import se.nordicehealth.servlet.impl.AdminPacket.Admin;
-import se.nordicehealth.servlet.impl.AdminPacket.AdminData;
-import se.nordicehealth.servlet.impl.AdminPacket.AdminTypes;
+import se.nordicehealth.servlet.impl.io.MapData;
+import se.nordicehealth.servlet.impl.io.PacketData;
 
 public class ServletCommunication {
 	
+	private PacketData pd;
 	public ServletCommunication(PPCStringScramble crypto, URL url) {
 		this.crypto = crypto;
 		this.local_url = url;
+		pd = new PacketData(new JSONParser(), new NullLogger());
 	}
 
 	public boolean addUser(String username, String password, String salt, int clinic, String email)
 	{
-		JSONMapData out = new JSONMapData();
-		out.put(_TYPE, AdminTypes.ADD_USER);
-		out.put(_ADMIN, Admin.YES);
-		JSONMapData outData = new JSONMapData();
+		MapData out = pd.getMapData();
+		out.put(AdminPacket._TYPE, AdminPacket._ADD_USER);
+		MapData outData = pd.getMapData();
 
-		JSONMapData details = new JSONMapData();
-		details.put(AdminData.AdminAddUser.Details.CLINIC_ID, Integer.toString(clinic));
-		details.put(AdminData.AdminAddUser.Details.NAME, username);
-		details.put(AdminData.AdminAddUser.Details.PASSWORD, password);
-		details.put(AdminData.AdminAddUser.Details.EMAIL, email);
-		details.put(AdminData.AdminAddUser.Details.SALT, salt);
+		MapData details = pd.getMapData();
+		details.put(AdminPacket.CLINIC_ID, Integer.toString(clinic));
+		details.put(AdminPacket.NAME, username);
+		details.put(AdminPacket.PASSWORD, password);
+		details.put(AdminPacket.EMAIL, email);
+		details.put(AdminPacket.SALT, salt);
 
-		outData.put(AdminData.AdminAddUser.DETAILS, details.toString());
+		outData.put(AdminPacket.DETAILS, details.toString());
 		
-		out.put(_DATA, outData.toString());
-		JSONMapData in = sendMessage(out);
-		JSONMapData inData = new JSONMapData(in.get(_DATA));
+		out.put(AdminPacket._DATA, outData.toString());
+		MapData in = sendMessage(out);
+		MapData inData = pd.getMapData(in.get(AdminPacket._DATA));
 		
-		AdminData.AdminAddUser.Response insert = AdminData.AdminAddUser.Response.FAIL;
+		String insert = AdminPacket.FAIL;
 		try {
-			insert = Constants.getEnum(AdminData.AdminAddUser.Response.values(), inData.get(AdminData.AdminAddUser.RESPONSE));
+			insert = inData.get(AdminPacket.RESPONSE);
 		} catch (NumberFormatException nfe) { }
-		return Constants.equal(AdminData.AdminAddUser.Response.SUCCESS, insert);
+		return insert.equals(AdminPacket.SUCCESS);
 	}
 
 	public boolean addClinic(String clinicName)
 	{
-		JSONMapData out = new JSONMapData();
-		out.put(_TYPE, AdminTypes.ADD_CLINIC);
-		out.put(_ADMIN, Admin.YES);
-		JSONMapData outData = new JSONMapData();
+		MapData out = pd.getMapData();
+		out.put(AdminPacket._TYPE, AdminPacket._ADD_CLINIC);
+		MapData outData = pd.getMapData();
 		
-		outData.put(AdminData.AdminAddClinic.NAME, clinicName);
+		outData.put(AdminPacket.NAME, clinicName);
 
-		out.put(_DATA, outData.toString());
-		JSONMapData in = sendMessage(out);
-		JSONMapData inData = new JSONMapData(in.get(_DATA));
+		out.put(AdminPacket._DATA, outData.toString());
+		MapData in = sendMessage(out);
+		MapData inData = pd.getMapData(in.get(AdminPacket._DATA));
 		
-		AdminData.AdminAddClinic.Response insert = AdminData.AdminAddClinic.Response.FAIL;
+		String insert = AdminPacket.FAIL;
 		try {
-			insert = Constants.getEnum(AdminData.AdminAddClinic.Response.values(), inData.get(AdminData.AdminAddClinic.RESPONSE));
+			insert = inData.get(AdminPacket.RESPONSE);
 		} catch (NumberFormatException nfe) { }
-		return Constants.equal(AdminData.AdminAddClinic.Response.SUCCESS, insert);
+		return insert.equals(AdminPacket.SUCCESS);
 	}
 	
 	public Map<Integer, String> getClinics()
 	{
-		JSONMapData out = new JSONMapData();
-		out.put(_TYPE, AdminTypes.GET_CLINICS);
-		out.put(_ADMIN, Admin.YES);
-		JSONMapData outData = new JSONMapData();
+		MapData out = pd.getMapData();
+		out.put(AdminPacket._TYPE, AdminPacket._GET_CLINICS);
+		MapData outData = pd.getMapData();
 
-		out.put(_DATA, outData.toString());
-		JSONMapData in = sendMessage(out);
-		JSONMapData inData = new JSONMapData(in.get(_DATA));
+		out.put(AdminPacket._DATA, outData.toString());
+		MapData in = sendMessage(out);
+		MapData inData = pd.getMapData(in.get(AdminPacket._DATA));
 		
-		JSONMapData _clinics = new JSONMapData(inData.get(AdminData.AdminGetClinics.CLINICS));
+		MapData _clinics = pd.getMapData(inData.get(AdminPacket.CLINICS));
 		
 		Map<Integer, String> clinic = new TreeMap<Integer, String>();
-		for (Entry<String, String> e : _clinics.jmap.entrySet()) {
+		for (Entry<String, String> e : _clinics.iterable()) {
 			clinic.put(Integer.parseInt(e.getKey()), e.getValue());
 		}
 		return clinic;
@@ -102,66 +96,57 @@ public class ServletCommunication {
 	
 	public User getUser(String username)
 	{
-		JSONMapData out = new JSONMapData();
-		out.put(_TYPE, AdminTypes.GET_USER);
-		out.put(_ADMIN, Admin.YES);
-		JSONMapData outData = new JSONMapData();
+		MapData out = pd.getMapData();
+		out.put(AdminPacket._TYPE, AdminPacket._GET_USER);
+		MapData outData = pd.getMapData();
 		
-		outData.put(AdminData.AdminGetUser.USERNAME, username);
+		outData.put(AdminPacket.USERNAME, username);
 
-		out.put(_DATA, outData.toString());
-		JSONMapData in = sendMessage(out);
-		JSONMapData inData = new JSONMapData(in.get(_DATA));
+		out.put(AdminPacket._DATA, outData.toString());
+		MapData in = sendMessage(out);
+		MapData inData = pd.getMapData(in.get(AdminPacket._DATA));
 		
-		JSONMapData _user = new JSONMapData(inData.get(AdminData.AdminGetUser.USER));
+		MapData _user = pd.getMapData(inData.get(AdminPacket.USER));
 		try {
 			User _usr = new User(crypto);
-			_usr.clinic_id = Integer.parseInt(_user.get(AdminData.AdminGetUser.User.CLINIC_ID));
-			_usr.name = _user.get(AdminData.AdminGetUser.User.USERNAME);
-			_usr.password = _user.get(AdminData.AdminGetUser.User.PASSWORD);
-			_usr.email = _user.get(AdminData.AdminGetUser.User.EMAIL);
-			_usr.salt = _user.get(AdminData.AdminGetUser.User.SALT);
-			AdminData.AdminGetUser.User.UpdatePassword up = Constants.getEnum(AdminData.AdminGetUser.User.UpdatePassword.values(),
-					_user.get(AdminData.AdminGetUser.User.UPDATE_PASSWORD));
-			_usr.update_password = Constants.equal(AdminData.AdminGetUser.User.UpdatePassword.YES, up);
+			_usr.clinic_id = Integer.parseInt(_user.get(AdminPacket.CLINIC_ID));
+			_usr.name = _user.get(AdminPacket.USERNAME);
+			_usr.password = _user.get(AdminPacket.PASSWORD);
+			_usr.email = _user.get(AdminPacket.EMAIL);
+			_usr.salt = _user.get(AdminPacket.SALT);
+			_usr.update_password = _user.get(AdminPacket.UPDATE_PASSWORD).equals(AdminPacket.YES);
 			return _usr;
 		} catch (NullPointerException _e) { return null; } catch (NumberFormatException _e) { return null; }
 	}
 	
 	public boolean respondRegistration(String username, String password, String email)
 	{
-		JSONMapData out = new JSONMapData();
-		out.put(_TYPE, AdminTypes.RSP_REGISTR);
-		out.put(_ADMIN, Admin.YES);
-		JSONMapData outData = new JSONMapData();
+		MapData out = pd.getMapData();
+		out.put(AdminPacket._TYPE, AdminPacket._RSP_REGISTR);
+		MapData outData = pd.getMapData();
 
-		JSONMapData details = new JSONMapData();
-		details.put(AdminData.AdminRespondRegistration.Details.USERNAME, username);
-		details.put(AdminData.AdminRespondRegistration.Details.PASSWORD, password);
-		details.put(AdminData.AdminRespondRegistration.Details.EMAIL, email);
+		MapData details = pd.getMapData();
+		details.put(AdminPacket.USERNAME, username);
+		details.put(AdminPacket.PASSWORD, password);
+		details.put(AdminPacket.EMAIL, email);
 
-		outData.put(AdminData.AdminRespondRegistration.DETAILS, details.toString());
+		outData.put(AdminPacket.DETAILS, details.toString());
 
-		out.put(_DATA, outData.toString());
-		JSONMapData in = sendMessage(out);
-		JSONMapData inData = new JSONMapData(in.get(_DATA));
+		out.put(AdminPacket._DATA, outData.toString());
+		MapData in = sendMessage(out);
+		MapData inData = pd.getMapData(in.get(AdminPacket._DATA));
 		
-		AdminData.AdminRespondRegistration.Response insert = AdminData.AdminRespondRegistration.Response.FAIL;
+		String insert = AdminPacket.FAIL;
 		try {
-			insert = Constants.getEnum(AdminData.AdminRespondRegistration.Response.values(), inData.get(AdminData.AdminRespondRegistration.RESPONSE));
+			insert = inData.get(AdminPacket.RESPONSE);
 		} catch (NumberFormatException nfe) { }
-		return Constants.equal(AdminData.AdminRespondRegistration.Response.SUCCESS, insert);
+		return insert.equals(AdminPacket.SUCCESS);
 	}
 
 	private URL local_url;
 	private PPCStringScramble crypto;
-	private static JSONParser parser;
 	
-	static {
-		parser = new JSONParser();
-	}
-	
-	private JSONMapData sendMessage(JSONMapData obj)
+	private MapData sendMessage(MapData obj)
 	{
 		try {
 			HttpURLConnection c = setupHttpConnection();
@@ -170,7 +155,7 @@ public class ServletCommunication {
 			sendRequest(c, request);
 			String response = receiveResponse(c);
 			//System.out.printf(" IN: '%s'\n", response);
-			return new JSONMapData(response);
+			return pd.getMapData(response);
 		} catch (Exception ex) {
 			ex.printStackTrace();
 			return null;
@@ -200,39 +185,5 @@ public class ServletCommunication {
 		c.setDoInput(true);
 		c.setDoOutput(true);
 		return c;
-	}
-	
-	private static JSONObject getJSONObject(String str)
-	{
-		JSONObject obj = null;
-		try {
-			obj = (JSONObject) parser.parse(str);
-		} catch (Exception ignored) { }
-		return obj;
-	}
-	
-	private static class JSONMapData
-	{
-		JSONObject jobj;
-		Map<String, String> jmap;
-		
-		JSONMapData() {
-			this((JSONObject) null);
-		}
-		
-		JSONMapData(String str) {
-			this(getJSONObject(str));
-		}
-		
-		@SuppressWarnings("unchecked")
-		JSONMapData(JSONObject jobj) {
-			this.jobj = jobj != null ? jobj : new JSONObject();
-			this.jmap = (Map<String, String>) this.jobj;
-		}
-		
-		public String toString() { return jobj.toString(); }
-		void put(Enum<?> k, Enum<?> v) { jmap.put(Integer.toString(k.ordinal()), Integer.toString(v.ordinal())); }
-		void put(Enum<?> k, String v) { jmap.put(Integer.toString(k.ordinal()), v); }
-		String get(Enum<?> k) { return jmap.get(Integer.toString(k.ordinal())); }
 	}
 }

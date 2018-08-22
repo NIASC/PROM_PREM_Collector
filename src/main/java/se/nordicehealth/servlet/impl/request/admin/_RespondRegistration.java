@@ -1,11 +1,7 @@
 package se.nordicehealth.servlet.impl.request.admin;
 
-import static se.nordicehealth.servlet.impl.AdminPacket._DATA;
-import static se.nordicehealth.servlet.impl.AdminPacket._TYPE;
-
 import se.nordicehealth.servlet.core.PPCLogger;
-import se.nordicehealth.servlet.impl.AdminPacket.AdminData;
-import se.nordicehealth.servlet.impl.AdminPacket.AdminTypes;
+import se.nordicehealth.servlet.impl.AdminPacket;
 import se.nordicehealth.servlet.impl.io.IPacketData;
 import se.nordicehealth.servlet.impl.io.MapData;
 import se.nordicehealth.servlet.impl.mail.MailMan;
@@ -22,16 +18,18 @@ public class _RespondRegistration extends RequestProcesser {
 
 	public MapData processRequest(MapData in) {
 		MapData out = packetData.getMapData();
-		out.put(_TYPE, AdminTypes.RSP_REGISTR);
+		out.put(AdminPacket._TYPE, AdminPacket._RSP_REGISTR);
 
 		MapData data = packetData.getMapData();
-		AdminData.AdminRespondRegistration.Response result = AdminData.AdminRespondRegistration.Response.FAIL;
+		String result = AdminPacket.FAIL;
 		try {
-			if (_sendRegResp(packetData.getMapData(in.get(_DATA)))) { result = AdminData.AdminRespondRegistration.Response.SUCCESS; }
+			if (_sendRegResp(packetData.getMapData(in.get(AdminPacket._DATA)))) {
+				result = AdminPacket.SUCCESS;
+			}
 		} catch (Exception e) { }
-		data.put(AdminData.AdminRespondRegistration.RESPONSE, result);
+		data.put(AdminPacket.RESPONSE, result);
 
-		out.put(_DATA, data.toString());
+		out.put(AdminPacket._DATA, data.toString());
 		return out;
 	}
 	
@@ -39,16 +37,16 @@ public class _RespondRegistration extends RequestProcesser {
 	private RegistrationResponse resp;
 	
 	private boolean _sendRegResp(MapData in) throws Exception {
-		MapData details = packetData.getMapData(in.get(AdminData.AdminRespondRegistration.DETAILS));
-		String username = details.get(AdminData.AdminRespondRegistration.Details.USERNAME);
+		MapData details = packetData.getMapData(in.get(AdminPacket.DETAILS));
+		String username = details.get(AdminPacket.USERNAME);
 		if (!validString(username)) {
 			return false;
 		}
-		String password = details.get(AdminData.AdminRespondRegistration.Details.PASSWORD);
+		String password = details.get(AdminPacket.PASSWORD);
 		if (!validString(password)) {
 			return false;
 		}
-		String email = details.get(AdminData.AdminRespondRegistration.Details.EMAIL);
+		String email = details.get(AdminPacket.EMAIL);
 		if (!validString(email) || !email.contains("@")) {
 			return false;
 		}

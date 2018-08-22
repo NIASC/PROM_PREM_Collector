@@ -1,12 +1,8 @@
 package se.nordicehealth.servlet.impl.request.user;
 
-import static se.nordicehealth.common.impl.Packet.DATA;
-import static se.nordicehealth.common.impl.Packet.TYPE;
-
 import java.util.List;
 
-import se.nordicehealth.common.impl.Packet.Data;
-import se.nordicehealth.common.impl.Packet.Types;
+import se.nordicehealth.common.impl.Packet;
 import se.nordicehealth.servlet.core.PPCDatabase;
 import se.nordicehealth.servlet.core.PPCEncryption;
 import se.nordicehealth.servlet.core.PPCLogger;
@@ -29,24 +25,24 @@ public class LoadQResultDates extends LoggedInRequestProcesser {
 
 	public MapData processRequest(MapData in) {
 		MapData out = packetData.getMapData();
-		out.put(TYPE, Types.LOAD_QR_DATE);
+		out.put(Packet.TYPE, Packet.LOAD_QR_DATE);
 
 		MapData data = packetData.getMapData();
 		String result = packetData.getListData().toString();
 		try {
-			result = retrieveQResultDates(packetData.getMapData(in.get(DATA))).toString();
+			result = retrieveQResultDates(packetData.getMapData(in.get(Packet.DATA))).toString();
 		} catch (Exception e) {
 			logger.log("Error retrieveing questionnaire result dates", e);
 		}
-		data.put(Data.LoadQResultDates.DATES, result);
+		data.put(Packet.DATES, result);
 
-		out.put(DATA, data.toString());
+		out.put(Packet.DATA, data.toString());
 		return out;
 	}
 	
 	private ListData retrieveQResultDates(MapData in) throws Exception {
-		MapData inpl = packetData.getMapData(crypto.decrypt(in.get(Data.LoadQResultDates.DETAILS)));
-		long uid = Long.parseLong(inpl.get(Data.LoadQResultDates.Details.UID));
+		MapData inpl = packetData.getMapData(crypto.decrypt(in.get(Packet.DETAILS)));
+		long uid = Long.parseLong(inpl.get(Packet.UID));
 		refreshTimer(uid);
 		User user = db.getUser(um.nameForUID(uid));
 		if (user == null) {

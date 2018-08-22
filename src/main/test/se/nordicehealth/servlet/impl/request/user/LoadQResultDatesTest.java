@@ -30,7 +30,7 @@ public class LoadQResultDatesTest {
 	public void testProcessRequest() {
 		MapData details = requtil.createUserUIDEntry(requtil.login());
 		MapData dataOut = new MapData();
-		dataOut.put(Packet.Data.LoadQResultDates.DETAILS, dbutil.crypto.encrypt(details.toString()));
+		dataOut.put(Packet.DETAILS, dbutil.crypto.encrypt(details.toString()));
 		List<String> datesOut = Arrays.asList("1970-01-01", "1999-12-31", "2015-10-15", "1985-10-15");
 		List<String> datesIn = sendRequest(dataOut, datesOut);
 		Assert.assertEquals(datesOut, datesIn);
@@ -40,7 +40,7 @@ public class LoadQResultDatesTest {
 	public void testProcessRequestNoDates() {
 		MapData details = requtil.createUserUIDEntry(requtil.login());
 		MapData dataOut = new MapData();
-		dataOut.put(Packet.Data.LoadQResultDates.DETAILS, dbutil.crypto.encrypt(details.toString()));
+		dataOut.put(Packet.DETAILS, dbutil.crypto.encrypt(details.toString()));
 		List<String> datesOut = Arrays.asList();
 		List<String> datesIn = sendRequest(dataOut, datesOut);
 		Assert.assertEquals(datesOut, datesIn);
@@ -50,7 +50,7 @@ public class LoadQResultDatesTest {
 	public void testProcessRequestUserNotOnline() {
 		MapData details = requtil.createUserUIDEntry(0L);
 		MapData dataOut = new MapData();
-		dataOut.put(Packet.Data.LoadQResultDates.DETAILS, dbutil.crypto.encrypt(details.toString()));
+		dataOut.put(Packet.DETAILS, dbutil.crypto.encrypt(details.toString()));
 		List<String> datesOut = Arrays.asList("1970-01-01", "1999-12-31", "2015-10-15", "1985-10-15");
 		List<String> datesIn = sendRequest(dataOut, datesOut);
 		Assert.assertNotEquals(datesOut, datesIn);
@@ -58,7 +58,7 @@ public class LoadQResultDatesTest {
 
 	public List<String> sendRequest(MapData dataOut, List<String> datesOut) {
 		MapData out = new MapData();
-		out.put(Packet.TYPE, Packet.Types.LOAD_QR_DATE);
+		out.put(Packet.TYPE, Packet.LOAD_QR_DATE);
 		out.put(Packet.DATA, dataOut.toString());
 		requtil.setNextDatabaseUserCall();
 		requtil.setNextDatabaseDatesString(datesOut);
@@ -67,7 +67,7 @@ public class LoadQResultDatesTest {
 		MapData inData = dbutil.pd.getMapData(in.get(Packet.DATA));
 
 		List<String> datesIn = new ArrayList<String>();
-		ListData dlist = dbutil.pd.getListData(inData.get(Packet.Data.LoadQResultDates.DATES));
+		ListData dlist = dbutil.pd.getListData(inData.get(Packet.DATES));
 		for (String str : dlist.iterable()) {
 			datesIn.add(str);
 		}

@@ -4,7 +4,6 @@ import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 
-import se.nordicehealth.common.impl.Constants;
 import se.nordicehealth.common.impl.Packet;
 import se.nordicehealth.servlet.impl.io.MapData;
 
@@ -23,33 +22,33 @@ public class RequestLogoutTest {
 
 	@Test
 	public void testProcessRequestLoggedIn() {
-		Packet.Data.RequestLogout.Response insert = processRequest(requtil.login());
-        Assert.assertTrue(Constants.equal(Packet.Data.RequestLogout.Response.SUCCESS, insert));
+		String insert = processRequest(requtil.login());
+        Assert.assertEquals(Packet.SUCCESS, insert);
 	}
 
 	@Test
 	public void testProcessRequestNotLoggedIn() {
-		Packet.Data.RequestLogout.Response insert = processRequest(0L);
-        Assert.assertTrue(Constants.equal(Packet.Data.RequestLogout.Response.ERROR, insert));
+		String insert = processRequest(0L);
+        Assert.assertEquals(Packet.ERROR, insert);
 	}
 
-	public Packet.Data.RequestLogout.Response processRequest(long uid) {
+	public String processRequest(long uid) {
 		MapData out = dbutil.pd.getMapData();
-		out.put(Packet.TYPE, Packet.Types.REQ_LOGOUT);
+		out.put(Packet.TYPE, Packet.REQ_LOGOUT);
         MapData dataOut = dbutil.pd.getMapData();
 
 		MapData details = dbutil.pd.getMapData();
-        details.put(Packet.Data.RequestLogout.Details.UID, Long.toString(uid));
-        dataOut.put(Packet.Data.RequestLogout.DETAILS, dbutil.crypto.encrypt(details.toString()));
+        details.put(Packet.UID, Long.toString(uid));
+        dataOut.put(Packet.DETAILS, dbutil.crypto.encrypt(details.toString()));
 
         out.put(Packet.DATA, dataOut.toString());
 		MapData in = processer.processRequest(out);
         MapData inData = dbutil.pd.getMapData(in.get(Packet.DATA));
 
         try {
-        	return Constants.getEnum(Packet.Data.RequestLogout.Response.values(), inData.get(Packet.Data.RequestLogout.RESPONSE));
+        	return inData.get(Packet.RESPONSE);
         } catch (NumberFormatException ignored) {
-            return Packet.Data.RequestLogout.Response.ERROR;
+            return Packet.ERROR;
         }
 	}
 

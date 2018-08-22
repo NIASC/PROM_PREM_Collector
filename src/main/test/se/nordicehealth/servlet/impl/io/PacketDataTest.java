@@ -31,7 +31,7 @@ public class PacketDataTest {
 		MapData md1 = new MapData(new JSONObject());
 		md1.put(Packet.TYPE, "ping");
 		MapData md2 = new MapData(new JSONObject());
-		md2.put(Packet.Data.__NULL__, "test");
+		md2.put(Packet.NULL, "test");
 		md1.put(Packet.DATA, md2.toString());
 		
 		MapData _md1 = pd.getMapData(md1.toString());

@@ -1,13 +1,9 @@
 package se.nordicehealth.servlet.impl.request.user;
 
-import static se.nordicehealth.common.impl.Packet.DATA;
-import static se.nordicehealth.common.impl.Packet.TYPE;
-
 import java.util.ArrayList;
 import java.util.List;
 
-import se.nordicehealth.common.impl.Packet.Data;
-import se.nordicehealth.common.impl.Packet.Types;
+import se.nordicehealth.common.impl.Packet;
 import se.nordicehealth.servlet.core.PPCDatabase;
 import se.nordicehealth.servlet.core.PPCEncryption;
 import se.nordicehealth.servlet.core.PPCLogger;
@@ -38,30 +34,32 @@ public class AddQuestionnaireAnswers extends LoggedInRequestProcesser {
 
 	public MapData processRequest(MapData in) {
 		MapData out = packetData.getMapData();
-		out.put(TYPE, Types.ADD_QANS);
+		out.put(Packet.TYPE, Packet.ADD_QANS);
 
 		MapData data = packetData.getMapData();
-		Data.AddQuestionnaireAnswers.Response result = Data.AddQuestionnaireAnswers.Response.FAIL;
+		String result = Packet.FAIL;
 		try {
-			if (storeQestionnaireAnswers(packetData.getMapData(in.get(DATA)))) { result = Data.AddQuestionnaireAnswers.Response.SUCCESS; }
+			if (storeQestionnaireAnswers(packetData.getMapData(in.get(Packet.DATA)))) {
+				result = Packet.SUCCESS;
+			}
 		} catch (Exception e) { }
-		data.put(Data.AddQuestionnaireAnswers.RESPONSE, result);
+		data.put(Packet.RESPONSE, result);
 
-		out.put(DATA, data.toString());
+		out.put(Packet.DATA, data.toString());
 		return out;
 	}
 	
 	private boolean storeQestionnaireAnswers(MapData in) throws Exception {
-		MapData inpl = packetData.getMapData(crypto.decrypt(in.get(Data.AddQuestionnaireAnswers.DETAILS)));
-		MapData patient = packetData.getMapData(crypto.decrypt(in.get(Data.AddQuestionnaireAnswers.PATIENT)));
+		MapData inpl = packetData.getMapData(crypto.decrypt(in.get(Packet.DETAILS)));
+		MapData patient = packetData.getMapData(crypto.decrypt(in.get(Packet.PATIENT)));
 		
-		long uid = Long.parseLong(inpl.get(Data.AddQuestionnaireAnswers.Details.UID));
+		long uid = Long.parseLong(inpl.get(Packet.UID));
 		refreshTimer(uid);
 		int clinic_id = db.getUser(um.nameForUID(uid)).clinic_id;
 
-		String forename = patient.get(Data.AddQuestionnaireAnswers.Patient.FORENAME);
-		String personalID = locale.formatPersonalID(patient.get(Data.AddQuestionnaireAnswers.Patient.PERSONAL_ID));
-		String surname = patient.get(Data.AddQuestionnaireAnswers.Patient.SURNAME);
+		String forename = patient.get(Packet.FORENAME);
+		String personalID = locale.formatPersonalID(patient.get(Packet.PERSONAL_ID));
+		String surname = patient.get(Packet.SURNAME);
 		if (forename == null || surname == null) {
 			throw new NullPointerException("malformed patient name");
 		}
@@ -72,7 +70,7 @@ public class AddQuestionnaireAnswers extends LoggedInRequestProcesser {
 				forename, personalID, surname);
 
 		List<String> answers = new ArrayList<String>();
-		ListData m = packetData.getListData(in.get(Data.AddQuestionnaireAnswers.QUESTIONS));
+		ListData m = packetData.getListData(in.get(Packet.QUESTIONS));
 		for (String str : m.iterable()) {
 			answers.add(qdbf.getDBFormat(packetData.getMapData(str)));
 		}

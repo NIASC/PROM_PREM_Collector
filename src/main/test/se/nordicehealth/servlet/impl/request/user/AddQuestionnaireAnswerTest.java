@@ -6,10 +6,8 @@ import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 
-import se.nordicehealth.common.impl.Constants;
 import se.nordicehealth.common.impl.Packet;
 import se.nordicehealth.common.impl.Constants.QuestionTypes;
-import se.nordicehealth.common.impl.Packet.Data;
 import se.nordicehealth.servlet.impl.io.ListData;
 import se.nordicehealth.servlet.impl.io.MapData;
 import se.nordicehealth.servlet.impl.request.user.AddQuestionnaireAnswers;
@@ -42,13 +40,13 @@ public class AddQuestionnaireAnswerTest {
 	private MapData createDataEntry(MapData pobj, MapData details, ListData questions) {
         MapData dataOut = new MapData();
         if (details != null) {
-        	dataOut.put(Data.AddQuestionnaireAnswers.DETAILS, dbutil.crypto.encrypt(details.toString()));
+        	dataOut.put(Packet.DETAILS, dbutil.crypto.encrypt(details.toString()));
         }
         if (pobj != null) {
-        	dataOut.put(Data.AddQuestionnaireAnswers.PATIENT, dbutil.crypto.encrypt(pobj.toString()));
+        	dataOut.put(Packet.PATIENT, dbutil.crypto.encrypt(pobj.toString()));
         }
         if (questions != null) {
-        	dataOut.put(Data.AddQuestionnaireAnswers.QUESTIONS, questions.toString());
+        	dataOut.put(Packet.QUESTIONS, questions.toString());
         }
         return dataOut;
 	}
@@ -58,8 +56,8 @@ public class AddQuestionnaireAnswerTest {
 		MapData pobj = requtil.createPatientEntry("kalle", "kula", "101010-0004");
 		MapData details = requtil.createUserUIDEntry(requtil.login());
 		ListData questions = CreateQuestionsEntry();
-		Data.AddQuestionnaireAnswers.Response insert = sendRequest(createDataEntry(pobj, details, questions));
-        Assert.assertTrue(Constants.equal(Data.AddQuestionnaireAnswers.Response.SUCCESS, insert));
+		String insert = sendRequest(createDataEntry(pobj, details, questions));
+        Assert.assertEquals(Packet.SUCCESS, insert);
 	}
 
 	@Test
@@ -67,8 +65,8 @@ public class AddQuestionnaireAnswerTest {
 		MapData pobj = requtil.createPatientEntry("kalle", "kula", "101010-0004");
 		MapData details = requtil.createUserUIDEntry(0L);
 		ListData questions = CreateQuestionsEntry();
-		Data.AddQuestionnaireAnswers.Response insert = sendRequest(createDataEntry(pobj, details, questions));
-        Assert.assertTrue(Constants.equal(Data.AddQuestionnaireAnswers.Response.FAIL, insert));
+		String insert = sendRequest(createDataEntry(pobj, details, questions));
+        Assert.assertEquals(Packet.FAIL, insert);
 	}
 
 	@Test
@@ -76,8 +74,8 @@ public class AddQuestionnaireAnswerTest {
 		MapData pobj = requtil.createPatientEntry("kalle", "kula", "101010-0004");
 		MapData details = dbutil.pd.getMapData();
 		ListData questions = CreateQuestionsEntry();
-		Data.AddQuestionnaireAnswers.Response insert = sendRequest(createDataEntry(pobj, details, questions));
-        Assert.assertTrue(Constants.equal(Data.AddQuestionnaireAnswers.Response.FAIL, insert));
+		String insert = sendRequest(createDataEntry(pobj, details, questions));
+        Assert.assertEquals(Packet.FAIL, insert);
 	}
 
 	@Test
@@ -85,29 +83,29 @@ public class AddQuestionnaireAnswerTest {
 		MapData pobj = requtil.createPatientEntry(null, null, "101010-0004");
 		MapData details = requtil.createUserUIDEntry(requtil.login());
 		ListData questions = CreateQuestionsEntry();
-		Data.AddQuestionnaireAnswers.Response insert = sendRequest(createDataEntry(pobj, details, questions));
-        Assert.assertTrue(Constants.equal(Data.AddQuestionnaireAnswers.Response.FAIL, insert));
+		String insert = sendRequest(createDataEntry(pobj, details, questions));
+        Assert.assertEquals(Packet.FAIL, insert);
 	}
 
 	@Test
 	public void testProcessRequestEmptyPacket() {
-		Data.AddQuestionnaireAnswers.Response insert = sendRequest(dbutil.pd.getMapData());
+		String insert = sendRequest(dbutil.pd.getMapData());
 		Assert.assertEquals(null, dbutil.s.getLastSQLUpdate());
-        Assert.assertTrue(Constants.equal(Data.AddQuestionnaireAnswers.Response.FAIL, insert));
+        Assert.assertEquals(Packet.FAIL, insert);
 	}
 
-	public Data.AddQuestionnaireAnswers.Response sendRequest(MapData dataOut) {
+	public String sendRequest(MapData dataOut) {
 		MapData out = new MapData();
-        out.put(Packet.TYPE, Packet.Types.ADD_QANS);
+        out.put(Packet.TYPE, Packet.ADD_QANS);
         out.put(Packet.DATA, dataOut.toString());
         requtil.setNextDatabaseUserCall();
 		MapData in = processer.processRequest(out);
 		MapData inData = dbutil.pd.getMapData(in.get(Packet.DATA));
 
         try {
-            return Constants.getEnum(Data.AddQuestionnaireAnswers.Response.values(), inData.get(Data.AddQuestionnaireAnswers.RESPONSE));
+            return inData.get(Packet.RESPONSE);
         } catch (NumberFormatException ignored) {
-        	return Data.AddQuestionnaireAnswers.Response.FAIL;
+        	return Packet.FAIL;
         }
 	}
 }

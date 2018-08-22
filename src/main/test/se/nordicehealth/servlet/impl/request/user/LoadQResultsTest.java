@@ -95,10 +95,10 @@ public class LoadQResultsTest {
 		String end = "1999-12-31";
 		
 		MapData dataOut = new MapData();
-		dataOut.put(Packet.Data.LoadQResults.QUESTIONS, questionIDs.toString());
-		dataOut.put(Packet.Data.LoadQResults.DETAILS, dbutil.crypto.encrypt(details.toString()));
-		dataOut.put(Packet.Data.LoadQResults.BEGIN, begin);
-		dataOut.put(Packet.Data.LoadQResults.END, end);
+		dataOut.put(Packet.QUESTIONS, questionIDs.toString());
+		dataOut.put(Packet.DETAILS, dbutil.crypto.encrypt(details.toString()));
+		dataOut.put(Packet.BEGIN, begin);
+		dataOut.put(Packet.END, end);
 		return dataOut;
 	}
 
@@ -170,14 +170,14 @@ public class LoadQResultsTest {
 	
 	public Map<Integer, Map<String, Integer>> sendRequest(MapData dataOut, List<Map<String, String>> dates) {
 		MapData out = new MapData();
-		out.put(Packet.TYPE, Packet.Types.LOAD_QR);
+		out.put(Packet.TYPE, Packet.LOAD_QR);
 		out.put(Packet.DATA, dataOut.toString());
 
 		requtil.setNextDatabaseUserCall();
 		requtil.setNextDatabaseDatesMapStrStr(dates);
 		MapData in = processer.processRequest(out);
 		MapData inData = dbutil.pd.getMapData(in.get(Packet.DATA));
-		return unpackResult(dbutil.pd.getMapData(inData.get(Packet.Data.LoadQResults.RESULTS)));
+		return unpackResult(dbutil.pd.getMapData(inData.get(Packet.RESULTS)));
 	}
 
 }

@@ -7,9 +7,7 @@ import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 
-import se.nordicehealth.common.impl.Constants;
 import se.nordicehealth.servlet.impl.AdminPacket;
-import se.nordicehealth.servlet.impl.AdminPacket.AdminData;
 import se.nordicehealth.servlet.impl.io.MapData;
 import se.nordicehealth.servlet.impl.request.admin._GetUser;
 
@@ -39,23 +37,21 @@ public class GetUserTest {
 	@Test
 	public void testProcessRequest() {
 		MapData in = dbutil.pd.getMapData();
-		in.put(AdminPacket._TYPE, AdminPacket.AdminTypes.GET_USER);
+		in.put(AdminPacket._TYPE, AdminPacket._GET_USER);
 		MapData data = dbutil.pd.getMapData();
-		data.put(AdminData.AdminGetUser.USERNAME, "phony");
+		data.put(AdminPacket.USERNAME, "phony");
 		in.put(AdminPacket._DATA, data.toString());
 		
 		MapData out = processer.processRequest(in);
-		Assert.assertTrue(Constants.equal(AdminPacket.AdminTypes.GET_USER,
-				Constants.getEnum(AdminPacket.AdminTypes.values(), out.get(AdminPacket._TYPE))));
+		Assert.assertEquals(AdminPacket._GET_USER, out.get(AdminPacket._TYPE));
 		MapData data_out = dbutil.pd.getMapData(out.get(AdminPacket._DATA));
-		MapData user = dbutil.pd.getMapData(data_out.get(AdminData.AdminGetUser.USER));
+		MapData user = dbutil.pd.getMapData(data_out.get(AdminPacket.USER));
 		
-		Assert.assertEquals(0, Integer.parseInt(user.get(AdminData.AdminGetUser.User.CLINIC_ID)));
-		Assert.assertEquals("phony", user.get(AdminData.AdminGetUser.User.USERNAME));
-		Assert.assertEquals("s3cr3t", user.get(AdminData.AdminGetUser.User.PASSWORD));
-		Assert.assertEquals("phony@phony.com", user.get(AdminData.AdminGetUser.User.EMAIL));
-		Assert.assertEquals("s4lt", user.get(AdminData.AdminGetUser.User.SALT));
-		Assert.assertTrue(Constants.equal(AdminData.AdminGetUser.User.UpdatePassword.YES,
-				Constants.getEnum(AdminData.AdminGetUser.User.UpdatePassword.values(), user.get(AdminData.AdminGetUser.User.UPDATE_PASSWORD))));
+		Assert.assertEquals(0, Integer.parseInt(user.get(AdminPacket.CLINIC_ID)));
+		Assert.assertEquals("phony", user.get(AdminPacket.USERNAME));
+		Assert.assertEquals("s3cr3t", user.get(AdminPacket.PASSWORD));
+		Assert.assertEquals("phony@phony.com", user.get(AdminPacket.EMAIL));
+		Assert.assertEquals("s4lt", user.get(AdminPacket.SALT));
+		Assert.assertEquals(AdminPacket.YES, user.get(AdminPacket.UPDATE_PASSWORD));
 	}
 }

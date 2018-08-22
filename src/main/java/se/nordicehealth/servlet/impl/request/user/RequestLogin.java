@@ -1,11 +1,6 @@
 package se.nordicehealth.servlet.impl.request.user;
 
-import static se.nordicehealth.common.impl.Packet.DATA;
-import static se.nordicehealth.common.impl.Packet.TYPE;
-
-import se.nordicehealth.common.impl.Constants;
-import se.nordicehealth.common.impl.Packet.Data;
-import se.nordicehealth.common.impl.Packet.Types;
+import se.nordicehealth.common.impl.Packet;
 import se.nordicehealth.servlet.core.PPCDatabase;
 import se.nordicehealth.servlet.core.PPCEncryption;
 import se.nordicehealth.servlet.core.PPCLogger;
@@ -32,35 +27,35 @@ public class RequestLogin extends RequestProcesser {
 
 	public MapData processRequest(MapData in) {
 		MapData out = packetData.getMapData();
-		out.put(TYPE, Types.REQ_LOGIN);
+		out.put(Packet.TYPE, Packet.REQ_LOGIN);
 
 		MapData data = packetData.getMapData();
-		Data.RequestLogin.Response response = Data.RequestLogin.Response.INVALID_DETAILS;
-		Data.RequestLogin.UpdatePassword update_password = Data.RequestLogin.UpdatePassword.NO;
+		String response = Packet.INVALID_DETAILS;
+		String update_password = Packet.NO;
 		String uid = Long.toString(0L);
 		try {
-			UserLogin ret = login(packetData.getMapData(in.get(DATA)));
+			UserLogin ret = login(packetData.getMapData(in.get(Packet.DATA)));
 			response = ret.response;
 			if (ret.user.update_password) {
-				update_password = Data.RequestLogin.UpdatePassword.YES;
+				update_password = Packet.YES;
 			}
-			if (Constants.equal(ret.response, Data.RequestLogin.Response.SUCCESS)) {
+			if (ret.response.equals(Packet.SUCCESS)) {
 				uid = Long.toString(ret.uid);
 			}
 		} catch (Exception e) { }
-		data.put(Data.RequestLogin.RESPONSE, response);
-		data.put(Data.RequestLogin.UPDATE_PASSWORD, update_password);
-		data.put(Data.RequestLogin.UID, uid);
+		data.put(Packet.RESPONSE, response);
+		data.put(Packet.UPDATE_PASSWORD, update_password);
+		data.put(Packet.UID, uid);
 
-		out.put(DATA, data.toString());
+		out.put(Packet.DATA, data.toString());
 		return out;
 	}
 	
 	private UserLogin login(MapData in) throws Exception {
 		UserLogin ret = new UserLogin();
-		MapData inpl = packetData.getMapData(crypto.decrypt(in.get(Data.RequestLogin.DETAILS)));
-		ret.user = db.getUser(inpl.get(Data.RequestLogin.Details.USERNAME));
-		if (!ret.user.passwordMatches(inpl.get(Data.RequestLogin.Details.PASSWORD))) {
+		MapData inpl = packetData.getMapData(crypto.decrypt(in.get(Packet.DETAILS)));
+		ret.user = db.getUser(inpl.get(Packet.USERNAME));
+		if (!ret.user.passwordMatches(inpl.get(Packet.PASSWORD))) {
 			throw new NullPointerException("invalid details");
 		}
 
@@ -77,7 +72,7 @@ public class RequestLogin extends RequestProcesser {
 			}
 		}
 		if (ret.uid == 0L) {
-			ret.response = Data.RequestLogin.Response.FAIL;
+			ret.response = Packet.FAIL;
 		}
 		
 		return ret;
@@ -86,6 +81,6 @@ public class RequestLogin extends RequestProcesser {
 	private class UserLogin {
 		User user;
 		long uid;
-		Data.RequestLogin.Response response;
+		String response;
 	}
 }

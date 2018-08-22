@@ -4,9 +4,7 @@ import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 
-import se.nordicehealth.common.impl.Constants;
 import se.nordicehealth.common.impl.Packet;
-import se.nordicehealth.common.impl.Packet.Data;
 import se.nordicehealth.servlet.impl.io.MapData;
 import se.nordicehealth.servlet.impl.request.user.RequestLogin;
 
@@ -26,27 +24,26 @@ public class RequestLoginTest {
 	@Test
 	public void testProcessRequest() {
 		MapData out = dbutil.pd.getMapData();
-		out.put(Packet.TYPE, Packet.Types.REQ_LOGIN);
+		out.put(Packet.TYPE, Packet.REQ_LOGIN);
 		
 		MapData dataOut = dbutil.pd.getMapData();
-		dataOut.put(Packet.Data.RequestLogin.DETAILS, dbutil.crypto.encrypt(requtil.createDetailsEntry().toString()));
+		dataOut.put(Packet.DETAILS, dbutil.crypto.encrypt(requtil.createDetailsEntry().toString()));
 		out.put(Packet.DATA, dataOut.toString());
 		
 		requtil.setNextDatabaseUserCall();
 		MapData in = processer.processRequest(out);
 		MapData inData = dbutil.pd.getMapData(in.get(Packet.DATA));
 
-		Assert.assertTrue(Constants.equal(Data.RequestLogin.Response.SUCCESS,
-				Constants.getEnum(Data.RequestLogin.Response.values(), inData.get(Data.RequestLogin.RESPONSE))));
+		Assert.assertEquals(Packet.SUCCESS, inData.get(Packet.RESPONSE));
 	}
 
 	@Test
 	public void testProcessRequestNoUIDAvailable() {
 		MapData out = dbutil.pd.getMapData();
-		out.put(Packet.TYPE, Packet.Types.REQ_LOGIN);
+		out.put(Packet.TYPE, Packet.REQ_LOGIN);
 		
 		MapData dataOut = dbutil.pd.getMapData();
-		dataOut.put(Packet.Data.RequestLogin.DETAILS, dbutil.crypto.encrypt(requtil.createDetailsEntry().toString()));
+		dataOut.put(Packet.DETAILS, dbutil.crypto.encrypt(requtil.createDetailsEntry().toString()));
 		out.put(Packet.DATA, dataOut.toString());
 		
 		dbutil.um.setIsAvailableUID(false);
@@ -54,9 +51,8 @@ public class RequestLoginTest {
 		MapData in = processer.processRequest(out);
 		MapData inData = dbutil.pd.getMapData(in.get(Packet.DATA));
 
-		Assert.assertTrue(Constants.equal(Data.RequestLogin.Response.FAIL,
-				Constants.getEnum(Data.RequestLogin.Response.values(), inData.get(Data.RequestLogin.RESPONSE))));
-		Assert.assertEquals(0L, Long.parseLong(inData.get(Data.RequestLogin.UID)));
+		Assert.assertEquals(Packet.FAIL, inData.get(Packet.RESPONSE));
+		Assert.assertEquals(0L, Long.parseLong(inData.get(Packet.UID)));
 	}
 
 }

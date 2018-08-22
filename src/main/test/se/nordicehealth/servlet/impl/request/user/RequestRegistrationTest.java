@@ -12,7 +12,6 @@ import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 
-import se.nordicehealth.common.impl.Constants;
 import se.nordicehealth.common.impl.Packet;
 import se.nordicehealth.servlet.impl.io.MapData;
 import se.nordicehealth.servlet.impl.mail.Credentials;
@@ -46,23 +45,23 @@ public class RequestRegistrationTest {
 	
 	private MapData createDetails(String name, String email, String clinic) {
 		MapData details = dbutil.pd.getMapData();
-        details.put(Packet.Data.RequestRegistration.Details.NAME, name);
-        details.put(Packet.Data.RequestRegistration.Details.EMAIL, email);
-        details.put(Packet.Data.RequestRegistration.Details.CLINIC, clinic);
+        details.put(Packet.NAME, name);
+        details.put(Packet.EMAIL, email);
+        details.put(Packet.CLINIC, clinic);
         return details;
 	}
 
-	public Packet.Data.RequestRegistration.Response processRequest(MapData dataOut) {
+	public String processRequest(MapData dataOut) {
 		MapData out = dbutil.pd.getMapData();
-		out.put(Packet.TYPE, Packet.Types.REQ_REGISTR);
+		out.put(Packet.TYPE, Packet.REQ_REGISTR);
         out.put(Packet.DATA, dataOut.toString());
 		MapData in = processer.processRequest(out);
         MapData inData = dbutil.pd.getMapData(in.get(Packet.DATA));
 
         try {
-            return Constants.getEnum(Packet.Data.RequestRegistration.Response.values(), inData.get(Packet.Data.RequestRegistration.RESPONSE));
+            return inData.get(Packet.RESPONSE);
         } catch (NumberFormatException ignored) {
-            return Packet.Data.RequestRegistration.Response.FAIL;
+            return Packet.FAIL;
         }
 	}
 	
@@ -74,9 +73,9 @@ public class RequestRegistrationTest {
 		
         MapData dataOut = dbutil.pd.getMapData();
         MapData details = createDetails(name, email, clinic);
-        dataOut.put(Packet.Data.RequestRegistration.DETAILS, dbutil.crypto.encrypt(details.toString()));
-        Packet.Data.RequestRegistration.Response insert = processRequest(dataOut);
-        Assert.assertTrue(Constants.equal(Packet.Data.RequestRegistration.Response.SUCCESS, insert));
+        dataOut.put(Packet.DETAILS, dbutil.crypto.encrypt(details.toString()));
+        String insert = processRequest(dataOut);
+        Assert.assertEquals(Packet.SUCCESS, insert);
 	}
 	
 	@Test
@@ -86,11 +85,11 @@ public class RequestRegistrationTest {
 		
         MapData dataOut = dbutil.pd.getMapData();
 		MapData details = dbutil.pd.getMapData();
-        details.put(Packet.Data.RequestRegistration.Details.NAME, name);
-        details.put(Packet.Data.RequestRegistration.Details.EMAIL, email);
-        dataOut.put(Packet.Data.RequestRegistration.DETAILS, dbutil.crypto.encrypt(details.toString()));
-        Packet.Data.RequestRegistration.Response insert = processRequest(dataOut);
-        Assert.assertTrue(Constants.equal(Packet.Data.RequestRegistration.Response.FAIL, insert));
+        details.put(Packet.NAME, name);
+        details.put(Packet.EMAIL, email);
+        dataOut.put(Packet.DETAILS, dbutil.crypto.encrypt(details.toString()));
+        String insert = processRequest(dataOut);
+        Assert.assertEquals(Packet.FAIL, insert);
 	}
 
 }

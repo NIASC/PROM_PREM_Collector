@@ -1,11 +1,6 @@
 package se.nordicehealth.servlet.impl.request.user;
 
-import static se.nordicehealth.common.impl.Packet.DATA;
-import static se.nordicehealth.common.impl.Packet.TYPE;
-
-import se.nordicehealth.common.impl.Constants;
-import se.nordicehealth.common.impl.Packet.Data;
-import se.nordicehealth.common.impl.Packet.Types;
+import se.nordicehealth.common.impl.Packet;
 import se.nordicehealth.servlet.core.PPCDatabase;
 import se.nordicehealth.servlet.core.PPCEncryption;
 import se.nordicehealth.servlet.core.PPCLogger;
@@ -33,33 +28,33 @@ public class SetPassword extends LoggedInRequestProcesser {
 
 	public MapData processRequest(MapData in) {
 		MapData out = packetData.getMapData();
-		out.put(TYPE, Types.SET_PASSWORD);
+		out.put(Packet.TYPE, Packet.SET_PASSWORD);
 
 		MapData data = packetData.getMapData();
-		Data.SetPassword.Response result = Data.SetPassword.Response.ERROR;
+		String result = Packet.ERROR;
 		try {
-			result = storePassword(packetData.getMapData(in.get(DATA)));
+			result = storePassword(packetData.getMapData(in.get(Packet.DATA)));
 		} catch (Exception e) { }
-		data.put(Data.SetPassword.RESPONSE, result);
+		data.put(Packet.RESPONSE, result);
 
-		out.put(DATA, data.toString());
+		out.put(Packet.DATA, data.toString());
 		return out;
 	}
 	
-	private Data.SetPassword.Response storePassword(MapData in) throws Exception {
-		MapData inpl = packetData.getMapData(crypto.decrypt(in.get(Data.SetPassword.DETAILS)));
-		long uid = Long.parseLong(inpl.get(Data.SetPassword.Details.UID));
+	private String storePassword(MapData in) throws Exception {
+		MapData inpl = packetData.getMapData(crypto.decrypt(in.get(Packet.DETAILS)));
+		long uid = Long.parseLong(inpl.get(Packet.UID));
 		refreshTimer(uid);
 		String name = um.nameForUID(uid);
-		String oldPass = inpl.get(Data.SetPassword.Details.OLD_PASSWORD);
-		String newPass1 = inpl.get(Data.SetPassword.Details.NEW_PASSWORD1);
-		String newPass2 = inpl.get(Data.SetPassword.Details.NEW_PASSWORD2);
+		String oldPass = inpl.get(Packet.OLD_PASSWORD);
+		String newPass1 = inpl.get(Packet.NEW_PASSWORD1);
+		String newPass2 = inpl.get(Packet.NEW_PASSWORD2);
 
 		String newSalt = encryption.generateNewSalt();
 		
 		User user = db.getUser(name);
-		Data.SetPassword.Response status = pwdHandle.newPassError(user, oldPass, newPass1, newPass2);
-		if (Constants.equal(status, Data.SetPassword.Response.SUCCESS)) {
+		String status = pwdHandle.newPassError(user, oldPass, newPass1, newPass2);
+		if (status.equals(Packet.SUCCESS)) {
 			db.setPassword(name, user.hashWithSalt(oldPass),
 					encryption.hashMessage(newPass1, newSalt), newSalt);
 		}

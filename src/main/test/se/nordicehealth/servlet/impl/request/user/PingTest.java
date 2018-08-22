@@ -4,9 +4,7 @@ import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 
-import se.nordicehealth.common.impl.Constants;
 import se.nordicehealth.common.impl.Packet;
-import se.nordicehealth.common.impl.Packet.Data;
 import se.nordicehealth.servlet.impl.io.MapData;
 import se.nordicehealth.servlet.impl.request.user.Ping;
 
@@ -26,31 +24,31 @@ public class PingTest {
 	@Test
 	public void testProcessRequest() {
 		MapData dataOut = dbutil.pd.getMapData();
-		dataOut.put(Packet.Data.Ping.DETAILS, dbutil.crypto.encrypt(requtil.createUserUIDEntry(requtil.login()).toString()));
-		Data.Ping.Response response = sendRequest(dataOut);
-		Assert.assertTrue(Constants.equal(Data.Ping.Response.SUCCESS, response));
+		dataOut.put(Packet.DETAILS, dbutil.crypto.encrypt(requtil.createUserUIDEntry(requtil.login()).toString()));
+		String response = sendRequest(dataOut);
+		Assert.assertEquals(Packet.SUCCESS, response);
 	}
 
 	@Test
 	public void testProcessRequestNotOnline() {
 		MapData dataOut = dbutil.pd.getMapData();
-		dataOut.put(Packet.Data.Ping.DETAILS, dbutil.crypto.encrypt(requtil.createUserUIDEntry(0L).toString()));
-		Data.Ping.Response response = sendRequest(dataOut);
-		Assert.assertTrue(Constants.equal(Data.Ping.Response.NOT_ONLINE, response));
+		dataOut.put(Packet.DETAILS, dbutil.crypto.encrypt(requtil.createUserUIDEntry(0L).toString()));
+		String response = sendRequest(dataOut);
+		Assert.assertEquals(Packet.NOT_ONLINE, response);
 	}
 
-	public Data.Ping.Response sendRequest(MapData dataOut) {
+	public String sendRequest(MapData dataOut) {
 		MapData out = dbutil.pd.getMapData();
-		out.put(Packet.TYPE, Packet.Types.PING);
+		out.put(Packet.TYPE, Packet.PING);
 		out.put(Packet.DATA, dataOut.toString());
 
 		MapData in = processer.processRequest(out);
 		MapData inData = dbutil.pd.getMapData(in.get(Packet.DATA));
 
         try {
-        	return Constants.getEnum(Data.Ping.Response.values(), inData.get(Data.Ping.RESPONSE));
+        	return inData.get(Packet.RESPONSE);
         } catch (NumberFormatException ignored) {
-        	return Data.Ping.Response.FAIL;
+        	return Packet.FAIL;
         }
 	}
 

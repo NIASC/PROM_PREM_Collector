@@ -1,231 +1,65 @@
 package se.nordicehealth.common.impl;
 
-public enum Packet {
-	__NULL__,
-	TYPE,
-	DATA;
+public class Packet {
+	public static final String
+	NULL = "NULL";
+	
+	public static final String
+	TYPE = "TYPE",
+	DATA = "DATA";
 
-	public enum Types {
-		__NULL__,
-		PING,
-		VALIDATE_PID,
-		ADD_QANS,
-		SET_PASSWORD,
-		LOAD_Q,
-		LOAD_QR_DATE,
-		LOAD_QR,
-		REQ_REGISTR,
-		REQ_LOGIN,
-		REQ_LOGOUT;
-	}
-
-	public enum Data {
-		__NULL__;
-
-		public enum Ping {
-			__NULL__,
-			RESPONSE,
-			DETAILS;
-
-			public enum Details {
-				__NULL__,
-				UID
-			}
-
-			public enum Response {
-				__NULL__,
-				FAIL,
-				SUCCESS,
-				NOT_ONLINE
-			}
-		} // Ping
-
-		public enum ValidatePatientID {
-			__NULL__,
-			RESPONSE,
-			PATIENT,
-			DETAIL;
-
-			public enum Details {
-				__NULL__,
-				UID
-			}
-
-			public enum Patient {
-				__NULL__,
-				PERSONAL_ID
-			}
-
-			public enum Response {
-				__NULL__,
-				FAIL,
-				SUCCESS
-			}
-		} // ValidatePatientID
-
-		public enum AddQuestionnaireAnswers {
-			__NULL__,
-			RESPONSE,
-			DETAILS,
-			PATIENT,
-			QUESTIONS;
-
-			public enum Details {
-				__NULL__,
-				UID
-			}
-
-			public enum Patient {
-				__NULL__,
-				FORENAME,
-				SURNAME,
-				PERSONAL_ID
-			}
-
-			public enum Response {
-				__NULL__,
-				FAIL,
-				SUCCESS
-			}
-		} // AddQuestionnaireAnswers
-
-		public enum SetPassword {
-			__NULL__,
-			RESPONSE,
-			DETAILS;
-
-			public enum Details {
-				__NULL__,
-				UID,
-				OLD_PASSWORD,
-				NEW_PASSWORD1,
-				NEW_PASSWORD2
-			}
-
-			public enum Response {
-				__NULL__,
-				ERROR,
-				SUCCESS,
-				INVALID_DETAILS,
-				MISMATCH_NEW,
-				PASSWORD_INVALID_LENGTH,
-				PASSWORD_SIMPLE
-			}
-		} // SetPassword
-
-		public enum LoadQuestions {
-			__NULL__,
-			QUESTIONS;
-
-			public enum Question {
-				__NULL__,
-				OPTIONS,
-				TYPE,
-				ID,
-				QUESTION,
-				DESCRIPTION,
-				OPTIONAL,
-				MAX_VAL,
-				MIN_VAL;
-
-				public enum Optional {
-					__NULL__,
-					YES,
-					NO
-				}
-			}
-		} // LoadQuestions
-
-		public enum LoadQResultDates {
-			__NULL__,
-			DATES,
-			DETAILS;
-
-			public enum Details {
-				__NULL__,
-				UID
-			}
-		} // LoadQResultDates
-
-		public enum LoadQResults {
-			__NULL__,
-			RESULTS,
-			QUESTIONS,
-			DETAILS,
-			BEGIN,
-			END;
-
-			public enum Details {
-				__NULL__,
-				UID
-			}
-		} // LoadQResults
-
-		public enum RequestRegistration {
-			__NULL__,
-			RESPONSE,
-			DETAILS;
-
-			public enum Details {
-				__NULL__,
-				NAME,
-				EMAIL,
-				CLINIC
-			}
-
-			public enum Response {
-				__NULL__,
-				FAIL,
-				SUCCESS
-			}
-		} // RequestRegistration
-
-		public enum RequestLogin {
-			__NULL__,
-			RESPONSE,
-			UPDATE_PASSWORD,
-			UID,
-			DETAILS;
-
-			public enum Response {
-				__NULL__,
-				ERROR,
-				FAIL,
-				SUCCESS,
-				SERVER_FULL,
-				ALREADY_ONLINE,
-				INVALID_DETAILS,
-				UPDATE_PASSWORD
-			}
-
-			public enum Details {
-				__NULL__,
-				USERNAME,
-				PASSWORD
-			}
-
-			public enum UpdatePassword {
-				__NULL__,
-				YES,
-				NO
-			}
-		} // RequestLogin
-
-		public enum RequestLogout {
-			__NULL__,
-			RESPONSE,
-			DETAILS;
-
-			public enum Response {
-				__NULL__,
-				ERROR,
-				SUCCESS
-			}
-
-			public enum Details {
-				__NULL__,
-				UID
-			}
-		} // RequestLogout
-	} // Packets
+	public static final String
+	PING = "PING",
+	VALIDATE_PID = "VALIDATE_PID",
+	ADD_QANS = "ADD_QANS",
+	SET_PASSWORD = "SET_PASSWORD",
+	LOAD_Q = "LOAD_Q",
+	LOAD_QR_DATE = "LOAD_QR_DATE",
+	LOAD_QR = "LOAD_QR",
+	REQ_REGISTR = "REQ_REGISTR",
+	REQ_LOGIN = "REQ_LOGIN",
+	REQ_LOGOUT = "REQ_LOGOUT";
+	
+	public static final String
+	RESPONSE = "RESPONSE",
+	DETAILS = "DETAILS",
+	UID = "UID",
+	FAIL = "FAIL",
+	SUCCESS = "SUCCESS",
+	NOT_ONLINE = "NOT_ONLINE",
+	PATIENT = "PATIENT",
+	DETAIL = "DETAIL",
+	PERSONAL_ID = "PERSONAL_ID",
+	QUESTIONS = "QUESTIONS",
+	FORENAME = "FORENAME",
+	SURNAME = "SURNAME",
+	OLD_PASSWORD = "OLD_PASSWORD",
+	NEW_PASSWORD1 = "NEW_PASSWORD1",
+	NEW_PASSWORD2 = "NEW_PASSWORD2",
+	ERROR = "ERROR",
+	INVALID_DETAILS = "INVALID_DETAILS",
+	MISMATCH_NEW = "MISMATCH_NEW",
+	PASSWORD_INVALID_LENGTH = "PASSWORD_INVALID_LENGTH",
+	PASSWORD_SIMPLE = "PASSWORD_SIMPLE",
+	OPTIONS = "OPTIONS",
+	ID = "ID",
+	QUESTION = "QUESTION",
+	DESCRIPTION = "DESCRIPTION",
+	OPTIONAL = "OPTIONAL",
+	MAX_VAL = "MAX_VAL",
+	MIN_VAL = "MIN_VAL",
+	YES = "YES",
+	NO = "NO",
+	DATES = "DATES",
+	RESULTS = "RESULTS",
+	BEGIN = "BEGIN",
+	END = "END",
+	UPDATE_PASSWORD = "UPDATE_PASSWORD",
+	SERVER_FULL = "SERVER_FULL",
+	ALREADY_ONLINE = "ALREADY_ONLINE",
+	USERNAME = "USERNAME",
+	PASSWORD = "PASSWORD",
+	NAME = "NAME",
+	EMAIL = "EMAIL",
+	CLINIC = "CLINIC";
 }

@@ -4,27 +4,27 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.regex.Pattern;
 
-import se.nordicehealth.common.impl.Packet.Data;
+import se.nordicehealth.common.impl.Packet;
 import se.nordicehealth.servlet.core.PPCPasswordValidation;
 
 public class PasswordHandle implements PPCPasswordValidation
 {
-	public Data.SetPassword.Response newPassError(User user,
+	public String newPassError(User user,
 			String oldPass, String newPass1, String newPass2)
 	{
 		if (user == null || !user.passwordMatches(oldPass)) {
-			return Data.SetPassword.Response.INVALID_DETAILS;
+			return Packet.INVALID_DETAILS;
 		}
 		if (!newPass1.equals(newPass2)) {
-			return Data.SetPassword.Response.MISMATCH_NEW;
+			return Packet.MISMATCH_NEW;
 		}
 		int ret = validatePassword(newPass1);
 		if (ret < 0) {
-			return Data.SetPassword.Response.PASSWORD_INVALID_LENGTH;
+			return Packet.PASSWORD_INVALID_LENGTH;
 		} else if (ret == 0) {
-			return Data.SetPassword.Response.PASSWORD_SIMPLE;
+			return Packet.PASSWORD_SIMPLE;
 		} else {
-			return Data.SetPassword.Response.SUCCESS;
+			return Packet.SUCCESS;
 		}
 	}
 	

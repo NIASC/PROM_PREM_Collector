@@ -1,8 +1,5 @@
 package se.nordicehealth.servlet.impl.request.user;
 
-import static se.nordicehealth.common.impl.Packet.DATA;
-import static se.nordicehealth.common.impl.Packet.TYPE;
-
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
@@ -10,8 +7,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 
-import se.nordicehealth.common.impl.Packet.Data;
-import se.nordicehealth.common.impl.Packet.Types;
+import se.nordicehealth.common.impl.Packet;
 import se.nordicehealth.servlet.core.PPCDatabase;
 import se.nordicehealth.servlet.core.PPCEncryption;
 import se.nordicehealth.servlet.core.PPCLogger;
@@ -39,27 +35,27 @@ public class LoadQResults extends LoggedInRequestProcesser {
 
 	public MapData processRequest(MapData in) {
 		MapData out = packetData.getMapData();
-		out.put(TYPE, Types.LOAD_QR);
+		out.put(Packet.TYPE, Packet.LOAD_QR);
 
 		MapData data = packetData.getMapData();
 		String result = packetData.getMapData().toString();
 		try {
-			result = retrieveQResults(packetData.getMapData(in.get(DATA))).toString();
+			result = retrieveQResults(packetData.getMapData(in.get(Packet.DATA))).toString();
 		} catch (Exception e) {
 			logger.log("Error retrieveing questionnaire results", e);
 		}
-		data.put(Data.LoadQResults.RESULTS, result);
+		data.put(Packet.RESULTS, result);
 
-		out.put(DATA, data.toString());
+		out.put(Packet.DATA, data.toString());
 		return out;
 	}
 	
 	private MapData retrieveQResults(MapData in) throws Exception {
-		MapData inpl = packetData.getMapData(crypto.decrypt(in.get(Data.LoadQResults.DETAILS)));
-		long uid = Long.parseLong(inpl.get(Data.LoadQResults.Details.UID));
+		MapData inpl = packetData.getMapData(crypto.decrypt(in.get(Packet.DETAILS)));
+		long uid = Long.parseLong(inpl.get(Packet.UID));
 		refreshTimer(uid);
 		User _user = db.getUser(um.nameForUID(uid));
-		ListData questions = packetData.getListData(in.get(Data.LoadQResults.QUESTIONS));
+		ListData questions = packetData.getListData(in.get(Packet.QUESTIONS));
 		List<Integer> qlist = new ArrayList<Integer>();
 		for (String str : questions.iterable()) {
 			qlist.add(Integer.parseInt(str));
@@ -67,8 +63,8 @@ public class LoadQResults extends LoggedInRequestProcesser {
 		
 		List<Map<Integer, String>> _results = db.loadQuestionResults(
 				_user.clinic_id, qlist,
-				getDate(in.get(Data.LoadQResults.BEGIN)),
-				getDate(in.get(Data.LoadQResults.END)));
+				getDate(in.get(Packet.BEGIN)),
+				getDate(in.get(Packet.END)));
 		
 		if (_results.size() < 5) {
 			logger.log(String.format("Attempted to load %d endries which is less than 5 entries from database", _results.size()));

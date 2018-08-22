@@ -12,10 +12,8 @@ import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 
-import se.nordicehealth.common.impl.Constants;
 import se.nordicehealth.servlet.LoggerForTesting;
 import se.nordicehealth.servlet.impl.AdminPacket;
-import se.nordicehealth.servlet.impl.AdminPacket.AdminData;
 import se.nordicehealth.servlet.impl.io.MapData;
 import se.nordicehealth.servlet.impl.mail.Credentials;
 import se.nordicehealth.servlet.impl.mail.IMailConfig;
@@ -51,43 +49,39 @@ public class RespondRegistrationTest {
 		processer = new _RespondRegistration(dbutil.pd, dbutil.logger, mm, rr);
 
 		details = dbutil.pd.getMapData();
-		details.put(AdminData.AdminRespondRegistration.Details.USERNAME, "phony");
-		details.put(AdminData.AdminRespondRegistration.Details.PASSWORD, "s3cr3t");
-		details.put(AdminData.AdminRespondRegistration.Details.EMAIL, "phony@phony.com");
+		details.put(AdminPacket.USERNAME, "phony");
+		details.put(AdminPacket.PASSWORD, "s3cr3t");
+		details.put(AdminPacket.EMAIL, "phony@phony.com");
 		
 	}
 
 	@Test
 	public void testProcessRequest() {
 		MapData in = dbutil.pd.getMapData();
-		in.put(AdminPacket._TYPE, AdminPacket.AdminTypes.RSP_REGISTR);
+		in.put(AdminPacket._TYPE, AdminPacket._RSP_REGISTR);
 		MapData data_in = dbutil.pd.getMapData();
-		data_in.put(AdminData.AdminRespondRegistration.DETAILS, details.toString());
+		data_in.put(AdminPacket.DETAILS, details.toString());
 		in.put(AdminPacket._DATA, data_in.toString());
 		
 		MapData out = processer.processRequest(in);
-		Assert.assertTrue(Constants.equal(AdminPacket.AdminTypes.RSP_REGISTR,
-				Constants.getEnum(AdminPacket.AdminTypes.values(), out.get(AdminPacket._TYPE))));
+		Assert.assertEquals(AdminPacket._RSP_REGISTR, out.get(AdminPacket._TYPE));
 		MapData data_out = dbutil.pd.getMapData(out.get(AdminPacket._DATA));
-		Assert.assertTrue(Constants.equal(AdminData.AdminRespondRegistration.Response.SUCCESS,
-				Constants.getEnum(AdminData.AdminRespondRegistration.Response.values(), data_out.get(AdminData.AdminRespondRegistration.RESPONSE))));
+		Assert.assertEquals(AdminPacket.SUCCESS, data_out.get(AdminPacket.RESPONSE));
 	}
 
 	@Test
 	public void testProcessRequestInvalidEmail() {
 		MapData in = dbutil.pd.getMapData();
-		in.put(AdminPacket._TYPE, AdminPacket.AdminTypes.RSP_REGISTR);
+		in.put(AdminPacket._TYPE, AdminPacket._RSP_REGISTR);
 		MapData data_in = dbutil.pd.getMapData();
-		details.put(AdminData.AdminRespondRegistration.Details.EMAIL, "phony.com");
-		data_in.put(AdminData.AdminRespondRegistration.DETAILS, details.toString());
+		details.put(AdminPacket.EMAIL, "phony.com");
+		data_in.put(AdminPacket.DETAILS, details.toString());
 		in.put(AdminPacket._DATA, data_in.toString());
 		
 		MapData out = processer.processRequest(in);
-		Assert.assertTrue(Constants.equal(AdminPacket.AdminTypes.RSP_REGISTR,
-				Constants.getEnum(AdminPacket.AdminTypes.values(), out.get(AdminPacket._TYPE))));
+		Assert.assertEquals(AdminPacket._RSP_REGISTR, out.get(AdminPacket._TYPE));
 		MapData data_out = dbutil.pd.getMapData(out.get(AdminPacket._DATA));
-		Assert.assertTrue(Constants.equal(AdminData.AdminRespondRegistration.Response.FAIL,
-				Constants.getEnum(AdminData.AdminRespondRegistration.Response.values(), data_out.get(AdminData.AdminRespondRegistration.RESPONSE))));
+		Assert.assertEquals(AdminPacket.FAIL, data_out.get(AdminPacket.RESPONSE));
 	}
 
 }

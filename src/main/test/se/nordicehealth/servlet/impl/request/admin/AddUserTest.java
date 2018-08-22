@@ -7,9 +7,7 @@ import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 
-import se.nordicehealth.common.impl.Constants;
 import se.nordicehealth.servlet.impl.AdminPacket;
-import se.nordicehealth.servlet.impl.AdminPacket.AdminData;
 import se.nordicehealth.servlet.impl.io.MapData;
 import se.nordicehealth.servlet.impl.request.admin._AddUser;
 
@@ -33,80 +31,72 @@ public class AddUserTest {
 		dbutil.rs.setNumberOfAvailableNextCalls(1);
 
 		details = dbutil.pd.getMapData();
-		details.put(AdminPacket.AdminData.AdminAddUser.Details.CLINIC_ID, 1);
-		details.put(AdminPacket.AdminData.AdminAddUser.Details.EMAIL, "example@phony.com");
-		details.put(AdminPacket.AdminData.AdminAddUser.Details.NAME, "phony name");
-		details.put(AdminPacket.AdminData.AdminAddUser.Details.PASSWORD, "s3cr3t");
-		details.put(AdminPacket.AdminData.AdminAddUser.Details.SALT, "s4lt");
+		details.put(AdminPacket.CLINIC_ID, 1);
+		details.put(AdminPacket.EMAIL, "example@phony.com");
+		details.put(AdminPacket.NAME, "phony name");
+		details.put(AdminPacket.PASSWORD, "s3cr3t");
+		details.put(AdminPacket.SALT, "s4lt");
 	}
 
 	@Test
 	public void testProcessRequest() {
 		MapData in = dbutil.pd.getMapData();
-		in.put(AdminPacket._TYPE, AdminPacket.AdminTypes.ADD_USER);
+		in.put(AdminPacket._TYPE, AdminPacket._ADD_USER);
 		MapData data = dbutil.pd.getMapData();
 		// default details
-		data.put(AdminPacket.AdminData.AdminAddUser.DETAILS, details.toString());
+		data.put(AdminPacket.DETAILS, details.toString());
 		in.put(AdminPacket._DATA, data.toString());
 		
 		MapData out = processer.processRequest(in);
 
-		Assert.assertTrue(Constants.equal(AdminPacket.AdminTypes.ADD_USER,
-				Constants.getEnum(AdminPacket.AdminTypes.values(), out.get(AdminPacket._TYPE))));
+		Assert.assertEquals(AdminPacket._ADD_USER, out.get(AdminPacket._TYPE));
 		MapData response = dbutil.pd.getMapData(out.get(AdminPacket._DATA));
-		Assert.assertTrue(Constants.equal(AdminData.AdminAddUser.Response.SUCCESS,
-				Constants.getEnum(AdminData.AdminAddUser.Response.values(), response.get(AdminData.AdminAddUser.RESPONSE))));
+		Assert.assertEquals(AdminPacket.SUCCESS, response.get(AdminPacket.RESPONSE));
 	}
 
 	@Test
 	public void testProcessRequestInvalidEmail() {
 		MapData in = dbutil.pd.getMapData();
-		in.put(AdminPacket._TYPE, AdminPacket.AdminTypes.ADD_USER);
+		in.put(AdminPacket._TYPE, AdminPacket._ADD_USER);
 		MapData data = dbutil.pd.getMapData();
-		details.put(AdminPacket.AdminData.AdminAddUser.Details.EMAIL, "phony.com");
-		data.put(AdminPacket.AdminData.AdminAddUser.DETAILS, details.toString());
+		details.put(AdminPacket.EMAIL, "phony.com");
+		data.put(AdminPacket.DETAILS, details.toString());
 		in.put(AdminPacket._DATA, data.toString());
 
 		MapData out = processer.processRequest(in);
-		Assert.assertTrue(Constants.equal(AdminPacket.AdminTypes.ADD_USER,
-				Constants.getEnum(AdminPacket.AdminTypes.values(), out.get(AdminPacket._TYPE))));
+		Assert.assertEquals(AdminPacket._ADD_USER, out.get(AdminPacket._TYPE));
 		MapData response = dbutil.pd.getMapData(out.get(AdminPacket._DATA));
-		Assert.assertTrue(Constants.equal(AdminData.AdminAddUser.Response.FAIL,
-				Constants.getEnum(AdminData.AdminAddUser.Response.values(), response.get(AdminData.AdminAddUser.RESPONSE))));
+		Assert.assertEquals(AdminPacket.FAIL, response.get(AdminPacket.RESPONSE));
 	}
 
 	@Test
 	public void testProcessRequestInvalidClinic() {
 		MapData in = dbutil.pd.getMapData();
-		in.put(AdminPacket._TYPE, AdminPacket.AdminTypes.ADD_USER);
+		in.put(AdminPacket._TYPE, AdminPacket._ADD_USER);
 		MapData data = dbutil.pd.getMapData();
-		details.put(AdminPacket.AdminData.AdminAddUser.Details.CLINIC_ID, 2);
-		data.put(AdminPacket.AdminData.AdminAddUser.DETAILS, details.toString());
+		details.put(AdminPacket.CLINIC_ID, 2);
+		data.put(AdminPacket.DETAILS, details.toString());
 		in.put(AdminPacket._DATA, data.toString());
 
 		MapData out = processer.processRequest(in);
-		Assert.assertTrue(Constants.equal(AdminPacket.AdminTypes.ADD_USER,
-				Constants.getEnum(AdminPacket.AdminTypes.values(), out.get(AdminPacket._TYPE))));
+		Assert.assertEquals(AdminPacket._ADD_USER, out.get(AdminPacket._TYPE));
 		MapData response = dbutil.pd.getMapData(out.get(AdminPacket._DATA));
-		Assert.assertTrue(Constants.equal(AdminData.AdminAddUser.Response.FAIL,
-				Constants.getEnum(AdminData.AdminAddUser.Response.values(), response.get(AdminData.AdminAddUser.RESPONSE))));
+		Assert.assertEquals(AdminPacket.FAIL, response.get(AdminPacket.RESPONSE));
 	}
 
 	@Test
 	public void testProcessRequestEmptyName() {
 		MapData in = dbutil.pd.getMapData();
-		in.put(AdminPacket._TYPE, AdminPacket.AdminTypes.ADD_USER);
+		in.put(AdminPacket._TYPE, AdminPacket._ADD_USER);
 		MapData data = dbutil.pd.getMapData();
-		details.put(AdminPacket.AdminData.AdminAddUser.Details.NAME, " ");
-		data.put(AdminPacket.AdminData.AdminAddUser.DETAILS, details.toString());
+		details.put(AdminPacket.NAME, " ");
+		data.put(AdminPacket.DETAILS, details.toString());
 		in.put(AdminPacket._DATA, data.toString());
 
 		MapData out = processer.processRequest(in);
-		Assert.assertTrue(Constants.equal(AdminPacket.AdminTypes.ADD_USER,
-				Constants.getEnum(AdminPacket.AdminTypes.values(), out.get(AdminPacket._TYPE))));
+		Assert.assertEquals(AdminPacket._ADD_USER, out.get(AdminPacket._TYPE));
 		MapData response = dbutil.pd.getMapData(out.get(AdminPacket._DATA));
-		Assert.assertTrue(Constants.equal(AdminData.AdminAddUser.Response.FAIL,
-				Constants.getEnum(AdminData.AdminAddUser.Response.values(), response.get(AdminData.AdminAddUser.RESPONSE))));
+		Assert.assertEquals(AdminPacket.FAIL, response.get(AdminPacket.RESPONSE));
 	}
 
 }

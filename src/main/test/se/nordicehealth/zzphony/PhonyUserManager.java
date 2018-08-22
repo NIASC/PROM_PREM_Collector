@@ -1,6 +1,6 @@
 package se.nordicehealth.zzphony;
 
-import se.nordicehealth.common.impl.Packet.Data.RequestLogin.Response;
+import se.nordicehealth.common.impl.Packet;
 import se.nordicehealth.servlet.core.PPCUserManager;
 
 public class PhonyUserManager implements PPCUserManager {
@@ -32,9 +32,9 @@ public class PhonyUserManager implements PPCUserManager {
 	}
 
 	@Override
-	public Response addUserToListOfOnline(String username, long uid) {
+	public String addUserToListOfOnline(String username, long uid) {
 		// TODO Auto-generated method stub
-		return Response.SUCCESS;
+		return Packet.SUCCESS;
 	}
 
 	@Override

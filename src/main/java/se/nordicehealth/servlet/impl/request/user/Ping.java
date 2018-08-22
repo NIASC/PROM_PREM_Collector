@@ -1,10 +1,6 @@
 package se.nordicehealth.servlet.impl.request.user;
 
-import static se.nordicehealth.common.impl.Packet.DATA;
-import static se.nordicehealth.common.impl.Packet.TYPE;
-
-import se.nordicehealth.common.impl.Packet.Data;
-import se.nordicehealth.common.impl.Packet.Types;
+import se.nordicehealth.common.impl.Packet;
 import se.nordicehealth.servlet.core.PPCEncryption;
 import se.nordicehealth.servlet.core.PPCLogger;
 import se.nordicehealth.servlet.core.PPCUserManager;
@@ -23,25 +19,25 @@ public class Ping extends IdleRequestProcesser {
 	@Override
 	public MapData processRequest(MapData in) {
 		MapData out = packetData.getMapData();
-		out.put(TYPE, Types.PING);
+		out.put(Packet.TYPE, Packet.PING);
 
 		MapData data = packetData.getMapData();
-		Data.Ping.Response result = Data.Ping.Response.FAIL;
+		String result = Packet.FAIL;
 		try {
-			result = processPing(packetData.getMapData(in.get(DATA)));
+			result = processPing(packetData.getMapData(in.get(Packet.DATA)));
 		} catch (Exception ignored) { }
-		data.put(Data.Ping.RESPONSE, result);
+		data.put(Packet.RESPONSE, result);
 
-		out.put(DATA, data.toString());
+		out.put(Packet.DATA, data.toString());
 		return out;
 	}
 	
-	private Data.Ping.Response processPing(MapData in) throws Exception {
-		MapData inpl = packetData.getMapData(crypto.decrypt(in.get(Data.Ping.DETAILS)));
-		long uid = Long.parseLong(inpl.get(Data.Ping.Details.UID));
+	private String processPing(MapData in) throws Exception {
+		MapData inpl = packetData.getMapData(crypto.decrypt(in.get(Packet.DETAILS)));
+		long uid = Long.parseLong(inpl.get(Packet.UID));
 		if (um.isOnline(uid)) {
-			return refreshTimer(uid) ? Data.Ping.Response.SUCCESS : Data.Ping.Response.FAIL;
+			return refreshTimer(uid) ? Packet.SUCCESS : Packet.FAIL;
 		}
-		return Data.Ping.Response.NOT_ONLINE;
+		return Packet.NOT_ONLINE;
 	}
 }

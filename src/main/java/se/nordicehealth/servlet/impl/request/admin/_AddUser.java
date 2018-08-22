@@ -1,12 +1,8 @@
 package se.nordicehealth.servlet.impl.request.admin;
 
-import static se.nordicehealth.servlet.impl.AdminPacket._DATA;
-import static se.nordicehealth.servlet.impl.AdminPacket._TYPE;
-
 import se.nordicehealth.servlet.core.PPCDatabase;
 import se.nordicehealth.servlet.core.PPCLogger;
-import se.nordicehealth.servlet.impl.AdminPacket.AdminData;
-import se.nordicehealth.servlet.impl.AdminPacket.AdminTypes;
+import se.nordicehealth.servlet.impl.AdminPacket;
 import se.nordicehealth.servlet.impl.io.IPacketData;
 import se.nordicehealth.servlet.impl.io.MapData;
 import se.nordicehealth.servlet.impl.request.RequestProcesser;
@@ -21,41 +17,41 @@ public class _AddUser extends RequestProcesser {
 
 	public MapData processRequest(MapData in) {
 		MapData out = packetData.getMapData();
-		out.put(_TYPE, AdminTypes.ADD_USER);
+		out.put(AdminPacket._TYPE, AdminPacket._ADD_USER);
 
 		MapData data = packetData.getMapData();
-		AdminData.AdminAddUser.Response result = AdminData.AdminAddUser.Response.FAIL;
+		String result = AdminPacket.FAIL;
 		try {
-			if (_storeUser(packetData.getMapData(in.get(_DATA)))) {
-				result = AdminData.AdminAddUser.Response.SUCCESS;
+			if (_storeUser(packetData.getMapData(in.get(AdminPacket._DATA)))) {
+				result = AdminPacket.SUCCESS;
 			}
 		} catch (Exception e) { }
-		data.put(AdminData.AdminAddUser.RESPONSE, result);
+		data.put(AdminPacket.RESPONSE, result);
 
-		out.put(_DATA, data.toString());
+		out.put(AdminPacket._DATA, data.toString());
 		return out;
 	}
 	
 	private boolean _storeUser(MapData in) throws Exception {
-		MapData details = packetData.getMapData(in.get(AdminData.AdminAddUser.DETAILS));
+		MapData details = packetData.getMapData(in.get(AdminPacket.DETAILS));
 		
-		int clinic_id = Integer.parseInt(details.get(AdminData.AdminAddUser.Details.CLINIC_ID));
+		int clinic_id = Integer.parseInt(details.get(AdminPacket.CLINIC_ID));
 		if (!db.getClinics().containsKey(clinic_id)) {
 			return false;
 		}
-		String name = details.get(AdminData.AdminAddUser.Details.NAME);
+		String name = details.get(AdminPacket.NAME);
 		if (!validString(name)) {
 			return false;
 		}
-		String password = details.get(AdminData.AdminAddUser.Details.PASSWORD);
+		String password = details.get(AdminPacket.PASSWORD);
 		if (!validString(password)) {
 			return false;
 		}
-		String email = details.get(AdminData.AdminAddUser.Details.EMAIL);
+		String email = details.get(AdminPacket.EMAIL);
 		if (!validString(email) || !email.contains("@")) {
 			return false;
 		}
-		String salt = details.get(AdminData.AdminAddUser.Details.SALT);
+		String salt = details.get(AdminPacket.SALT);
 		if (!validString(salt)) {
 			return false;
 		}

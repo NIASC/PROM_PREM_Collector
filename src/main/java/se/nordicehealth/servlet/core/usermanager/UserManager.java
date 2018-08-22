@@ -1,6 +1,6 @@
 package se.nordicehealth.servlet.core.usermanager;
 
-import se.nordicehealth.common.impl.Packet.Data.RequestLogin.Response;
+import se.nordicehealth.common.impl.Packet;
 import se.nordicehealth.servlet.core.PPCUserManager;
 
 public class UserManager implements PPCUserManager {
@@ -19,16 +19,16 @@ public class UserManager implements PPCUserManager {
 	}
 
 	@Override
-	public synchronized Response addUserToListOfOnline(String username, long uid) {
+	public synchronized String addUserToListOfOnline(String username, long uid) {
 		if (username == null || username.isEmpty() || !isAvailable(uid)) {
-			return Response.ERROR;
+			return Packet.ERROR;
 		} else if (usr.registeredConnections() >= maxConnections) {
-			return Response.SERVER_FULL;
+			return Packet.SERVER_FULL;
 		} else if (usr.isConnected(username)) {
-			return Response.ALREADY_ONLINE;
+			return Packet.ALREADY_ONLINE;
 		} else {
 			usr.registerConnection(new ConnectionData(username, uid));
-			return Response.SUCCESS;
+			return Packet.SUCCESS;
 		}
 	}
 

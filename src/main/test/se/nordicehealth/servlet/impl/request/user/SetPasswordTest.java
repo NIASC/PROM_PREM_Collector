@@ -4,9 +4,7 @@ import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 
-import se.nordicehealth.common.impl.Constants;
 import se.nordicehealth.common.impl.Packet;
-import se.nordicehealth.common.impl.Packet.Data;
 import se.nordicehealth.servlet.core.PPCPasswordValidation;
 import se.nordicehealth.servlet.impl.User;
 import se.nordicehealth.servlet.impl.io.MapData;
@@ -22,8 +20,8 @@ public class SetPasswordTest {
 		requtil = new UserRequestUtil(dbutil);
 		PPCPasswordValidation validation = new PPCPasswordValidation() {
 			@Override
-			public Packet.Data.SetPassword.Response newPassError(User user, String oldPass, String newPass1, String newPass2) {
-				return newPass1.equals(newPass2) ? Data.SetPassword.Response.SUCCESS : Data.SetPassword.Response.MISMATCH_NEW;
+			public String newPassError(User user, String oldPass, String newPass1, String newPass2) {
+				return newPass1.equals(newPass2) ? Packet.SUCCESS : Packet.MISMATCH_NEW;
 			}
 		};
 		processer = new SetPassword(dbutil.um, dbutil.db, dbutil.pd, dbutil.logger, dbutil.encryption, dbutil.crypto, validation);
@@ -31,46 +29,46 @@ public class SetPasswordTest {
 	
 	private MapData createDetails(long uid, String oldPass, String newPass1, String newPass2) {
 		MapData details = dbutil.pd.getMapData();
-        details.put(Data.SetPassword.Details.UID, Long.toString(uid));
-        details.put(Data.SetPassword.Details.OLD_PASSWORD, oldPass);
-        details.put(Data.SetPassword.Details.NEW_PASSWORD1, newPass1);
-        details.put(Data.SetPassword.Details.NEW_PASSWORD2, newPass2);
+        details.put(Packet.UID, Long.toString(uid));
+        details.put(Packet.OLD_PASSWORD, oldPass);
+        details.put(Packet.NEW_PASSWORD1, newPass1);
+        details.put(Packet.NEW_PASSWORD2, newPass2);
         return details;
 	}
 
 	@Test
 	public void testProcessRequestLoggedIn() {
 		long uid = requtil.login();
-        Data.SetPassword.Response respone = processRequest(uid);
-        Assert.assertTrue(Constants.equal(Packet.Data.SetPassword.Response.SUCCESS, respone));
+        String respone = processRequest(uid);
+        Assert.assertEquals(Packet.SUCCESS, respone);
 	}
 
 	@Test
 	public void testProcessRequestNotLoggedIn() {
 		long uid = 0L;
-        Data.SetPassword.Response respone = processRequest(uid);
-        Assert.assertTrue(Constants.equal(Packet.Data.SetPassword.Response.ERROR, respone));
+        String respone = processRequest(uid);
+        Assert.assertEquals(Packet.ERROR, respone);
 	}
 	
-	public Data.SetPassword.Response processRequest(long uid) {
+	public String processRequest(long uid) {
         MapData dataOut = dbutil.pd.getMapData();
 		MapData details = createDetails(uid, "password", "p4ssw0rd", "p4ssw0rd");
-        dataOut.put(Data.SetPassword.DETAILS, dbutil.crypto.encrypt(details.toString()));
+        dataOut.put(Packet.DETAILS, dbutil.crypto.encrypt(details.toString()));
         return sendRequest(dataOut);
 	}
 
-	public Data.SetPassword.Response sendRequest(MapData dataOut) {
+	public String sendRequest(MapData dataOut) {
 		MapData out = dbutil.pd.getMapData();
-		out.put(Packet.TYPE, Packet.Types.SET_PASSWORD);
+		out.put(Packet.TYPE, Packet.SET_PASSWORD);
         out.put(Packet.DATA, dataOut.toString());
 		requtil.setNextDatabaseUserCall();
 		MapData in = processer.processRequest(out);
         MapData inData = dbutil.pd.getMapData(in.get(Packet.DATA));
 
         try {
-        	return Constants.getEnum(Data.SetPassword.Response.values(), inData.get(Data.SetPassword.RESPONSE));
+        	return inData.get(Packet.RESPONSE);
         } catch (NumberFormatException ignored) {
-            return Data.SetPassword.Response.ERROR;
+            return Packet.ERROR;
         }
 	}
 

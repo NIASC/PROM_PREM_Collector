@@ -4,7 +4,6 @@ import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 
-import se.nordicehealth.common.impl.Constants;
 import se.nordicehealth.common.impl.Packet;
 import se.nordicehealth.servlet.impl.io.MapData;
 
@@ -22,33 +21,33 @@ public class ValidatePatientIDTest {
 
 	@Test
 	public void testProcessRequestLoggedIn() {
-        Packet.Data.ValidatePatientID.Response insert = processRequest(requtil.login());
-        Assert.assertTrue(Constants.equal(Packet.Data.ValidatePatientID.Response.SUCCESS, insert));
+        String insert = processRequest(requtil.login());
+        Assert.assertEquals(Packet.SUCCESS, insert);
 	}
 
 	@Test
 	public void testProcessRequestNotLoggedIn() {
-        Packet.Data.ValidatePatientID.Response insert = processRequest(0L);
-        Assert.assertTrue(Constants.equal(Packet.Data.ValidatePatientID.Response.FAIL, insert));
+        String insert = processRequest(0L);
+        Assert.assertEquals(Packet.FAIL, insert);
 	}
 
-	public Packet.Data.ValidatePatientID.Response processRequest(long uid) {
+	public String processRequest(long uid) {
         MapData dataOut = dbutil.pd.getMapData();
 
         MapData details = dbutil.pd.getMapData();
-        details.put(Packet.Data.ValidatePatientID.Details.UID, Long.toString(uid));
+        details.put(Packet.UID, Long.toString(uid));
 
         MapData pobj = dbutil.pd.getMapData();
-        pobj.put(Packet.Data.ValidatePatientID.Patient.PERSONAL_ID, "640823-3234");
+        pobj.put(Packet.PERSONAL_ID, "640823-3234");
 
-        dataOut.put(Packet.Data.ValidatePatientID.DETAIL, dbutil.crypto.encrypt(details.toString()));
-        dataOut.put(Packet.Data.ValidatePatientID.PATIENT, dbutil.crypto.encrypt(pobj.toString()));
+        dataOut.put(Packet.DETAIL, dbutil.crypto.encrypt(details.toString()));
+        dataOut.put(Packet.PATIENT, dbutil.crypto.encrypt(pobj.toString()));
         return sendRequest(dataOut);
 	}
 
-	public Packet.Data.ValidatePatientID.Response sendRequest(MapData dataOut) {
+	public String sendRequest(MapData dataOut) {
 		MapData out = dbutil.pd.getMapData();
-        out.put(Packet.TYPE, Packet.Types.VALIDATE_PID);
+        out.put(Packet.TYPE, Packet.VALIDATE_PID);
 
         out.put(Packet.DATA, dataOut.toString());
 		requtil.setNextDatabaseUserCall();
@@ -56,9 +55,9 @@ public class ValidatePatientIDTest {
         MapData inData = dbutil.pd.getMapData(in.get(Packet.DATA));
 
         try {
-            return Constants.getEnum(Packet.Data.ValidatePatientID.Response.values(), inData.get(Packet.Data.ValidatePatientID.RESPONSE));
+            return inData.get(Packet.RESPONSE);
         } catch (NumberFormatException ignored) {
-        	return Packet.Data.ValidatePatientID.Response.FAIL;
+        	return Packet.FAIL;
         }
 	}
 

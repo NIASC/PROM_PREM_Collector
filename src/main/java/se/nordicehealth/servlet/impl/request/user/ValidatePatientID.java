@@ -1,10 +1,6 @@
 package se.nordicehealth.servlet.impl.request.user;
 
-import static se.nordicehealth.common.impl.Packet.DATA;
-import static se.nordicehealth.common.impl.Packet.TYPE;
-
-import se.nordicehealth.common.impl.Packet.Data;
-import se.nordicehealth.common.impl.Packet.Types;
+import se.nordicehealth.common.impl.Packet;
 import se.nordicehealth.servlet.core.PPCDatabase;
 import se.nordicehealth.servlet.core.PPCEncryption;
 import se.nordicehealth.servlet.core.PPCLogger;
@@ -27,28 +23,28 @@ public class ValidatePatientID extends LoggedInRequestProcesser {
 
 	public MapData processRequest(MapData in) {
 		MapData out = packetData.getMapData();
-		out.put(TYPE, Types.VALIDATE_PID);
+		out.put(Packet.TYPE, Packet.VALIDATE_PID);
 
 		MapData data = packetData.getMapData();
-		Data.ValidatePatientID.Response result = Data.ValidatePatientID.Response.FAIL;
+		String result = Packet.FAIL;
 		try {
-			if (validatePersonalID(packetData.getMapData(in.get(DATA)))) {
-				result = Data.ValidatePatientID.Response.SUCCESS;
+			if (validatePersonalID(packetData.getMapData(in.get(Packet.DATA)))) {
+				result = Packet.SUCCESS;
 			}
 		} catch (Exception ignored) { }
-		data.put(Data.ValidatePatientID.RESPONSE, result);
+		data.put(Packet.RESPONSE, result);
 
-		out.put(DATA, data.toString());
+		out.put(Packet.DATA, data.toString());
 		return out;
 	}
 	
 	private boolean validatePersonalID(MapData in) throws Exception {
-		MapData inpl = packetData.getMapData(crypto.decrypt(in.get(Data.ValidatePatientID.DETAIL)));
-		MapData patient = packetData.getMapData(crypto.decrypt(in.get(Data.ValidatePatientID.PATIENT)));
+		MapData inpl = packetData.getMapData(crypto.decrypt(in.get(Packet.DETAIL)));
+		MapData patient = packetData.getMapData(crypto.decrypt(in.get(Packet.PATIENT)));
 		
-		long uid = Long.parseLong(inpl.get(Data.ValidatePatientID.Details.UID));
+		long uid = Long.parseLong(inpl.get(Packet.UID));
 		refreshTimer(uid);
-		String personalID = patient.get(Data.ValidatePatientID.Patient.PERSONAL_ID);
+		String personalID = patient.get(Packet.PERSONAL_ID);
 		
 		return db.getUser(um.nameForUID(uid)) != null
 				&& locale.formatPersonalID(personalID) != null;
