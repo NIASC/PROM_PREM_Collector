@@ -63,6 +63,7 @@ ppc_build_props_setup() {
     query_user "Enter the URL to the website (e.g. http://localhost:8080)" ppc_app_website_url;
     query_user "Entert Tomcat root user" ppc_tomcat_root_name;
     query_user_secret "Enter Tomcat root password" ppc_tomcat_root_passwd;
+    printf "The server may communicate with the administrator by means of loggin (unexpected) events.\nTomcat (i.e. tomcat user) needs write and execute permissions in the logging directory.\n";
     query_user "Enter the /path/to/the/logs directory where the server logs will be placed" ppc_server_logs_dir;
     
     user_exec 'cat '$template_dir'/build.properties.template | sed -e "s,CATALINA_HOME,"'$ppc_catalina_home'",g" | sed -e "s,APP_WEBSITE_URL,"'$ppc_app_website_url'",g" | sed -e "s,MANAGER_USERNAME,"'$ppc_tomcat_root_name'",g" | sed -e "s,MANAGER_PASSWORD,"'$ppc_tomcat_root_passwd'",g" > build.properties;';
