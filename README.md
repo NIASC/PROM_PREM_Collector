@@ -59,6 +59,8 @@ I Have not manage to figure out why this happens. There may be caused by a confi
 + Remove any current version in the tomcat webapp folder.
 + Copy the war file into the tomcat webapp folder.
 + restart tomcat.
+### The server can not send emails
+Check your email configuration (`src/main/java/se/nordicehealth/res/email_settings.txt`). If you are certain that you have configured the email settings properly, check if you have received a notice about a blocked connection attempt to the server email account. The connection may be considered less secure and may therefor be blocked (this happend with Gmail). See if you can allow less secure connections and try again.
 ### MariaDB can not be accessed by the servlet
 This could either be cause by:
 + The mariadb root user you have configured the server can not be accessed by regular users.
