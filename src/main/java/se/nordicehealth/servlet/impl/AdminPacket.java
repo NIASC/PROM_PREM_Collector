@@ -5,15 +5,15 @@ public class AdminPacket {
 	NULL = "NULL";
 	
 	public static final String
-	_TYPE = "PKT_TYPE",
-	_DATA = "PKT_DATA";
+	_TYPE = "_TYPE",
+	_DATA = "_DATA";
 	
 	public static final String
-	_GET_USER = "GET_USER",
-	_GET_CLINICS = "GET_CLINICS",
-	_ADD_USER = "ADD_USER",
-	_ADD_CLINIC = "ADD_CLINIC",
-	_RSP_REGISTR = "RSP_REGISTR";
+	_GET_USER = "_GET_USER",
+	_GET_CLINICS = "_GET_CLINICS",
+	_ADD_USER = "_ADD_USER",
+	_ADD_CLINIC = "_ADD_CLINIC",
+	_RSP_REGISTR = "_RSP_REGISTR";
 	
 	public static final String 
 	YES = "TRUE",
